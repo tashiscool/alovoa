@@ -3,243 +3,667 @@
 
 <head th:replace="~{fragments :: head}"></head>
 
-<body>
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
 <div th:replace="~{fragments :: header}"></div>
 
-<section class="section">
-    <div class="container">
-        <div class="columns is-centered">
-            <div class="column is-10">
-                <h1 class="title has-text-centered">
-                    <span class="icon has-text-primary"><i class="fas fa-users"></i></span>
-                    <span th:text="#{accountability.title}">Feedback from Others</span>
-                </h1>
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-users mr-2"></i> <span th:text="#{accountability.title}">Feedback from Others</span></h1>
+    <p>Building trust through transparency</p>
+</div>
 
-                <!-- Summary Card -->
-                <div class="box">
-                    <div class="columns is-vcentered">
-                        <div class="column is-4 has-text-centered">
-                            <div class="feedback-score-circle"
-                                 th:classappend="${feedbackScore >= 70} ? 'is-success' : (${feedbackScore >= 40} ? 'is-warning' : 'is-danger')">
-                                <span class="score-value" th:text="${feedbackScore}">75</span>
-                                <span class="score-label">%</span>
-                            </div>
-                            <p class="is-size-7 mt-2" th:text="#{accountability.positive.ratio}">Positive Feedback Ratio</p>
-                        </div>
-                        <div class="column is-8">
-                            <div class="columns has-text-centered">
-                                <div class="column">
-                                    <p class="title is-3 has-text-success" th:text="${positiveCount}">8</p>
-                                    <p class="subtitle is-6" th:text="#{accountability.positive}">Positive</p>
-                                </div>
-                                <div class="column">
-                                    <p class="title is-3 has-text-danger" th:text="${negativeCount}">2</p>
-                                    <p class="subtitle is-6" th:text="#{accountability.negative}">Negative</p>
-                                </div>
-                                <div class="column">
-                                    <p class="title is-3" th:text="${totalCount}">10</p>
-                                    <p class="subtitle is-6" th:text="#{accountability.total}">Total</p>
-                                </div>
-                            </div>
-                        </div>
+<div class="aura-container">
+    <!-- Summary Card -->
+    <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
+        <div class="aura-feedback-summary">
+            <div class="aura-feedback-score-wrapper">
+                <div class="aura-feedback-score-circle"
+                     th:classappend="${feedbackScore >= 70} ? 'success' : (${feedbackScore >= 40} ? 'warning' : 'danger')">
+                    <svg width="140" height="140" viewBox="0 0 140 140">
+                        <circle class="bg" cx="70" cy="70" r="60"/>
+                        <circle class="progress" cx="70" cy="70" r="60"
+                                th:style="'stroke-dashoffset: ' + (377 - (377 * ${feedbackScore} / 100))"/>
+                    </svg>
+                    <div class="aura-feedback-score-value">
+                        <span th:text="${feedbackScore}">75</span>
+                        <small>%</small>
                     </div>
                 </div>
+                <p class="aura-feedback-score-label" th:text="#{accountability.positive.ratio}">Positive Feedback Ratio</p>
+            </div>
 
-                <!-- Category Breakdown -->
-                <div class="box" th:if="${not #maps.isEmpty(categoryBreakdown)}">
-                    <h3 class="title is-5" th:text="#{accountability.breakdown}">Feedback Breakdown</h3>
-                    <div class="tags are-medium">
-                        <th:block th:each="entry : ${categoryBreakdown}">
-                            <span class="tag"
-                                  th:classappend="${entry.key == 'POSITIVE_EXPERIENCE'} ? 'is-success' : 'is-danger is-light'">
-                                <span th:text="${entry.key}">Category</span>
-                                <span class="ml-1">(<span th:text="${entry.value}">0</span>)</span>
-                            </span>
-                        </th:block>
-                    </div>
+            <div class="aura-feedback-stats">
+                <div class="aura-feedback-stat positive">
+                    <i class="fas fa-thumbs-up"></i>
+                    <span class="value" th:text="${positiveCount}">8</span>
+                    <span class="label" th:text="#{accountability.positive}">Positive</span>
                 </div>
-
-                <!-- Feedback List -->
-                <div th:if="${not #lists.isEmpty(feedback)}">
-                    <h3 class="title is-5" th:text="#{accountability.recent}">Recent Feedback</h3>
-
-                    <div th:each="report : ${feedback}" class="box mb-4">
-                        <article class="media">
-                            <div class="media-left">
-                                <span class="icon is-large"
-                                      th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'has-text-success' : 'has-text-danger'">
-                                    <i th:class="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'fas fa-thumbs-up fa-2x' : 'fas fa-exclamation-triangle fa-2x'"></i>
-                                </span>
-                            </div>
-                            <div class="media-content">
-                                <div class="content">
-                                    <p>
-                                        <strong th:text="${report.title}">Report Title</strong>
-                                        <span class="tag is-small ml-2"
-                                              th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'is-success is-light' : 'is-danger is-light'"
-                                              th:text="${#strings.replace(report.category.name(), '_', ' ')}">Category</span>
-                                        <span class="tag is-info is-light is-small ml-1" th:if="${report.evidenceVerified}">
-                                            <span class="icon is-small"><i class="fas fa-check"></i></span>
-                                            <span th:text="#{accountability.verified}">Verified</span>
-                                        </span>
-                                        <br>
-                                        <span th:text="${report.description}">Description of the feedback...</span>
-                                        <br>
-                                        <small class="has-text-grey">
-                                            <span th:if="${!report.anonymous}" th:text="${'- ' + report.reporterName}">Reporter</span>
-                                            <span th:if="${report.anonymous}" th:text="#{accountability.anonymous}">- Anonymous</span>
-                                            <span class="ml-2" th:text="${#dates.format(report.createdAt, 'MMM dd, yyyy')}">Date</span>
-                                        </small>
-                                    </p>
-
-                                    <!-- Subject's Response -->
-                                    <div th:if="${report.subjectResponse != null}" class="notification is-light mt-3">
-                                        <p>
-                                            <strong th:text="#{accountability.response}">Response:</strong>
-                                            <span th:text="${report.subjectResponse}">Their response...</span>
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <nav class="level is-mobile">
-                                    <div class="level-left">
-                                        <a class="level-item" onclick="markHelpful(this)" th:data-uuid="${report.uuid}">
-                                            <span class="icon is-small"><i class="fas fa-thumbs-up"></i></span>
-                                            <span class="ml-1" th:text="${report.helpfulCount}">0</span>
-                                            <span class="ml-1 is-size-7" th:text="#{accountability.helpful}">helpful</span>
-                                        </a>
-                                        <a class="level-item has-text-grey" onclick="flagReport(this)" th:data-uuid="${report.uuid}">
-                                            <span class="icon is-small"><i class="fas fa-flag"></i></span>
-                                            <span class="ml-1 is-size-7" th:text="#{accountability.flag}">Flag</span>
-                                        </a>
-                                    </div>
-                                </nav>
-                            </div>
-                        </article>
-                    </div>
+                <div class="aura-feedback-stat negative">
+                    <i class="fas fa-thumbs-down"></i>
+                    <span class="value" th:text="${negativeCount}">2</span>
+                    <span class="label" th:text="#{accountability.negative}">Negative</span>
                 </div>
-
-                <!-- No Feedback State -->
-                <div th:if="${#lists.isEmpty(feedback)}" class="notification is-info is-light has-text-centered">
-                    <p th:text="#{accountability.no.feedback}">No public feedback yet.</p>
-                </div>
-
-                <!-- Submit Feedback Button (for viewing other users) -->
-                <div th:if="${canSubmitFeedback}" class="has-text-centered mt-5">
-                    <button class="button is-primary is-large" onclick="openSubmitModal()">
-                        <span class="icon"><i class="fas fa-comment-alt"></i></span>
-                        <span th:text="#{accountability.submit}">Leave Feedback</span>
-                    </button>
+                <div class="aura-feedback-stat total">
+                    <i class="fas fa-comments"></i>
+                    <span class="value" th:text="${totalCount}">10</span>
+                    <span class="label" th:text="#{accountability.total}">Total</span>
                 </div>
             </div>
         </div>
     </div>
-</section>
+
+    <!-- Category Breakdown -->
+    <div class="aura-card aura-animate-fade-up" th:if="${not #maps.isEmpty(categoryBreakdown)}" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-chart-pie"></i></div>
+            <div>
+                <div class="aura-card-title" th:text="#{accountability.breakdown}">Feedback Breakdown</div>
+                <div class="aura-card-subtitle">Categories of feedback received</div>
+            </div>
+        </div>
+        <div class="aura-traits" style="margin-top: 1rem;">
+            <th:block th:each="entry : ${categoryBreakdown}">
+                <span class="aura-trait"
+                      th:classappend="${entry.key == 'POSITIVE_EXPERIENCE'} ? 'aura-trait-positive' : 'aura-trait-negative'">
+                    <i th:class="${entry.key == 'POSITIVE_EXPERIENCE'} ? 'fas fa-smile' : 'fas fa-frown'"></i>
+                    <span th:text="${#strings.replace(entry.key, '_', ' ')}">Category</span>
+                    <span class="aura-trait-count" th:text="${entry.value}">0</span>
+                </span>
+            </th:block>
+        </div>
+    </div>
+
+    <!-- Feedback List -->
+    <div th:if="${not #lists.isEmpty(feedback)}" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-stream" style="color: var(--aura-primary);"></i>
+            <span th:text="#{accountability.recent}">Recent Feedback</span>
+        </h3>
+
+        <div class="aura-feedback-list aura-stagger">
+            <div th:each="report : ${feedback}" class="aura-card aura-feedback-item">
+                <div class="aura-feedback-icon"
+                     th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'positive' : 'negative'">
+                    <i th:class="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'fas fa-thumbs-up' : 'fas fa-exclamation-triangle'"></i>
+                </div>
+
+                <div class="aura-feedback-content">
+                    <div class="aura-feedback-header">
+                        <strong th:text="${report.title}">Report Title</strong>
+                        <div class="aura-feedback-badges">
+                            <span class="aura-trait"
+                                  th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'aura-trait-positive' : 'aura-trait-negative'"
+                                  th:text="${#strings.replace(report.category.name(), '_', ' ')}">Category</span>
+                            <span class="aura-trait aura-trait-positive" th:if="${report.evidenceVerified}">
+                                <i class="fas fa-check-circle"></i>
+                                <span th:text="#{accountability.verified}">Verified</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="aura-feedback-description" th:text="${report.description}">
+                        Description of the feedback...
+                    </p>
+
+                    <div class="aura-feedback-meta">
+                        <span th:if="${!report.anonymous}">
+                            <i class="fas fa-user"></i>
+                            <span th:text="${report.reporterName}">Reporter</span>
+                        </span>
+                        <span th:if="${report.anonymous}">
+                            <i class="fas fa-user-secret"></i>
+                            <span th:text="#{accountability.anonymous}">Anonymous</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-calendar"></i>
+                            <span th:text="${#dates.format(report.createdAt, 'MMM dd, yyyy')}">Date</span>
+                        </span>
+                    </div>
+
+                    <!-- Subject's Response -->
+                    <div th:if="${report.subjectResponse != null}" class="aura-feedback-response">
+                        <div class="aura-feedback-response-header">
+                            <i class="fas fa-reply"></i>
+                            <strong th:text="#{accountability.response}">Response</strong>
+                        </div>
+                        <p th:text="${report.subjectResponse}">Their response...</p>
+                    </div>
+
+                    <div class="aura-feedback-actions">
+                        <button class="aura-feedback-action" onclick="markHelpful(this)" th:data-uuid="${report.uuid}">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span th:text="${report.helpfulCount}">0</span>
+                            <span th:text="#{accountability.helpful}">helpful</span>
+                        </button>
+                        <button class="aura-feedback-action danger" onclick="flagReport(this)" th:data-uuid="${report.uuid}">
+                            <i class="fas fa-flag"></i>
+                            <span th:text="#{accountability.flag}">Flag</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Feedback State -->
+    <div th:if="${#lists.isEmpty(feedback)}" class="aura-empty-state aura-animate-fade-up" style="margin-top: 1.5rem;">
+        <div class="aura-empty-icon">
+            <i class="fas fa-comment-slash fa-3x"></i>
+        </div>
+        <h3>No Feedback Yet</h3>
+        <p th:text="#{accountability.no.feedback}">No public feedback yet.</p>
+    </div>
+
+    <!-- Submit Feedback Button -->
+    <div th:if="${canSubmitFeedback}" style="text-align: center; margin-top: 2rem;">
+        <button class="aura-btn aura-btn-primary aura-btn-lg" onclick="openSubmitModal()">
+            <i class="fas fa-comment-alt"></i>
+            <span th:text="#{accountability.submit}">Leave Feedback</span>
+        </button>
+    </div>
+</div>
 
 <!-- Submit Feedback Modal -->
-<div id="submit-modal" class="modal">
-    <div class="modal-background" onclick="closeSubmitModal()"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title" th:text="#{accountability.submit.title}">Submit Feedback</p>
-            <button class="delete" aria-label="close" onclick="closeSubmitModal()"></button>
-        </header>
-        <section class="modal-card-body">
+<div id="submit-modal" class="aura-modal">
+    <div class="aura-modal-backdrop" onclick="closeSubmitModal()"></div>
+    <div class="aura-modal-content aura-animate-scale">
+        <div class="aura-modal-header">
+            <h3 th:text="#{accountability.submit.title}">Submit Feedback</h3>
+            <button class="aura-modal-close" onclick="closeSubmitModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="aura-modal-body">
             <form id="feedback-form">
                 <input type="hidden" id="subject-uuid" th:value="${subjectUuid}">
 
-                <div class="field">
-                    <label class="label" th:text="#{accountability.form.type}">Feedback Type</label>
-                    <div class="control">
-                        <div class="select is-fullwidth">
-                            <select id="category" onchange="updateBehaviors()">
-                                <option value="POSITIVE_EXPERIENCE">Positive Experience</option>
-                                <option value="GHOSTING">Ghosting</option>
-                                <option value="DISHONESTY">Dishonesty</option>
-                                <option value="DISRESPECT">Disrespect</option>
-                                <option value="HARASSMENT">Harassment</option>
-                                <option value="MANIPULATION">Manipulation</option>
-                                <option value="BOUNDARY_VIOLATION">Boundary Violation</option>
-                                <option value="DATE_NO_SHOW">Date No-Show</option>
-                            </select>
-                        </div>
+                <div class="aura-form-group">
+                    <label class="aura-label" th:text="#{accountability.form.type}">Feedback Type</label>
+                    <select id="category" class="aura-select" onchange="updateBehaviors()">
+                        <option value="POSITIVE_EXPERIENCE">Positive Experience</option>
+                        <option value="GHOSTING">Ghosting</option>
+                        <option value="DISHONESTY">Dishonesty</option>
+                        <option value="DISRESPECT">Disrespect</option>
+                        <option value="HARASSMENT">Harassment</option>
+                        <option value="MANIPULATION">Manipulation</option>
+                        <option value="BOUNDARY_VIOLATION">Boundary Violation</option>
+                        <option value="DATE_NO_SHOW">Date No-Show</option>
+                    </select>
+                </div>
+
+                <div class="aura-form-group">
+                    <label class="aura-label" th:text="#{accountability.form.behavior}">Specific Behavior</label>
+                    <select id="behavior-type" class="aura-select">
+                        <!-- Populated by JavaScript -->
+                    </select>
+                </div>
+
+                <div class="aura-form-group">
+                    <label class="aura-label" th:text="#{accountability.form.title}">Title</label>
+                    <input type="text" id="report-title" class="aura-input" maxlength="200"
+                           th:placeholder="#{accountability.form.title.placeholder}">
+                </div>
+
+                <div class="aura-form-group">
+                    <label class="aura-label" th:text="#{accountability.form.description}">Description</label>
+                    <textarea id="report-description" class="aura-textarea" rows="4"
+                              th:placeholder="#{accountability.form.description.placeholder}"></textarea>
+                </div>
+
+                <label class="aura-checkbox" style="margin-top: 1rem;">
+                    <input type="checkbox" id="anonymous">
+                    <span class="aura-checkbox-mark"></span>
+                    <span th:text="#{accountability.form.anonymous}">Submit anonymously</span>
+                </label>
+
+                <div class="aura-alert aura-alert-warning" style="margin-top: 1rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <p th:text="#{accountability.form.warning}" style="font-size: 0.875rem;">
+                            False or malicious reports will affect your own reputation score.
+                            Please only submit honest feedback.
+                        </p>
                     </div>
-                </div>
-
-                <div class="field">
-                    <label class="label" th:text="#{accountability.form.behavior}">Specific Behavior</label>
-                    <div class="control">
-                        <div class="select is-fullwidth">
-                            <select id="behavior-type">
-                                <!-- Populated by JavaScript -->
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label class="label" th:text="#{accountability.form.title}">Title</label>
-                    <div class="control">
-                        <input class="input" type="text" id="report-title" maxlength="200"
-                               th:placeholder="#{accountability.form.title.placeholder}">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label class="label" th:text="#{accountability.form.description}">Description</label>
-                    <div class="control">
-                        <textarea class="textarea" id="report-description" rows="4"
-                                  th:placeholder="#{accountability.form.description.placeholder}"></textarea>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label class="checkbox">
-                        <input type="checkbox" id="anonymous">
-                        <span th:text="#{accountability.form.anonymous}">Submit anonymously</span>
-                    </label>
-                </div>
-
-                <div class="notification is-warning is-light">
-                    <p class="is-size-7" th:text="#{accountability.form.warning}">
-                        False or malicious reports will affect your own reputation score.
-                        Please only submit honest feedback.
-                    </p>
                 </div>
             </form>
-        </section>
-        <footer class="modal-card-foot">
-            <button class="button is-primary" onclick="submitFeedback()" th:text="#{accountability.submit}">Submit</button>
-            <button class="button" onclick="closeSubmitModal()" th:text="#{button.cancel}">Cancel</button>
-        </footer>
+        </div>
+
+        <div class="aura-modal-footer">
+            <button class="aura-btn aura-btn-secondary" onclick="closeSubmitModal()">
+                <span th:text="#{button.cancel}">Cancel</span>
+            </button>
+            <button class="aura-btn aura-btn-primary" onclick="submitFeedback()">
+                <i class="fas fa-paper-plane"></i>
+                <span th:text="#{accountability.submit}">Submit</span>
+            </button>
+        </div>
     </div>
 </div>
 
 <div th:replace="~{fragments :: footer}"></div>
 
 <style>
-    .feedback-score-circle {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
+    .aura-feedback-summary {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .aura-feedback-score-wrapper {
+        text-align: center;
+    }
+
+    .aura-feedback-score-circle {
+        position: relative;
+        width: 140px;
+        height: 140px;
+    }
+
+    .aura-feedback-score-circle svg {
+        transform: rotate(-90deg);
+    }
+
+    .aura-feedback-score-circle circle {
+        fill: none;
+        stroke-width: 8;
+        stroke-linecap: round;
+    }
+
+    .aura-feedback-score-circle circle.bg {
+        stroke: var(--aura-gray-200);
+    }
+
+    .aura-feedback-score-circle circle.progress {
+        stroke-dasharray: 377;
+        transition: stroke-dashoffset 1s ease;
+    }
+
+    .aura-feedback-score-circle.success circle.progress {
+        stroke: var(--aura-success);
+    }
+
+    .aura-feedback-score-circle.warning circle.progress {
+        stroke: #f59e0b;
+    }
+
+    .aura-feedback-score-circle.danger circle.progress {
+        stroke: var(--aura-danger);
+    }
+
+    .aura-feedback-score-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--aura-gray-800);
+    }
+
+    .aura-feedback-score-value small {
+        font-size: 1rem;
+        color: var(--aura-gray-500);
+    }
+
+    .aura-feedback-score-label {
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+        margin-top: 0.5rem;
+    }
+
+    .aura-feedback-stats {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .aura-feedback-stat {
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .aura-feedback-stat i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .aura-feedback-stat.positive i {
+        color: var(--aura-success);
+    }
+
+    .aura-feedback-stat.negative i {
+        color: var(--aura-danger);
+    }
+
+    .aura-feedback-stat.total i {
+        color: var(--aura-primary);
+    }
+
+    .aura-feedback-stat .value {
+        display: block;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--aura-gray-800);
+    }
+
+    .aura-feedback-stat .label {
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+    }
+
+    .aura-trait-count {
+        background: rgba(255, 255, 255, 0.3);
+        padding: 0.125rem 0.5rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        margin-left: 0.25rem;
+    }
+
+    .aura-feedback-list {
         display: flex;
         flex-direction: column;
+        gap: 1rem;
+    }
+
+    .aura-feedback-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    .aura-feedback-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
         align-items: center;
         justify-content: center;
-        border: 6px solid;
-        margin: 0 auto;
+        font-size: 1.25rem;
+        flex-shrink: 0;
     }
-    .feedback-score-circle.is-success { border-color: #48c774; }
-    .feedback-score-circle.is-warning { border-color: #ffdd57; }
-    .feedback-score-circle.is-danger { border-color: #f14668; }
-    .score-value {
-        font-size: 2.5rem;
-        font-weight: bold;
-        line-height: 1;
+
+    .aura-feedback-icon.positive {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2));
+        color: var(--aura-success);
     }
-    .score-label {
+
+    .aura-feedback-icon.negative {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2));
+        color: var(--aura-danger);
+    }
+
+    .aura-feedback-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .aura-feedback-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .aura-feedback-header strong {
         font-size: 1rem;
-        color: #666;
+        color: var(--aura-gray-800);
+    }
+
+    .aura-feedback-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .aura-feedback-description {
+        color: var(--aura-gray-600);
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+
+    .aura-feedback-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8125rem;
+        color: var(--aura-gray-500);
+        margin-bottom: 0.75rem;
+    }
+
+    .aura-feedback-meta i {
+        margin-right: 0.25rem;
+    }
+
+    .aura-feedback-response {
+        background: var(--aura-gray-50);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .aura-feedback-response-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--aura-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .aura-feedback-response p {
+        color: var(--aura-gray-600);
+        font-size: 0.9375rem;
+        margin: 0;
+    }
+
+    .aura-feedback-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .aura-feedback-action {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        background: none;
+        border: none;
+        color: var(--aura-gray-500);
+        font-size: 0.8125rem;
+        cursor: pointer;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .aura-feedback-action:hover {
+        background: var(--aura-gray-100);
+        color: var(--aura-primary);
+    }
+
+    .aura-feedback-action.danger:hover {
+        color: var(--aura-danger);
+    }
+
+    .aura-empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: var(--aura-gray-50);
+        border-radius: 16px;
+    }
+
+    .aura-empty-icon {
+        color: var(--aura-gray-400);
+        margin-bottom: 1rem;
+    }
+
+    .aura-empty-state h3 {
+        font-size: 1.25rem;
+        color: var(--aura-gray-700);
+        margin-bottom: 0.5rem;
+    }
+
+    .aura-empty-state p {
+        color: var(--aura-gray-500);
+    }
+
+    /* Modal Styles */
+    .aura-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .aura-modal.active {
+        display: flex;
+    }
+
+    .aura-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    .aura-modal-content {
+        position: relative;
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    }
+
+    .aura-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--aura-gray-200);
+    }
+
+    .aura-modal-header h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .aura-modal-close {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: var(--aura-gray-100);
+        color: var(--aura-gray-600);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .aura-modal-close:hover {
+        background: var(--aura-gray-200);
+    }
+
+    .aura-modal-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+    }
+
+    .aura-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        border-top: 1px solid var(--aura-gray-200);
+    }
+
+    .aura-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .aura-checkbox input {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--aura-primary);
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .aura-animate-scale {
+        animation: scaleIn 0.3s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .aura-feedback-score-circle circle.bg {
+            stroke: var(--aura-gray-700);
+        }
+
+        .aura-feedback-score-value,
+        .aura-feedback-stat .value,
+        .aura-feedback-header strong {
+            color: var(--aura-gray-100);
+        }
+
+        .aura-feedback-response {
+            background: var(--aura-gray-800);
+        }
+
+        .aura-empty-state {
+            background: var(--aura-gray-800);
+        }
+
+        .aura-modal-content {
+            background: var(--aura-gray-900);
+        }
+
+        .aura-modal-header,
+        .aura-modal-footer {
+            border-color: var(--aura-gray-700);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .aura-feedback-summary {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .aura-feedback-stats {
+            width: 100%;
+            justify-content: space-around;
+        }
+
+        .aura-feedback-item {
+            flex-direction: column;
+        }
+
+        .aura-feedback-icon {
+            width: 40px;
+            height: 40px;
+        }
     }
 </style>
 
@@ -293,12 +717,14 @@
     }
 
     function openSubmitModal() {
-        document.getElementById('submit-modal').classList.add('is-active');
+        document.getElementById('submit-modal').classList.add('active');
+        document.body.style.overflow = 'hidden';
         updateBehaviors();
     }
 
     function closeSubmitModal() {
-        document.getElementById('submit-modal').classList.remove('is-active');
+        document.getElementById('submit-modal').classList.remove('active');
+        document.body.style.overflow = '';
     }
 
     async function submitFeedback() {
@@ -355,6 +781,13 @@
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', updateBehaviors);
+
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeSubmitModal();
+        }
+    });
 </script>
 
 </body>

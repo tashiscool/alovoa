@@ -3,201 +3,199 @@
 
 <head th:replace="~{fragments :: head}"></head>
 
-<body>
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
 <div th:replace="~{fragments :: header}"></div>
 
-<section class="section">
-    <div class="container">
-        <div class="columns is-centered">
-            <div class="column is-10">
-                <h1 class="title has-text-centered">
-                    <span class="icon has-text-primary"><i class="fas fa-star"></i></span>
-                    <span th:text="#{reputation.title}">Your Reputation</span>
-                </h1>
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-star mr-2"></i> <span th:text="#{reputation.title}">Your Reputation</span></h1>
+    <p>Build trust through positive interactions</p>
+</div>
 
-                <!-- Overall Score -->
-                <div class="box has-text-centered">
-                    <div class="is-flex is-justify-content-center is-align-items-center">
-                        <div class="reputation-score-circle" th:classappend="${overallScore >= 70} ? 'is-success' : (${overallScore >= 50} ? 'is-warning' : 'is-danger')">
-                            <span class="score-value" th:text="${overallScore}">75</span>
-                        </div>
-                    </div>
-                    <h2 class="title is-4 mt-4" th:text="#{reputation.overall}">Overall Score</h2>
-                    <span class="tag is-large" th:classappend="${trustLevel == 'HIGHLY_TRUSTED'} ? 'is-success' :
-                        (${trustLevel == 'TRUSTED'} ? 'is-primary' :
-                        (${trustLevel == 'VERIFIED'} ? 'is-info' :
-                        (${trustLevel == 'NEW_MEMBER'} ? 'is-light' :
-                        (${trustLevel == 'UNDER_REVIEW'} ? 'is-warning' : 'is-danger'))))"
-                          th:text="${trustLevel}">Trusted</span>
-                </div>
+<div class="aura-container">
+    <!-- Overall Score Card -->
+    <div class="aura-card aura-animate-fade-up" style="text-align: center; padding: 2rem;">
+        <div class="aura-score-circle">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+                <defs>
+                    <linearGradient id="aura-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#7c3aed"/>
+                        <stop offset="100%" style="stop-color:#ec4899"/>
+                    </linearGradient>
+                </defs>
+                <circle class="circle-bg" cx="80" cy="80" r="65"/>
+                <circle class="circle-progress" cx="80" cy="80" r="65"
+                        th:style="'stroke-dashoffset: ' + (408 - (408 * ${overallScore} / 100))"/>
+            </svg>
+            <div class="aura-score-value">
+                <div class="aura-score-number" th:text="${overallScore}">75</div>
+                <div class="aura-score-label">Score</div>
+            </div>
+        </div>
 
-                <!-- Badges -->
-                <div class="box" th:if="${not #lists.isEmpty(badges)}">
-                    <h3 class="title is-5" th:text="#{reputation.badges}">Your Badges</h3>
-                    <div class="tags are-medium">
-                        <span th:each="badge : ${badges}" class="tag is-primary is-light">
-                            <span class="icon"><i th:class="${'fas fa-' + badge.icon}"></i></span>
-                            <span th:text="${badge.name}">Badge</span>
-                        </span>
-                    </div>
-                </div>
+        <div style="margin-top: 1.5rem;">
+            <span class="aura-trait" th:classappend="${trustLevel == 'HIGHLY_TRUSTED'} ? 'aura-trait-positive' :
+                (${trustLevel == 'UNDER_REVIEW' or trustLevel == 'RESTRICTED'} ? 'aura-trait-negative' : '')"
+                  style="font-size: 1rem; padding: 0.75rem 1.5rem;">
+                <i th:class="${trustLevel == 'HIGHLY_TRUSTED'} ? 'fas fa-shield-alt' :
+                    (${trustLevel == 'TRUSTED'} ? 'fas fa-check-circle' :
+                    (${trustLevel == 'VERIFIED'} ? 'fas fa-user-check' :
+                    (${trustLevel == 'NEW_MEMBER'} ? 'fas fa-user' :
+                    (${trustLevel == 'UNDER_REVIEW'} ? 'fas fa-clock' : 'fas fa-exclamation-triangle'))))"></i>
+                <span th:text="${trustLevel}" style="margin-left: 0.5rem;">Trusted</span>
+            </span>
+        </div>
+    </div>
 
-                <!-- Score Breakdown -->
-                <div class="columns is-multiline">
-                    <div class="column is-6">
-                        <div class="box">
-                            <h3 class="title is-5">
-                                <span class="icon has-text-info"><i class="fas fa-comments"></i></span>
-                                <span th:text="#{reputation.response}">Response Quality</span>
-                            </h3>
-                            <progress class="progress is-info" th:value="${responseQuality}" max="100"></progress>
-                            <p class="has-text-grey" th:text="${responseQuality + '%'}"></p>
-                            <p class="is-size-7" th:text="#{reputation.response.desc}">
-                                Based on message quality and response times.
-                            </p>
-                        </div>
-                    </div>
+    <!-- Badges -->
+    <div class="aura-card aura-animate-fade-up" th:if="${not #lists.isEmpty(badges)}">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-award"></i></div>
+            <div>
+                <div class="aura-card-title" th:text="#{reputation.badges}">Your Badges</div>
+                <div class="aura-card-subtitle">Achievements you've earned</div>
+            </div>
+        </div>
+        <div class="aura-traits">
+            <span th:each="badge : ${badges}" class="aura-trait aura-trait-positive">
+                <i th:class="${'fas fa-' + badge.icon}"></i>
+                <span th:text="${badge.name}">Badge</span>
+            </span>
+        </div>
+    </div>
 
-                    <div class="column is-6">
-                        <div class="box">
-                            <h3 class="title is-5">
-                                <span class="icon has-text-success"><i class="fas fa-handshake"></i></span>
-                                <span th:text="#{reputation.respect}">Respect Score</span>
-                            </h3>
-                            <progress class="progress is-success" th:value="${respectScore}" max="100"></progress>
-                            <p class="has-text-grey" th:text="${respectScore + '%'}"></p>
-                            <p class="is-size-7" th:text="#{reputation.respect.desc}">
-                                How respectfully you interact with others.
-                            </p>
-                        </div>
-                    </div>
+    <!-- Score Breakdown -->
+    <div class="aura-stats aura-stagger">
+        <div class="aura-stat">
+            <div class="aura-stat-value" th:text="${responseQuality}">85</div>
+            <div class="aura-stat-label"><i class="fas fa-comments mr-1"></i> Response</div>
+        </div>
+        <div class="aura-stat">
+            <div class="aura-stat-value" th:text="${respectScore}">90</div>
+            <div class="aura-stat-label"><i class="fas fa-handshake mr-1"></i> Respect</div>
+        </div>
+        <div class="aura-stat">
+            <div class="aura-stat-value" th:text="${authenticityScore}">75</div>
+            <div class="aura-stat-label"><i class="fas fa-user-check mr-1"></i> Authenticity</div>
+        </div>
+        <div class="aura-stat">
+            <div class="aura-stat-value" th:text="${investmentScore}">80</div>
+            <div class="aura-stat-label"><i class="fas fa-heart mr-1"></i> Investment</div>
+        </div>
+    </div>
 
-                    <div class="column is-6">
-                        <div class="box">
-                            <h3 class="title is-5">
-                                <span class="icon has-text-primary"><i class="fas fa-user-check"></i></span>
-                                <span th:text="#{reputation.authenticity}">Authenticity</span>
-                            </h3>
-                            <progress class="progress is-primary" th:value="${authenticityScore}" max="100"></progress>
-                            <p class="has-text-grey" th:text="${authenticityScore + '%'}"></p>
-                            <p class="is-size-7" th:text="#{reputation.authenticity.desc}">
-                                Profile completeness and verification status.
-                            </p>
-                        </div>
-                    </div>
+    <!-- Detailed Breakdowns -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+        <div class="aura-card">
+            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">
+                <i class="fas fa-comments" style="color: var(--aura-info);"></i>
+                <span th:text="#{reputation.response}" style="margin-left: 0.5rem;">Response Quality</span>
+            </h3>
+            <div class="aura-progress-bar" style="height: 10px;">
+                <div class="aura-progress-fill" th:style="'width: ' + ${responseQuality} + '%'"></div>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--aura-gray-500); margin-top: 0.5rem;"
+               th:text="#{reputation.response.desc}">Based on message quality and response times.</p>
+        </div>
 
-                    <div class="column is-6">
-                        <div class="box">
-                            <h3 class="title is-5">
-                                <span class="icon has-text-warning"><i class="fas fa-heart"></i></span>
-                                <span th:text="#{reputation.investment}">Investment</span>
-                            </h3>
-                            <progress class="progress is-warning" th:value="${investmentScore}" max="100"></progress>
-                            <p class="has-text-grey" th:text="${investmentScore + '%'}"></p>
-                            <p class="is-size-7" th:text="#{reputation.investment.desc}">
-                                Your commitment to meaningful connections.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+        <div class="aura-card">
+            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">
+                <i class="fas fa-handshake" style="color: var(--aura-success);"></i>
+                <span th:text="#{reputation.respect}" style="margin-left: 0.5rem;">Respect Score</span>
+            </h3>
+            <div class="aura-progress-bar" style="height: 10px;">
+                <div class="aura-progress-fill" th:style="'width: ' + ${respectScore} + '%'" style="background: var(--aura-gradient-success);"></div>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--aura-gray-500); margin-top: 0.5rem;"
+               th:text="#{reputation.respect.desc}">How respectfully you interact with others.</p>
+        </div>
 
-                <!-- Stats -->
-                <div class="box">
-                    <h3 class="title is-5" th:text="#{reputation.stats}">Statistics</h3>
-                    <div class="columns has-text-centered">
-                        <div class="column">
-                            <p class="title is-3" th:text="${datesCompleted}">5</p>
-                            <p class="subtitle is-6" th:text="#{reputation.dates.completed}">Dates Completed</p>
-                        </div>
-                        <div class="column">
-                            <p class="title is-3" th:text="${positiveFeedback}">12</p>
-                            <p class="subtitle is-6" th:text="#{reputation.positive.feedback}">Positive Feedback</p>
-                        </div>
-                        <div class="column">
-                            <p class="title is-3" th:text="${ghostingCount}">0</p>
-                            <p class="subtitle is-6" th:text="#{reputation.ghosting}">Ghosting Events</p>
-                        </div>
-                    </div>
-                </div>
+        <div class="aura-card">
+            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">
+                <i class="fas fa-user-check" style="color: var(--aura-primary);"></i>
+                <span th:text="#{reputation.authenticity}" style="margin-left: 0.5rem;">Authenticity</span>
+            </h3>
+            <div class="aura-progress-bar" style="height: 10px;">
+                <div class="aura-progress-fill" th:style="'width: ' + ${authenticityScore} + '%'"></div>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--aura-gray-500); margin-top: 0.5rem;"
+               th:text="#{reputation.authenticity.desc}">Profile completeness and verification status.</p>
+        </div>
 
-                <!-- Recent Activity -->
-                <div class="box" th:if="${not #lists.isEmpty(recentActivity)}">
-                    <h3 class="title is-5" th:text="#{reputation.activity}">Recent Activity</h3>
-                    <div class="timeline">
-                        <div th:each="event : ${recentActivity}" class="timeline-item">
-                            <div class="timeline-marker"
-                                 th:classappend="${event.impact > 0} ? 'is-success' : 'is-danger'"></div>
-                            <div class="timeline-content">
-                                <p class="heading" th:text="${#dates.format(event.date, 'MMM dd, yyyy')}"></p>
-                                <p th:text="${event.description}">Activity description</p>
-                                <span class="tag"
-                                      th:classappend="${event.impact > 0} ? 'is-success' : 'is-danger'"
-                                      th:text="${(event.impact > 0 ? '+' : '') + event.impact}">+2.0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div class="aura-card">
+            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">
+                <i class="fas fa-heart" style="color: var(--aura-secondary);"></i>
+                <span th:text="#{reputation.investment}" style="margin-left: 0.5rem;">Investment</span>
+            </h3>
+            <div class="aura-progress-bar" style="height: 10px;">
+                <div class="aura-progress-fill" th:style="'width: ' + ${investmentScore} + '%'" style="background: var(--aura-gradient-warm);"></div>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--aura-gray-500); margin-top: 0.5rem;"
+               th:text="#{reputation.investment.desc}">Your commitment to meaningful connections.</p>
+        </div>
+    </div>
 
-                <!-- Tips to improve -->
-                <div class="notification is-info is-light" th:if="${overallScore < 70}">
-                    <h3 class="title is-5" th:text="#{reputation.improve.title}">Tips to Improve</h3>
-                    <ul>
-                        <li th:if="${not videoVerified}" th:text="#{reputation.improve.verify}">
-                            Complete video verification to boost your authenticity score
-                        </li>
-                        <li th:if="${responseQuality < 70}" th:text="#{reputation.improve.response}">
-                            Respond to messages more promptly
-                        </li>
-                        <li th:if="${datesCompleted < 3}" th:text="#{reputation.improve.dates}">
-                            Complete more video dates to show investment
-                        </li>
-                    </ul>
+    <!-- Stats -->
+    <div class="aura-card" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem; text-align: center;">
+            <i class="fas fa-chart-bar mr-2"></i> <span th:text="#{reputation.stats}">Statistics</span>
+        </h3>
+        <div class="aura-stats">
+            <div class="aura-stat">
+                <div class="aura-stat-value" th:text="${datesCompleted}">5</div>
+                <div class="aura-stat-label" th:text="#{reputation.dates.completed}">Dates Completed</div>
+            </div>
+            <div class="aura-stat">
+                <div class="aura-stat-value" th:text="${positiveFeedback}">12</div>
+                <div class="aura-stat-label" th:text="#{reputation.positive.feedback}">Positive Feedback</div>
+            </div>
+            <div class="aura-stat">
+                <div class="aura-stat-value" th:text="${ghostingCount}">0</div>
+                <div class="aura-stat-label" th:text="#{reputation.ghosting}">Ghosting Events</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="aura-card" th:if="${not #lists.isEmpty(recentActivity)}" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">
+            <i class="fas fa-history mr-2"></i> <span th:text="#{reputation.activity}">Recent Activity</span>
+        </h3>
+        <div class="aura-timeline">
+            <div th:each="event : ${recentActivity}" class="aura-timeline-item">
+                <div class="aura-timeline-dot" th:style="${event.impact > 0} ? 'background: var(--aura-success)' : 'background: var(--aura-danger)'"></div>
+                <div class="aura-timeline-content">
+                    <div class="aura-timeline-date" th:text="${#dates.format(event.date, 'MMM dd, yyyy')}"></div>
+                    <p th:text="${event.description}" style="margin-bottom: 0.5rem;">Activity description</p>
+                    <span class="aura-trait" th:classappend="${event.impact > 0} ? 'aura-trait-positive' : 'aura-trait-negative'"
+                          th:text="${(event.impact > 0 ? '+' : '') + event.impact}">+2.0</span>
                 </div>
             </div>
         </div>
     </div>
-</section>
+
+    <!-- Tips to Improve -->
+    <div class="aura-alert aura-alert-info" th:if="${overallScore < 70}" style="margin-top: 1.5rem;">
+        <i class="fas fa-lightbulb fa-lg"></i>
+        <div>
+            <strong th:text="#{reputation.improve.title}">Tips to Improve</strong>
+            <ul style="margin-top: 0.5rem; padding-left: 1.25rem;">
+                <li th:if="${not videoVerified}" th:text="#{reputation.improve.verify}">
+                    Complete video verification to boost your authenticity score
+                </li>
+                <li th:if="${responseQuality < 70}" th:text="#{reputation.improve.response}">
+                    Respond to messages more promptly
+                </li>
+                <li th:if="${datesCompleted < 3}" th:text="#{reputation.improve.dates}">
+                    Complete more video dates to show investment
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
 
 <div th:replace="~{fragments :: footer}"></div>
-
-<style>
-    .reputation-score-circle {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 8px solid;
-    }
-    .reputation-score-circle.is-success { border-color: #48c774; }
-    .reputation-score-circle.is-warning { border-color: #ffdd57; }
-    .reputation-score-circle.is-danger { border-color: #f14668; }
-    .score-value {
-        font-size: 3rem;
-        font-weight: bold;
-    }
-    .timeline {
-        position: relative;
-        padding-left: 30px;
-    }
-    .timeline-item {
-        position: relative;
-        padding-bottom: 20px;
-        border-left: 2px solid #dbdbdb;
-        padding-left: 20px;
-    }
-    .timeline-marker {
-        position: absolute;
-        left: -8px;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: #dbdbdb;
-    }
-    .timeline-marker.is-success { background: #48c774; }
-    .timeline-marker.is-danger { background: #f14668; }
-</style>
 
 </body>
 </html>

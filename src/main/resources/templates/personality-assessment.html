@@ -3,90 +3,131 @@
 
 <head th:replace="~{fragments :: head}"></head>
 
-<body>
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
 <div th:replace="~{fragments :: header}"></div>
 
-<section class="section">
-    <div class="container">
-        <div class="columns is-centered">
-            <div class="column is-8">
-                <div class="box">
-                    <h1 class="title has-text-centered" th:text="#{personality.assessment.title}">Personality Assessment</h1>
-                    <p class="subtitle has-text-centered" th:text="#{personality.assessment.subtitle}">
-                        Help us find your best matches by answering these questions
-                    </p>
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-brain mr-2"></i> <span th:text="#{personality.assessment.title}">Personality Assessment</span></h1>
+    <p th:text="#{personality.assessment.subtitle}">Discover your unique personality traits for better matches</p>
+</div>
 
-                    <div class="notification is-info is-light">
-                        <p th:text="#{personality.assessment.info}">
-                            This assessment takes about 5-10 minutes. Answer honestly for the best results.
-                        </p>
+<div class="aura-container">
+    <!-- Info Alert -->
+    <div class="aura-alert aura-alert-info aura-animate-fade">
+        <i class="fas fa-info-circle fa-lg"></i>
+        <div>
+            <strong>About this assessment</strong>
+            <p th:text="#{personality.assessment.info}" style="margin-top: 0.25rem; opacity: 0.9;">
+                This assessment takes about 5-10 minutes. Answer honestly for the best results.
+            </p>
+        </div>
+    </div>
+
+    <!-- Progress Card -->
+    <div class="aura-card aura-animate-fade-up">
+        <div class="aura-progress-bar">
+            <div id="assessment-progress" class="aura-progress-fill" style="width: 0%"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--aura-gray-500); font-size: 0.875rem;">
+                Question <strong id="question-counter" style="color: var(--aura-primary);">1</strong>
+                of <span th:text="${totalQuestions}">25</span>
+            </span>
+            <span id="category-badge" class="aura-trait" style="font-size: 0.75rem;"></span>
+        </div>
+    </div>
+
+    <!-- Question Form -->
+    <form id="personality-form" th:action="@{/personality/assessment/submit}" method="post">
+        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+        <!-- Question Cards -->
+        <div id="questions-container">
+            <div th:each="question, iter : ${questions}"
+                 th:id="'question-' + ${iter.index}"
+                 class="question-slide"
+                 th:data-category="${question.category}"
+                 th:style="${iter.index > 0} ? 'display: none;' : ''">
+
+                <div class="aura-card" style="text-align: center; padding: 2rem;">
+                    <!-- Question Icon based on category -->
+                    <div class="aura-card-icon" style="margin: 0 auto 1.5rem; width: 64px; height: 64px; font-size: 1.75rem;">
+                        <i th:class="${question.category == 'OPENNESS'} ? 'fas fa-lightbulb' :
+                                     (${question.category == 'CONSCIENTIOUSNESS'} ? 'fas fa-tasks' :
+                                     (${question.category == 'EXTRAVERSION'} ? 'fas fa-users' :
+                                     (${question.category == 'AGREEABLENESS'} ? 'fas fa-heart' : 'fas fa-balance-scale')))"></i>
                     </div>
 
-                    <form id="personality-form" th:action="@{/personality/assessment/submit}" method="post">
-                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                    <h2 style="font-size: 1.5rem; font-weight: 600; color: var(--aura-gray-800); margin-bottom: 0.5rem; line-height: 1.4;"
+                        th:text="${question.text}">Question text</h2>
 
-                        <!-- Progress bar -->
-                        <progress id="assessment-progress" class="progress is-primary" value="0" max="100">0%</progress>
-                        <p class="has-text-centered mb-4">
-                            <span id="question-counter">1</span> / <span th:text="${totalQuestions}">25</span>
-                        </p>
+                    <p style="color: var(--aura-gray-400); font-size: 0.875rem; margin-bottom: 2rem;"
+                       th:text="#{personality.category.} + ${question.category.toLowerCase()}">Category</p>
 
-                        <!-- Question container -->
-                        <div id="questions-container">
-                            <div th:each="question, iter : ${questions}"
-                                 th:id="'question-' + ${iter.index}"
-                                 class="question-card"
-                                 th:classappend="${iter.index > 0} ? 'is-hidden' : ''">
-
-                                <div class="card">
-                                    <div class="card-content">
-                                        <p class="title is-5" th:text="${question.text}">Question text</p>
-                                        <p class="subtitle is-6 has-text-grey" th:text="${question.category}">Category</p>
-
-                                        <div class="field">
-                                            <div class="control">
-                                                <!-- Likert scale -->
-                                                <div class="buttons has-addons is-centered likert-scale">
-                                                    <button type="button" class="button likert-btn"
-                                                            th:data-question="${question.id}" data-value="1"
-                                                            th:text="#{personality.strongly.disagree}">Strongly Disagree</button>
-                                                    <button type="button" class="button likert-btn"
-                                                            th:data-question="${question.id}" data-value="2"
-                                                            th:text="#{personality.disagree}">Disagree</button>
-                                                    <button type="button" class="button likert-btn"
-                                                            th:data-question="${question.id}" data-value="3"
-                                                            th:text="#{personality.neutral}">Neutral</button>
-                                                    <button type="button" class="button likert-btn"
-                                                            th:data-question="${question.id}" data-value="4"
-                                                            th:text="#{personality.agree}">Agree</button>
-                                                    <button type="button" class="button likert-btn"
-                                                            th:data-question="${question.id}" data-value="5"
-                                                            th:text="#{personality.strongly.agree}">Strongly Agree</button>
-                                                </div>
-                                                <input type="hidden" th:name="'answer_' + ${question.id}"
-                                                       th:id="'input-' + ${question.id}" value="">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Navigation buttons -->
-                        <div class="buttons is-centered mt-5">
-                            <button type="button" id="prev-btn" class="button is-outlined" disabled
-                                    th:text="#{personality.previous}">Previous</button>
-                            <button type="button" id="next-btn" class="button is-primary"
-                                    th:text="#{personality.next}">Next</button>
-                            <button type="submit" id="submit-btn" class="button is-success is-hidden"
-                                    th:text="#{personality.submit}">Submit</button>
-                        </div>
-                    </form>
+                    <!-- Likert Scale -->
+                    <div class="aura-likert-scale">
+                        <button type="button" class="aura-likert-btn"
+                                th:data-question="${question.id}" data-value="1">
+                            <span class="aura-likert-value">1</span>
+                            <span class="aura-likert-label" th:text="#{personality.strongly.disagree.short}">Strongly Disagree</span>
+                        </button>
+                        <button type="button" class="aura-likert-btn"
+                                th:data-question="${question.id}" data-value="2">
+                            <span class="aura-likert-value">2</span>
+                            <span class="aura-likert-label" th:text="#{personality.disagree.short}">Disagree</span>
+                        </button>
+                        <button type="button" class="aura-likert-btn"
+                                th:data-question="${question.id}" data-value="3">
+                            <span class="aura-likert-value">3</span>
+                            <span class="aura-likert-label" th:text="#{personality.neutral.short}">Neutral</span>
+                        </button>
+                        <button type="button" class="aura-likert-btn"
+                                th:data-question="${question.id}" data-value="4">
+                            <span class="aura-likert-value">4</span>
+                            <span class="aura-likert-label" th:text="#{personality.agree.short}">Agree</span>
+                        </button>
+                        <button type="button" class="aura-likert-btn"
+                                th:data-question="${question.id}" data-value="5">
+                            <span class="aura-likert-value">5</span>
+                            <span class="aura-likert-label" th:text="#{personality.strongly.agree.short}">Strongly Agree</span>
+                        </button>
+                    </div>
+                    <input type="hidden" th:name="'answer_' + ${question.id}"
+                           th:id="'input-' + ${question.id}" value="">
                 </div>
             </div>
         </div>
+
+        <!-- Navigation Buttons -->
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+            <button type="button" id="prev-btn" class="aura-btn aura-btn-secondary" disabled>
+                <i class="fas fa-chevron-left"></i> <span th:text="#{personality.previous}">Previous</span>
+            </button>
+            <button type="button" id="next-btn" class="aura-btn aura-btn-primary">
+                <span th:text="#{personality.next}">Next</span> <i class="fas fa-chevron-right"></i>
+            </button>
+            <button type="submit" id="submit-btn" class="aura-btn aura-btn-success aura-btn-lg" style="display: none;">
+                <i class="fas fa-check"></i> <span th:text="#{personality.submit}">Submit Assessment</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- Trait Legend -->
+    <div class="aura-card" style="margin-top: 2rem;">
+        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--aura-gray-700);">
+            <i class="fas fa-info-circle mr-2"></i> The Big Five Personality Traits
+        </h3>
+        <div class="aura-traits">
+            <span class="aura-trait"><i class="fas fa-lightbulb mr-1"></i> Openness</span>
+            <span class="aura-trait"><i class="fas fa-tasks mr-1"></i> Conscientiousness</span>
+            <span class="aura-trait"><i class="fas fa-users mr-1"></i> Extraversion</span>
+            <span class="aura-trait"><i class="fas fa-heart mr-1"></i> Agreeableness</span>
+            <span class="aura-trait"><i class="fas fa-balance-scale mr-1"></i> Neuroticism</span>
+        </div>
     </div>
-</section>
+</div>
 
 <div th:replace="~{fragments :: footer}"></div>
 
@@ -95,7 +136,8 @@
     let currentQuestion = 0;
     const answers = {};
 
-    document.querySelectorAll('.likert-btn').forEach(btn => {
+    // Likert button click handlers
+    document.querySelectorAll('.aura-likert-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const questionId = this.dataset.question;
             const value = this.dataset.value;
@@ -104,58 +146,143 @@
             document.getElementById('input-' + questionId).value = value;
             answers[questionId] = value;
 
-            // Update button states
-            this.closest('.likert-scale').querySelectorAll('.likert-btn').forEach(b => {
-                b.classList.remove('is-selected', 'is-primary');
+            // Update button states with animation
+            this.closest('.aura-likert-scale').querySelectorAll('.aura-likert-btn').forEach(b => {
+                b.classList.remove('selected');
             });
-            this.classList.add('is-selected', 'is-primary');
+            this.classList.add('selected');
 
-            // Auto-advance after short delay
+            // Auto-advance after selection with smooth transition
             setTimeout(() => {
                 if (currentQuestion < totalQuestions - 1) {
                     nextQuestion();
                 }
-            }, 300);
+            }, 400);
         });
     });
 
     function nextQuestion() {
         if (currentQuestion < totalQuestions - 1) {
-            document.getElementById('question-' + currentQuestion).classList.add('is-hidden');
-            currentQuestion++;
-            document.getElementById('question-' + currentQuestion).classList.remove('is-hidden');
-            updateProgress();
+            const currentSlide = document.getElementById('question-' + currentQuestion);
+            currentSlide.style.opacity = '0';
+            currentSlide.style.transform = 'translateX(-30px)';
+
+            setTimeout(() => {
+                currentSlide.style.display = 'none';
+                currentQuestion++;
+
+                const nextSlide = document.getElementById('question-' + currentQuestion);
+                nextSlide.style.display = 'block';
+                nextSlide.style.opacity = '0';
+                nextSlide.style.transform = 'translateX(30px)';
+
+                requestAnimationFrame(() => {
+                    nextSlide.style.transition = 'all 0.3s ease';
+                    nextSlide.style.opacity = '1';
+                    nextSlide.style.transform = 'translateX(0)';
+                });
+
+                updateProgress();
+            }, 200);
         }
     }
 
     function prevQuestion() {
         if (currentQuestion > 0) {
-            document.getElementById('question-' + currentQuestion).classList.add('is-hidden');
-            currentQuestion--;
-            document.getElementById('question-' + currentQuestion).classList.remove('is-hidden');
-            updateProgress();
+            const currentSlide = document.getElementById('question-' + currentQuestion);
+            currentSlide.style.opacity = '0';
+            currentSlide.style.transform = 'translateX(30px)';
+
+            setTimeout(() => {
+                currentSlide.style.display = 'none';
+                currentQuestion--;
+
+                const prevSlide = document.getElementById('question-' + currentQuestion);
+                prevSlide.style.display = 'block';
+                prevSlide.style.opacity = '0';
+                prevSlide.style.transform = 'translateX(-30px)';
+
+                requestAnimationFrame(() => {
+                    prevSlide.style.transition = 'all 0.3s ease';
+                    prevSlide.style.opacity = '1';
+                    prevSlide.style.transform = 'translateX(0)';
+                });
+
+                updateProgress();
+            }, 200);
         }
     }
 
     function updateProgress() {
         const progress = ((currentQuestion + 1) / totalQuestions) * 100;
-        document.getElementById('assessment-progress').value = progress;
+        document.getElementById('assessment-progress').style.width = progress + '%';
         document.getElementById('question-counter').textContent = currentQuestion + 1;
 
+        // Update category badge
+        const currentSlide = document.getElementById('question-' + currentQuestion);
+        const category = currentSlide.dataset.category;
+        document.getElementById('category-badge').textContent = category;
+
+        // Update button states
         document.getElementById('prev-btn').disabled = currentQuestion === 0;
 
         if (currentQuestion === totalQuestions - 1) {
-            document.getElementById('next-btn').classList.add('is-hidden');
-            document.getElementById('submit-btn').classList.remove('is-hidden');
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'inline-flex';
         } else {
-            document.getElementById('next-btn').classList.remove('is-hidden');
-            document.getElementById('submit-btn').classList.add('is-hidden');
+            document.getElementById('next-btn').style.display = 'inline-flex';
+            document.getElementById('submit-btn').style.display = 'none';
         }
     }
 
+    // Initialize
     document.getElementById('next-btn').addEventListener('click', nextQuestion);
     document.getElementById('prev-btn').addEventListener('click', prevQuestion);
+    updateProgress();
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key >= '1' && e.key <= '5') {
+            const currentSlide = document.getElementById('question-' + currentQuestion);
+            const btn = currentSlide.querySelector(`[data-value="${e.key}"]`);
+            if (btn) btn.click();
+        } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+            if (currentQuestion < totalQuestions - 1) nextQuestion();
+        } else if (e.key === 'ArrowLeft') {
+            if (currentQuestion > 0) prevQuestion();
+        }
+    });
 </script>
+
+<style>
+    .question-slide {
+        transition: all 0.3s ease;
+    }
+
+    .aura-likert-btn {
+        transition: all 0.2s ease;
+    }
+
+    .aura-likert-btn:active {
+        transform: scale(0.95);
+    }
+
+    @media (max-width: 600px) {
+        .aura-likert-scale {
+            flex-direction: column;
+        }
+        .aura-likert-btn {
+            max-width: 100%;
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .aura-likert-value {
+            min-width: 40px;
+        }
+    }
+</style>
 
 </body>
 </html>

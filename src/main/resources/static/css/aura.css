@@ -1,0 +1,1020 @@
+/**
+ * AURA - Advanced User Relationship Architecture
+ * Rich UI/UX Styling for Dating Platform
+ */
+
+/* ========================================
+   CSS VARIABLES / DESIGN TOKENS
+   ======================================== */
+:root {
+    /* AURA Brand Colors */
+    --aura-primary: #7c3aed;
+    --aura-primary-light: #a78bfa;
+    --aura-primary-dark: #5b21b6;
+    --aura-secondary: #ec4899;
+    --aura-secondary-light: #f9a8d4;
+    --aura-accent: #06b6d4;
+
+    /* Semantic Colors */
+    --aura-success: #10b981;
+    --aura-warning: #f59e0b;
+    --aura-danger: #ef4444;
+    --aura-info: #3b82f6;
+
+    /* Neutral Palette */
+    --aura-gray-50: #f9fafb;
+    --aura-gray-100: #f3f4f6;
+    --aura-gray-200: #e5e7eb;
+    --aura-gray-300: #d1d5db;
+    --aura-gray-400: #9ca3af;
+    --aura-gray-500: #6b7280;
+    --aura-gray-600: #4b5563;
+    --aura-gray-700: #374151;
+    --aura-gray-800: #1f2937;
+    --aura-gray-900: #111827;
+
+    /* Gradients */
+    --aura-gradient-primary: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+    --aura-gradient-warm: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    --aura-gradient-cool: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+    --aura-gradient-success: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+
+    /* Shadows */
+    --aura-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --aura-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --aura-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --aura-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --aura-shadow-glow: 0 0 20px rgba(124, 58, 237, 0.3);
+
+    /* Timing */
+    --aura-transition-fast: 150ms ease;
+    --aura-transition: 300ms ease;
+    --aura-transition-slow: 500ms ease;
+
+    /* Spacing */
+    --aura-radius-sm: 8px;
+    --aura-radius: 12px;
+    --aura-radius-lg: 16px;
+    --aura-radius-xl: 24px;
+    --aura-radius-full: 9999px;
+}
+
+/* ========================================
+   AURA PAGE LAYOUTS
+   ======================================== */
+.aura-page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--aura-gray-50) 0%, white 100%);
+}
+
+.aura-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.aura-hero {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: var(--aura-gradient-primary);
+    color: white;
+    border-radius: 0 0 var(--aura-radius-xl) var(--aura-radius-xl);
+    margin-bottom: 2rem;
+}
+
+.aura-hero h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.aura-hero p {
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+/* ========================================
+   AURA CARDS
+   ======================================== */
+.aura-card {
+    background: white;
+    border-radius: var(--aura-radius-lg);
+    box-shadow: var(--aura-shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: transform var(--aura-transition), box-shadow var(--aura-transition);
+    border: 1px solid var(--aura-gray-100);
+}
+
+.aura-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--aura-shadow-md);
+}
+
+.aura-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--aura-gray-100);
+}
+
+.aura-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--aura-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: var(--aura-gradient-primary);
+    color: white;
+}
+
+.aura-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--aura-gray-800);
+}
+
+.aura-card-subtitle {
+    font-size: 0.875rem;
+    color: var(--aura-gray-500);
+}
+
+/* ========================================
+   PROGRESS INDICATORS
+   ======================================== */
+.aura-progress-bar {
+    height: 8px;
+    background: var(--aura-gray-200);
+    border-radius: var(--aura-radius-full);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.aura-progress-fill {
+    height: 100%;
+    background: var(--aura-gradient-primary);
+    border-radius: var(--aura-radius-full);
+    transition: width var(--aura-transition-slow);
+    position: relative;
+}
+
+.aura-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.aura-step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.aura-step {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--aura-gray-300);
+    transition: all var(--aura-transition);
+}
+
+.aura-step.active {
+    background: var(--aura-primary);
+    transform: scale(1.2);
+    box-shadow: var(--aura-shadow-glow);
+}
+
+.aura-step.completed {
+    background: var(--aura-success);
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+.aura-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--aura-radius-full);
+    border: none;
+    cursor: pointer;
+    transition: all var(--aura-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.aura-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.aura-btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+.aura-btn-primary {
+    background: var(--aura-gradient-primary);
+    color: white;
+    box-shadow: var(--aura-shadow);
+}
+
+.aura-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--aura-shadow-md), var(--aura-shadow-glow);
+}
+
+.aura-btn-secondary {
+    background: white;
+    color: var(--aura-primary);
+    border: 2px solid var(--aura-primary);
+}
+
+.aura-btn-secondary:hover {
+    background: var(--aura-primary);
+    color: white;
+}
+
+.aura-btn-success {
+    background: var(--aura-gradient-success);
+    color: white;
+}
+
+.aura-btn-danger {
+    background: var(--aura-danger);
+    color: white;
+}
+
+.aura-btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+}
+
+.aura-btn-block {
+    width: 100%;
+}
+
+.aura-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ========================================
+   LIKERT SCALE (PERSONALITY ASSESSMENT)
+   ======================================== */
+.aura-likert-scale {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.aura-likert-btn {
+    flex: 1;
+    min-width: 60px;
+    max-width: 100px;
+    padding: 1rem 0.5rem;
+    border: 2px solid var(--aura-gray-200);
+    background: white;
+    border-radius: var(--aura-radius);
+    cursor: pointer;
+    transition: all var(--aura-transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.aura-likert-btn:hover {
+    border-color: var(--aura-primary-light);
+    background: var(--aura-gray-50);
+}
+
+.aura-likert-btn.selected {
+    border-color: var(--aura-primary);
+    background: var(--aura-primary);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: var(--aura-shadow-glow);
+}
+
+.aura-likert-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.aura-likert-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ========================================
+   SCORE CIRCLES
+   ======================================== */
+.aura-score-circle {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+}
+
+.aura-score-circle svg {
+    transform: rotate(-90deg);
+}
+
+.aura-score-circle .circle-bg {
+    fill: none;
+    stroke: var(--aura-gray-200);
+    stroke-width: 12;
+}
+
+.aura-score-circle .circle-progress {
+    fill: none;
+    stroke: url(#aura-gradient);
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-dasharray: 408;
+    stroke-dashoffset: 408;
+    transition: stroke-dashoffset 1.5s ease-out;
+}
+
+.aura-score-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.aura-score-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: var(--aura-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.aura-score-label {
+    font-size: 0.875rem;
+    color: var(--aura-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ========================================
+   TRAITS / BADGES
+   ======================================== */
+.aura-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.aura-trait {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    background: var(--aura-gray-100);
+    border-radius: var(--aura-radius-full);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--aura-gray-700);
+    transition: all var(--aura-transition);
+}
+
+.aura-trait:hover {
+    background: var(--aura-primary-light);
+    color: white;
+}
+
+.aura-trait-positive {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--aura-success);
+}
+
+.aura-trait-neutral {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--aura-info);
+}
+
+.aura-trait-negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--aura-danger);
+}
+
+/* ========================================
+   TIMELINE
+   ======================================== */
+.aura-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.aura-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--aura-gray-200);
+}
+
+.aura-timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+}
+
+.aura-timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.aura-timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.aura-timeline-item:nth-child(3) { animation-delay: 0.3s; }
+.aura-timeline-item:nth-child(4) { animation-delay: 0.4s; }
+.aura-timeline-item:nth-child(5) { animation-delay: 0.5s; }
+
+.aura-timeline-dot {
+    position: absolute;
+    left: -1.75rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--aura-primary);
+    border: 2px solid white;
+    box-shadow: var(--aura-shadow);
+}
+
+.aura-timeline-content {
+    background: white;
+    padding: 1rem;
+    border-radius: var(--aura-radius);
+    box-shadow: var(--aura-shadow-sm);
+    border: 1px solid var(--aura-gray-100);
+}
+
+.aura-timeline-date {
+    font-size: 0.75rem;
+    color: var(--aura-gray-400);
+    margin-bottom: 0.25rem;
+}
+
+/* ========================================
+   VIDEO VERIFICATION
+   ======================================== */
+.aura-video-container {
+    position: relative;
+    aspect-ratio: 4/3;
+    background: var(--aura-gray-900);
+    border-radius: var(--aura-radius-lg);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.aura-video-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.aura-video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    transition: opacity var(--aura-transition);
+}
+
+.aura-video-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.aura-challenge-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 1rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.aura-countdown {
+    font-size: 4rem;
+    font-weight: 700;
+    background: var(--aura-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: countPulse 1s infinite;
+}
+
+@keyframes countPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.aura-recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--aura-radius-full);
+    font-weight: 600;
+}
+
+.aura-recording-dot {
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ========================================
+   FORMS
+   ======================================== */
+.aura-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.aura-label {
+    display: block;
+    font-weight: 600;
+    color: var(--aura-gray-700);
+    margin-bottom: 0.5rem;
+}
+
+.aura-input,
+.aura-textarea,
+.aura-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--aura-gray-200);
+    border-radius: var(--aura-radius);
+    font-size: 1rem;
+    transition: all var(--aura-transition);
+    background: white;
+}
+
+.aura-input:focus,
+.aura-textarea:focus,
+.aura-select:focus {
+    outline: none;
+    border-color: var(--aura-primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.aura-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.aura-file-upload {
+    border: 2px dashed var(--aura-gray-300);
+    border-radius: var(--aura-radius);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--aura-transition);
+}
+
+.aura-file-upload:hover {
+    border-color: var(--aura-primary);
+    background: var(--aura-gray-50);
+}
+
+.aura-file-upload.dragover {
+    border-color: var(--aura-primary);
+    background: rgba(124, 58, 237, 0.05);
+}
+
+/* ========================================
+   MODALS
+   ======================================== */
+.aura-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--aura-transition);
+}
+
+.aura-modal-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.aura-modal {
+    background: white;
+    border-radius: var(--aura-radius-lg);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.9) translateY(20px);
+    transition: transform var(--aura-transition);
+    box-shadow: var(--aura-shadow-lg);
+}
+
+.aura-modal-backdrop.active .aura-modal {
+    transform: scale(1) translateY(0);
+}
+
+.aura-modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--aura-gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.aura-modal-body {
+    padding: 1.5rem;
+}
+
+.aura-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--aura-gray-100);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+/* ========================================
+   STATS GRID
+   ======================================== */
+.aura-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.aura-stat {
+    text-align: center;
+    padding: 1.25rem;
+    background: var(--aura-gray-50);
+    border-radius: var(--aura-radius);
+    transition: all var(--aura-transition);
+}
+
+.aura-stat:hover {
+    background: white;
+    box-shadow: var(--aura-shadow);
+}
+
+.aura-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    background: var(--aura-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.aura-stat-label {
+    font-size: 0.75rem;
+    color: var(--aura-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+}
+
+/* ========================================
+   ALERTS / NOTIFICATIONS
+   ======================================== */
+.aura-alert {
+    padding: 1rem 1.25rem;
+    border-radius: var(--aura-radius);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.aura-alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: var(--aura-success);
+}
+
+.aura-alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    color: var(--aura-warning);
+}
+
+.aura-alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: var(--aura-danger);
+}
+
+.aura-alert-info {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: var(--aura-info);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.aura-animate-fade { animation: fadeIn 0.5s ease; }
+.aura-animate-fade-up { animation: fadeInUp 0.5s ease; }
+.aura-animate-scale { animation: fadeInScale 0.3s ease; }
+.aura-animate-slide { animation: slideInRight 0.5s ease; }
+
+/* Staggered children animation */
+.aura-stagger > * {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+}
+.aura-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+.aura-stagger > *:nth-child(2) { animation-delay: 0.2s; }
+.aura-stagger > *:nth-child(3) { animation-delay: 0.3s; }
+.aura-stagger > *:nth-child(4) { animation-delay: 0.4s; }
+.aura-stagger > *:nth-child(5) { animation-delay: 0.5s; }
+.aura-stagger > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+.aura-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.aura-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--aura-gray-200);
+    border-top-color: var(--aura-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.aura-skeleton {
+    background: linear-gradient(90deg, var(--aura-gray-200) 25%, var(--aura-gray-100) 50%, var(--aura-gray-200) 75%);
+    background-size: 200% 100%;
+    animation: skeleton 1.5s infinite;
+    border-radius: var(--aura-radius-sm);
+}
+
+@keyframes skeleton {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --aura-gray-50: #1f2937;
+        --aura-gray-100: #374151;
+        --aura-gray-200: #4b5563;
+        --aura-gray-300: #6b7280;
+        --aura-gray-400: #9ca3af;
+        --aura-gray-500: #d1d5db;
+        --aura-gray-600: #e5e7eb;
+        --aura-gray-700: #f3f4f6;
+        --aura-gray-800: #f9fafb;
+        --aura-gray-900: #ffffff;
+    }
+
+    .aura-page {
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    .aura-card {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    .aura-input,
+    .aura-textarea,
+    .aura-select {
+        background: #1e293b;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+
+    .aura-modal {
+        background: #1e293b;
+    }
+
+    .aura-likert-btn {
+        background: #1e293b;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+
+    .aura-likert-btn:hover {
+        background: #334155;
+        border-color: var(--aura-primary-light);
+    }
+
+    .aura-timeline-content {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    .aura-stat {
+        background: #1e293b;
+    }
+
+    .aura-trait {
+        background: #334155;
+        color: #e2e8f0;
+    }
+
+    .aura-file-upload {
+        border-color: #475569;
+    }
+
+    .aura-score-circle .circle-bg {
+        stroke: #334155;
+    }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+    .aura-hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .aura-container {
+        padding: 1rem;
+    }
+
+    .aura-card {
+        padding: 1rem;
+    }
+
+    .aura-likert-scale {
+        gap: 0.5rem;
+    }
+
+    .aura-likert-btn {
+        min-width: 50px;
+        padding: 0.75rem 0.25rem;
+    }
+
+    .aura-likert-value {
+        font-size: 1.25rem;
+    }
+
+    .aura-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .aura-btn-lg {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .aura-score-circle {
+        width: 120px;
+        height: 120px;
+    }
+
+    .aura-score-number {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .aura-modal {
+        width: 95%;
+        margin: 1rem;
+    }
+
+    .aura-hero {
+        padding: 2rem 1rem;
+    }
+
+    .aura-stats {
+        grid-template-columns: 1fr;
+    }
+}

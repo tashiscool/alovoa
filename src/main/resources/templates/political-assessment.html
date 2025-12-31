@@ -3,487 +3,660 @@
 
 <head th:replace="~{fragments :: head}"></head>
 
-<body>
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
 <div th:replace="~{fragments :: header}"></div>
 
-<section class="section">
-    <div class="container">
-        <div class="columns is-centered">
-            <div class="column is-8">
-                <div class="box">
-                    <h1 class="title has-text-centered">
-                        <span class="icon has-text-primary"><i class="fas fa-balance-scale"></i></span>
-                        <span th:text="#{political.title}">Values Assessment</span>
-                    </h1>
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-balance-scale mr-2"></i> <span th:text="#{political.title}">Values Assessment</span></h1>
+    <p>Understand compatibility beyond surface-level attraction</p>
+</div>
 
-                    <!-- Introduction -->
-                    <div id="step-intro" class="assessment-step">
-                        <div class="notification is-info is-light">
-                            <h3 class="title is-5" th:text="#{political.intro.title}">Why This Assessment?</h3>
-                            <div class="content">
-                                <p th:text="#{political.intro.desc}">
-                                    This platform prioritizes compatibility beyond surface-level attraction.
-                                    Your economic values and class position significantly influence relationship dynamics.
-                                </p>
-                                <ul>
-                                    <li th:text="#{political.intro.point1}">Understand how your values align with potential matches</li>
-                                    <li th:text="#{political.intro.point2}">Find people with compatible worldviews</li>
-                                    <li th:text="#{political.intro.point3}">Build more meaningful connections</li>
-                                </ul>
-                            </div>
-                        </div>
+<div class="aura-container">
+    <!-- Introduction -->
+    <div id="step-intro" class="assessment-step aura-animate-fade-up">
+        <div class="aura-alert aura-alert-info">
+            <i class="fas fa-info-circle fa-lg"></i>
+            <div>
+                <strong th:text="#{political.intro.title}">Why This Assessment?</strong>
+                <p th:text="#{political.intro.desc}" style="margin-top: 0.5rem; opacity: 0.9;">
+                    This platform prioritizes compatibility beyond surface-level attraction.
+                    Your economic values and class position significantly influence relationship dynamics.
+                </p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.25rem;">
+                    <li th:text="#{political.intro.point1}">Understand how your values align with potential matches</li>
+                    <li th:text="#{political.intro.point2}">Find people with compatible worldviews</li>
+                    <li th:text="#{political.intro.point3}">Build more meaningful connections</li>
+                </ul>
+            </div>
+        </div>
 
-                        <div class="notification is-warning is-light">
-                            <p th:text="#{political.intro.note}">
-                                <strong>Note:</strong> Your specific answers are private. Only compatibility scores
-                                are used for matching.
-                            </p>
-                        </div>
+        <div class="aura-alert aura-alert-warning" style="margin-top: 1rem;">
+            <i class="fas fa-lock fa-lg"></i>
+            <div>
+                <strong>Privacy Note</strong>
+                <p th:text="#{political.intro.note}" style="margin-top: 0.25rem; opacity: 0.9;">
+                    Your specific answers are private. Only compatibility scores are used for matching.
+                </p>
+            </div>
+        </div>
 
-                        <div class="has-text-centered mt-5">
-                            <button class="button is-primary is-large" onclick="startAssessment()">
-                                <span th:text="#{political.start}">Begin Assessment</span>
-                            </button>
-                        </div>
-                    </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <button class="aura-btn aura-btn-primary aura-btn-lg" onclick="startAssessment()">
+                <i class="fas fa-play"></i> <span th:text="#{political.start}">Begin Assessment</span>
+            </button>
+        </div>
+    </div>
 
-                    <!-- Step 1: Economic Class -->
-                    <div id="step-1" class="assessment-step is-hidden">
-                        <div class="steps">
-                            <div class="step-item is-active is-primary">
-                                <div class="step-marker">1</div>
-                                <div class="step-details">
-                                    <p class="step-title" th:text="#{political.step1}">Economic Position</p>
-                                </div>
-                            </div>
-                            <div class="step-item">
-                                <div class="step-marker">2</div>
-                                <div class="step-details">
-                                    <p class="step-title" th:text="#{political.step2}">Values</p>
-                                </div>
-                            </div>
-                            <div class="step-item">
-                                <div class="step-marker">3</div>
-                                <div class="step-details">
-                                    <p class="step-title" th:text="#{political.step3}">Awareness</p>
-                                </div>
-                            </div>
-                        </div>
+    <!-- Step 1: Economic Class -->
+    <div id="step-1" class="assessment-step is-hidden">
+        <!-- Progress Steps -->
+        <div class="aura-steps">
+            <div class="aura-step active">
+                <div class="aura-step-marker">1</div>
+                <div class="aura-step-label" th:text="#{political.step1}">Economic Position</div>
+            </div>
+            <div class="aura-step">
+                <div class="aura-step-marker">2</div>
+                <div class="aura-step-label" th:text="#{political.step2}">Values</div>
+            </div>
+            <div class="aura-step">
+                <div class="aura-step-marker">3</div>
+                <div class="aura-step-label" th:text="#{political.step3}">Awareness</div>
+            </div>
+        </div>
 
-                        <h3 class="title is-4 mt-5" th:text="#{political.economic.title}">Your Economic Position</h3>
+        <div class="aura-card aura-animate-fade-up" style="padding: 2rem; margin-top: 1.5rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">
+                <i class="fas fa-wallet mr-2" style="color: var(--aura-primary);"></i>
+                <span th:text="#{political.economic.title}">Your Economic Position</span>
+            </h3>
 
-                        <div class="field">
-                            <label class="label" th:text="#{political.income}">Annual Income</label>
-                            <div class="control">
-                                <div class="select is-fullwidth">
-                                    <select id="income-bracket">
-                                        <option value="">Select...</option>
-                                        <option value="UNDER_25K">Under $25,000</option>
-                                        <option value="BRACKET_25K_50K">$25,000 - $50,000</option>
-                                        <option value="BRACKET_50K_75K">$50,000 - $75,000</option>
-                                        <option value="BRACKET_75K_100K">$75,000 - $100,000</option>
-                                        <option value="BRACKET_100K_150K">$100,000 - $150,000</option>
-                                        <option value="BRACKET_150K_250K">$150,000 - $250,000</option>
-                                        <option value="BRACKET_250K_500K">$250,000 - $500,000</option>
-                                        <option value="BRACKET_500K_1M">$500,000 - $1,000,000</option>
-                                        <option value="OVER_1M">Over $1,000,000</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+            <div class="aura-form-group">
+                <label class="aura-label" th:text="#{political.income}">Annual Income</label>
+                <select id="income-bracket" class="aura-select">
+                    <option value="">Select...</option>
+                    <option value="UNDER_25K">Under $25,000</option>
+                    <option value="BRACKET_25K_50K">$25,000 - $50,000</option>
+                    <option value="BRACKET_50K_75K">$50,000 - $75,000</option>
+                    <option value="BRACKET_75K_100K">$75,000 - $100,000</option>
+                    <option value="BRACKET_100K_150K">$100,000 - $150,000</option>
+                    <option value="BRACKET_150K_250K">$150,000 - $250,000</option>
+                    <option value="BRACKET_250K_500K">$250,000 - $500,000</option>
+                    <option value="BRACKET_500K_1M">$500,000 - $1,000,000</option>
+                    <option value="OVER_1M">Over $1,000,000</option>
+                </select>
+            </div>
 
-                        <div class="field">
-                            <label class="label" th:text="#{political.income.source}">Primary Income Source</label>
-                            <div class="control">
-                                <div class="select is-fullwidth">
-                                    <select id="income-source">
-                                        <option value="">Select...</option>
-                                        <option value="WAGES_SALARY">Wages/Salary (Employee)</option>
-                                        <option value="SELF_EMPLOYED_SOLO">Self-Employed (No Employees)</option>
-                                        <option value="BUSINESS_OWNER">Business Owner (With Employees)</option>
-                                        <option value="INVESTMENTS_DIVIDENDS">Investments/Dividends</option>
-                                        <option value="RENTAL_INCOME">Rental Income</option>
-                                        <option value="INHERITANCE_TRUST">Inheritance/Trust Fund</option>
-                                        <option value="MULTIPLE_SOURCES">Multiple Sources</option>
-                                        <option value="UNEMPLOYED_STUDENT">Unemployed/Student</option>
-                                        <option value="RETIRED">Retired</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+            <div class="aura-form-group">
+                <label class="aura-label" th:text="#{political.income.source}">Primary Income Source</label>
+                <select id="income-source" class="aura-select">
+                    <option value="">Select...</option>
+                    <option value="WAGES_SALARY">Wages/Salary (Employee)</option>
+                    <option value="SELF_EMPLOYED_SOLO">Self-Employed (No Employees)</option>
+                    <option value="BUSINESS_OWNER">Business Owner (With Employees)</option>
+                    <option value="INVESTMENTS_DIVIDENDS">Investments/Dividends</option>
+                    <option value="RENTAL_INCOME">Rental Income</option>
+                    <option value="INHERITANCE_TRUST">Inheritance/Trust Fund</option>
+                    <option value="MULTIPLE_SOURCES">Multiple Sources</option>
+                    <option value="UNEMPLOYED_STUDENT">Unemployed/Student</option>
+                    <option value="RETIRED">Retired</option>
+                </select>
+            </div>
 
-                        <div class="field">
-                            <label class="checkbox">
-                                <input type="checkbox" id="owns-rental">
-                                <span th:text="#{political.owns.rental}">I own rental properties</span>
-                            </label>
-                        </div>
+            <div class="aura-checkbox-group">
+                <label class="aura-checkbox">
+                    <input type="checkbox" id="owns-rental">
+                    <span class="aura-checkbox-mark"></span>
+                    <span th:text="#{political.owns.rental}">I own rental properties</span>
+                </label>
+                <label class="aura-checkbox">
+                    <input type="checkbox" id="employs-others">
+                    <span class="aura-checkbox-mark"></span>
+                    <span th:text="#{political.employs}">I employ others for profit</span>
+                </label>
+                <label class="aura-checkbox">
+                    <input type="checkbox" id="lives-off-capital">
+                    <span class="aura-checkbox-mark"></span>
+                    <span th:text="#{political.capital}">More than 50% of my income comes from investments</span>
+                </label>
+            </div>
 
-                        <div class="field">
-                            <label class="checkbox">
-                                <input type="checkbox" id="employs-others">
-                                <span th:text="#{political.employs}">I employ others for profit</span>
-                            </label>
-                        </div>
-
-                        <div class="field">
-                            <label class="checkbox">
-                                <input type="checkbox" id="lives-off-capital">
-                                <span th:text="#{political.capital}">More than 50% of my income comes from investments</span>
-                            </label>
-                        </div>
-
-                        <div class="has-text-right mt-5">
-                            <button class="button is-primary is-medium" onclick="submitStep1()">
-                                <span th:text="#{button.next}">Next</span>
-                                <span class="icon"><i class="fas fa-arrow-right"></i></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Political Values -->
-                    <div id="step-2" class="assessment-step is-hidden">
-                        <div class="steps">
-                            <div class="step-item is-completed is-primary">
-                                <div class="step-marker"><i class="fas fa-check"></i></div>
-                            </div>
-                            <div class="step-item is-active is-primary">
-                                <div class="step-marker">2</div>
-                                <div class="step-details">
-                                    <p class="step-title" th:text="#{political.step2}">Values</p>
-                                </div>
-                            </div>
-                            <div class="step-item">
-                                <div class="step-marker">3</div>
-                            </div>
-                        </div>
-
-                        <h3 class="title is-4 mt-5" th:text="#{political.values.title}">Economic Values</h3>
-
-                        <div class="field">
-                            <label class="label" th:text="#{political.orientation}">Political Orientation</label>
-                            <div class="control">
-                                <div class="select is-fullwidth">
-                                    <select id="political-orientation">
-                                        <option value="">Select...</option>
-                                        <option value="SOCIALIST">Socialist</option>
-                                        <option value="PROGRESSIVE">Progressive</option>
-                                        <option value="LIBERAL">Liberal</option>
-                                        <option value="MODERATE">Moderate</option>
-                                        <option value="CONSERVATIVE">Conservative</option>
-                                        <option value="LIBERTARIAN">Libertarian</option>
-                                        <option value="APOLITICAL">Apolitical</option>
-                                        <option value="OTHER">Other</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p class="subtitle is-6 mt-4" th:text="#{political.scale.instruction}">
-                            Rate your agreement (1 = Strongly Disagree, 5 = Strongly Agree)
-                        </p>
-
-                        <div class="field">
-                            <label class="label" th:text="#{political.q.redistribution}">
-                                The wealthy should pay significantly higher taxes to fund public services.
-                            </label>
-                            <div class="control">
-                                <div class="buttons has-addons is-centered">
-                                    <button class="button rating-btn" data-field="wealth-redist" data-value="1">1</button>
-                                    <button class="button rating-btn" data-field="wealth-redist" data-value="2">2</button>
-                                    <button class="button rating-btn" data-field="wealth-redist" data-value="3">3</button>
-                                    <button class="button rating-btn" data-field="wealth-redist" data-value="4">4</button>
-                                    <button class="button rating-btn" data-field="wealth-redist" data-value="5">5</button>
-                                </div>
-                                <input type="hidden" id="wealth-redist">
-                            </div>
-                        </div>
-
-                        <div class="field">
-                            <label class="label" th:text="#{political.q.workers}">
-                                Workers should have ownership stakes in the companies they work for.
-                            </label>
-                            <div class="control">
-                                <div class="buttons has-addons is-centered">
-                                    <button class="button rating-btn" data-field="worker-ownership" data-value="1">1</button>
-                                    <button class="button rating-btn" data-field="worker-ownership" data-value="2">2</button>
-                                    <button class="button rating-btn" data-field="worker-ownership" data-value="3">3</button>
-                                    <button class="button rating-btn" data-field="worker-ownership" data-value="4">4</button>
-                                    <button class="button rating-btn" data-field="worker-ownership" data-value="5">5</button>
-                                </div>
-                                <input type="hidden" id="worker-ownership">
-                            </div>
-                        </div>
-
-                        <div class="field">
-                            <label class="label" th:text="#{political.q.universal}">
-                                Healthcare and education should be free and publicly funded.
-                            </label>
-                            <div class="control">
-                                <div class="buttons has-addons is-centered">
-                                    <button class="button rating-btn" data-field="universal-services" data-value="1">1</button>
-                                    <button class="button rating-btn" data-field="universal-services" data-value="2">2</button>
-                                    <button class="button rating-btn" data-field="universal-services" data-value="3">3</button>
-                                    <button class="button rating-btn" data-field="universal-services" data-value="4">4</button>
-                                    <button class="button rating-btn" data-field="universal-services" data-value="5">5</button>
-                                </div>
-                                <input type="hidden" id="universal-services">
-                            </div>
-                        </div>
-
-                        <div class="field">
-                            <label class="label" th:text="#{political.q.housing}">
-                                Tenants' rights should be prioritized over landlords' profits.
-                            </label>
-                            <div class="control">
-                                <div class="buttons has-addons is-centered">
-                                    <button class="button rating-btn" data-field="housing-rights" data-value="1">1</button>
-                                    <button class="button rating-btn" data-field="housing-rights" data-value="2">2</button>
-                                    <button class="button rating-btn" data-field="housing-rights" data-value="3">3</button>
-                                    <button class="button rating-btn" data-field="housing-rights" data-value="4">4</button>
-                                    <button class="button rating-btn" data-field="housing-rights" data-value="5">5</button>
-                                </div>
-                                <input type="hidden" id="housing-rights">
-                            </div>
-                        </div>
-
-                        <div class="field">
-                            <label class="label" th:text="#{political.q.billionaires}">
-                                No one should be a billionaire while others struggle to meet basic needs.
-                            </label>
-                            <div class="control">
-                                <div class="buttons has-addons is-centered">
-                                    <button class="button rating-btn" data-field="billionaire-view" data-value="1">1</button>
-                                    <button class="button rating-btn" data-field="billionaire-view" data-value="2">2</button>
-                                    <button class="button rating-btn" data-field="billionaire-view" data-value="3">3</button>
-                                    <button class="button rating-btn" data-field="billionaire-view" data-value="4">4</button>
-                                    <button class="button rating-btn" data-field="billionaire-view" data-value="5">5</button>
-                                </div>
-                                <input type="hidden" id="billionaire-view">
-                            </div>
-                        </div>
-
-                        <div class="field">
-                            <label class="label" th:text="#{political.q.meritocracy}">
-                                Economic success is mainly determined by factors beyond individual control (family wealth, connections, luck).
-                            </label>
-                            <div class="control">
-                                <div class="buttons has-addons is-centered">
-                                    <button class="button rating-btn" data-field="meritocracy-view" data-value="1">1</button>
-                                    <button class="button rating-btn" data-field="meritocracy-view" data-value="2">2</button>
-                                    <button class="button rating-btn" data-field="meritocracy-view" data-value="3">3</button>
-                                    <button class="button rating-btn" data-field="meritocracy-view" data-value="4">4</button>
-                                    <button class="button rating-btn" data-field="meritocracy-view" data-value="5">5</button>
-                                </div>
-                                <input type="hidden" id="meritocracy-view">
-                            </div>
-                        </div>
-
-                        <div class="buttons is-right mt-5">
-                            <button class="button" onclick="goToStep(1)">
-                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
-                                <span th:text="#{button.back}">Back</span>
-                            </button>
-                            <button class="button is-primary is-medium" onclick="submitStep2()">
-                                <span th:text="#{button.next}">Next</span>
-                                <span class="icon"><i class="fas fa-arrow-right"></i></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Class Consciousness -->
-                    <div id="step-3" class="assessment-step is-hidden">
-                        <div class="steps">
-                            <div class="step-item is-completed is-primary">
-                                <div class="step-marker"><i class="fas fa-check"></i></div>
-                            </div>
-                            <div class="step-item is-completed is-primary">
-                                <div class="step-marker"><i class="fas fa-check"></i></div>
-                            </div>
-                            <div class="step-item is-active is-primary">
-                                <div class="step-marker">3</div>
-                                <div class="step-details">
-                                    <p class="step-title" th:text="#{political.step3}">Awareness</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3 class="title is-4 mt-5" th:text="#{political.consciousness.title}">Class Consciousness</h3>
-                        <p class="subtitle is-6" th:text="#{political.consciousness.desc}">
-                            These questions help us understand your awareness of economic systems.
-                        </p>
-
-                        <div id="consciousness-questions">
-                            <!-- Loaded dynamically -->
-                        </div>
-
-                        <div class="buttons is-right mt-5">
-                            <button class="button" onclick="goToStep(2)">
-                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
-                                <span th:text="#{button.back}">Back</span>
-                            </button>
-                            <button class="button is-primary is-medium" onclick="submitStep3()">
-                                <span th:text="#{button.complete}">Complete Assessment</span>
-                                <span class="icon"><i class="fas fa-check"></i></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Gated States -->
-                    <div id="step-explanation" class="assessment-step is-hidden">
-                        <div class="notification is-warning">
-                            <h3 class="title is-4" th:text="#{political.explanation.title}">Explanation Required</h3>
-                            <p th:text="#{political.explanation.desc}">
-                                You've identified as working-class with conservative views. Please explain
-                                how these views serve your economic interests.
-                            </p>
-                        </div>
-
-                        <div class="field">
-                            <label class="label" th:text="#{political.explanation.label}">Your Explanation</label>
-                            <div class="control">
-                                <textarea class="textarea" id="conservative-explanation" rows="6"
-                                          th:placeholder="#{political.explanation.placeholder}"></textarea>
-                            </div>
-                            <p class="help" th:text="#{political.explanation.help}">Minimum 100 characters required.</p>
-                        </div>
-
-                        <div class="has-text-right mt-4">
-                            <button class="button is-primary" onclick="submitExplanation()">
-                                <span th:text="#{button.submit}">Submit</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="step-vasectomy" class="assessment-step is-hidden">
-                        <div class="notification is-danger">
-                            <h3 class="title is-4" th:text="#{political.vasectomy.title}">Verification Required</h3>
-                            <p th:text="#{political.vasectomy.desc}">
-                                You've indicated support for restricting reproductive rights.
-                                To demonstrate commitment to your stated values, verification of vasectomy is required.
-                            </p>
-                        </div>
-
-                        <div class="box">
-                            <h4 class="title is-5" th:text="#{political.vasectomy.why}">Why This Requirement?</h4>
-                            <p th:text="#{political.vasectomy.reason}">
-                                Those who advocate for policies restricting others' bodily autonomy
-                                should demonstrate they've taken personal responsibility to prevent
-                                unwanted pregnancies.
-                            </p>
-                        </div>
-
-                        <div class="field">
-                            <div class="file has-name is-fullwidth">
-                                <label class="file-label">
-                                    <input class="file-input" type="file" id="vasectomy-doc" accept=".pdf,.jpg,.jpeg,.png">
-                                    <span class="file-cta">
-                                        <span class="file-icon"><i class="fas fa-upload"></i></span>
-                                        <span class="file-label" th:text="#{political.vasectomy.upload}">Upload Verification</span>
-                                    </span>
-                                    <span class="file-name" id="vasectomy-filename">No file selected</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="buttons mt-4">
-                            <button class="button is-primary" onclick="submitVasectomy()">
-                                <span th:text="#{button.submit}">Submit Verification</span>
-                            </button>
-                            <button class="button is-light" onclick="declineVasectomy()">
-                                <span th:text="#{political.vasectomy.decline}">Decline (Remain Gated)</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Result States -->
-                    <div id="step-approved" class="assessment-step is-hidden">
-                        <div class="notification is-success">
-                            <div class="has-text-centered">
-                                <span class="icon is-large"><i class="fas fa-check-circle fa-3x"></i></span>
-                                <h3 class="title is-4 mt-3" th:text="#{political.approved.title}">Assessment Complete!</h3>
-                                <p th:text="#{political.approved.desc}">
-                                    Your profile is approved for matching.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="has-text-centered mt-4">
-                            <a href="/search" class="button is-primary is-large" th:text="#{political.approved.cta}">
-                                Start Matching
-                            </a>
-                        </div>
-                    </div>
-
-                    <div id="step-rejected" class="assessment-step is-hidden">
-                        <div class="notification is-danger">
-                            <div class="has-text-centered">
-                                <span class="icon is-large"><i class="fas fa-times-circle fa-3x"></i></span>
-                                <h3 class="title is-4 mt-3" th:text="#{political.rejected.title}">Incompatible Values</h3>
-                                <p id="rejection-message" th:text="#{political.rejected.desc}">
-                                    Your profile is not compatible with this platform's values.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="step-pending" class="assessment-step is-hidden">
-                        <div class="notification is-info">
-                            <div class="has-text-centered">
-                                <span class="icon is-large"><i class="fas fa-clock fa-3x"></i></span>
-                                <h3 class="title is-4 mt-3" th:text="#{political.pending.title}">Under Review</h3>
-                                <p th:text="#{political.pending.desc}">
-                                    Your assessment is being reviewed. Check back soon.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+                <button class="aura-btn aura-btn-primary" onclick="submitStep1()">
+                    <span th:text="#{button.next}">Next</span> <i class="fas fa-arrow-right"></i>
+                </button>
             </div>
         </div>
     </div>
-</section>
+
+    <!-- Step 2: Political Values -->
+    <div id="step-2" class="assessment-step is-hidden">
+        <div class="aura-steps">
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Economic</div>
+            </div>
+            <div class="aura-step active">
+                <div class="aura-step-marker">2</div>
+                <div class="aura-step-label" th:text="#{political.step2}">Values</div>
+            </div>
+            <div class="aura-step">
+                <div class="aura-step-marker">3</div>
+                <div class="aura-step-label" th:text="#{political.step3}">Awareness</div>
+            </div>
+        </div>
+
+        <div class="aura-card aura-animate-fade-up" style="padding: 2rem; margin-top: 1.5rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">
+                <i class="fas fa-vote-yea mr-2" style="color: var(--aura-primary);"></i>
+                <span th:text="#{political.values.title}">Economic Values</span>
+            </h3>
+
+            <div class="aura-form-group">
+                <label class="aura-label" th:text="#{political.orientation}">Political Orientation</label>
+                <select id="political-orientation" class="aura-select">
+                    <option value="">Select...</option>
+                    <option value="SOCIALIST">Socialist</option>
+                    <option value="PROGRESSIVE">Progressive</option>
+                    <option value="LIBERAL">Liberal</option>
+                    <option value="MODERATE">Moderate</option>
+                    <option value="CONSERVATIVE">Conservative</option>
+                    <option value="LIBERTARIAN">Libertarian</option>
+                    <option value="APOLITICAL">Apolitical</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+
+            <p style="color: var(--aura-gray-500); font-size: 0.875rem; margin: 1.5rem 0 1rem;">
+                <i class="fas fa-sliders-h mr-1"></i>
+                <span th:text="#{political.scale.instruction}">Rate your agreement (1 = Strongly Disagree, 5 = Strongly Agree)</span>
+            </p>
+
+            <!-- Rating Questions -->
+            <div class="aura-rating-question">
+                <label th:text="#{political.q.redistribution}">
+                    The wealthy should pay significantly higher taxes to fund public services.
+                </label>
+                <div class="aura-rating-scale">
+                    <button type="button" class="aura-rating-btn" data-field="wealth-redist" data-value="1">1</button>
+                    <button type="button" class="aura-rating-btn" data-field="wealth-redist" data-value="2">2</button>
+                    <button type="button" class="aura-rating-btn" data-field="wealth-redist" data-value="3">3</button>
+                    <button type="button" class="aura-rating-btn" data-field="wealth-redist" data-value="4">4</button>
+                    <button type="button" class="aura-rating-btn" data-field="wealth-redist" data-value="5">5</button>
+                </div>
+                <input type="hidden" id="wealth-redist">
+            </div>
+
+            <div class="aura-rating-question">
+                <label th:text="#{political.q.workers}">
+                    Workers should have ownership stakes in the companies they work for.
+                </label>
+                <div class="aura-rating-scale">
+                    <button type="button" class="aura-rating-btn" data-field="worker-ownership" data-value="1">1</button>
+                    <button type="button" class="aura-rating-btn" data-field="worker-ownership" data-value="2">2</button>
+                    <button type="button" class="aura-rating-btn" data-field="worker-ownership" data-value="3">3</button>
+                    <button type="button" class="aura-rating-btn" data-field="worker-ownership" data-value="4">4</button>
+                    <button type="button" class="aura-rating-btn" data-field="worker-ownership" data-value="5">5</button>
+                </div>
+                <input type="hidden" id="worker-ownership">
+            </div>
+
+            <div class="aura-rating-question">
+                <label th:text="#{political.q.universal}">
+                    Healthcare and education should be free and publicly funded.
+                </label>
+                <div class="aura-rating-scale">
+                    <button type="button" class="aura-rating-btn" data-field="universal-services" data-value="1">1</button>
+                    <button type="button" class="aura-rating-btn" data-field="universal-services" data-value="2">2</button>
+                    <button type="button" class="aura-rating-btn" data-field="universal-services" data-value="3">3</button>
+                    <button type="button" class="aura-rating-btn" data-field="universal-services" data-value="4">4</button>
+                    <button type="button" class="aura-rating-btn" data-field="universal-services" data-value="5">5</button>
+                </div>
+                <input type="hidden" id="universal-services">
+            </div>
+
+            <div class="aura-rating-question">
+                <label th:text="#{political.q.housing}">
+                    Tenants' rights should be prioritized over landlords' profits.
+                </label>
+                <div class="aura-rating-scale">
+                    <button type="button" class="aura-rating-btn" data-field="housing-rights" data-value="1">1</button>
+                    <button type="button" class="aura-rating-btn" data-field="housing-rights" data-value="2">2</button>
+                    <button type="button" class="aura-rating-btn" data-field="housing-rights" data-value="3">3</button>
+                    <button type="button" class="aura-rating-btn" data-field="housing-rights" data-value="4">4</button>
+                    <button type="button" class="aura-rating-btn" data-field="housing-rights" data-value="5">5</button>
+                </div>
+                <input type="hidden" id="housing-rights">
+            </div>
+
+            <div class="aura-rating-question">
+                <label th:text="#{political.q.billionaires}">
+                    No one should be a billionaire while others struggle to meet basic needs.
+                </label>
+                <div class="aura-rating-scale">
+                    <button type="button" class="aura-rating-btn" data-field="billionaire-view" data-value="1">1</button>
+                    <button type="button" class="aura-rating-btn" data-field="billionaire-view" data-value="2">2</button>
+                    <button type="button" class="aura-rating-btn" data-field="billionaire-view" data-value="3">3</button>
+                    <button type="button" class="aura-rating-btn" data-field="billionaire-view" data-value="4">4</button>
+                    <button type="button" class="aura-rating-btn" data-field="billionaire-view" data-value="5">5</button>
+                </div>
+                <input type="hidden" id="billionaire-view">
+            </div>
+
+            <div class="aura-rating-question">
+                <label th:text="#{political.q.meritocracy}">
+                    Economic success is mainly determined by factors beyond individual control (family wealth, connections, luck).
+                </label>
+                <div class="aura-rating-scale">
+                    <button type="button" class="aura-rating-btn" data-field="meritocracy-view" data-value="1">1</button>
+                    <button type="button" class="aura-rating-btn" data-field="meritocracy-view" data-value="2">2</button>
+                    <button type="button" class="aura-rating-btn" data-field="meritocracy-view" data-value="3">3</button>
+                    <button type="button" class="aura-rating-btn" data-field="meritocracy-view" data-value="4">4</button>
+                    <button type="button" class="aura-rating-btn" data-field="meritocracy-view" data-value="5">5</button>
+                </div>
+                <input type="hidden" id="meritocracy-view">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                <button class="aura-btn aura-btn-secondary" onclick="goToStep(1)">
+                    <i class="fas fa-arrow-left"></i> <span th:text="#{button.back}">Back</span>
+                </button>
+                <button class="aura-btn aura-btn-primary" onclick="submitStep2()">
+                    <span th:text="#{button.next}">Next</span> <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Class Consciousness -->
+    <div id="step-3" class="assessment-step is-hidden">
+        <div class="aura-steps">
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="aura-step active">
+                <div class="aura-step-marker">3</div>
+                <div class="aura-step-label" th:text="#{political.step3}">Awareness</div>
+            </div>
+        </div>
+
+        <div class="aura-card aura-animate-fade-up" style="padding: 2rem; margin-top: 1.5rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">
+                <i class="fas fa-brain mr-2" style="color: var(--aura-primary);"></i>
+                <span th:text="#{political.consciousness.title}">Class Consciousness</span>
+            </h3>
+            <p style="color: var(--aura-gray-500); font-size: 0.875rem; margin-bottom: 1.5rem;"
+               th:text="#{political.consciousness.desc}">
+                These questions help us understand your awareness of economic systems.
+            </p>
+
+            <div id="consciousness-questions">
+                <!-- Loaded dynamically -->
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                <button class="aura-btn aura-btn-secondary" onclick="goToStep(2)">
+                    <i class="fas fa-arrow-left"></i> <span th:text="#{button.back}">Back</span>
+                </button>
+                <button class="aura-btn aura-btn-success" onclick="submitStep3()">
+                    <i class="fas fa-check"></i> <span th:text="#{button.complete}">Complete Assessment</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gated States -->
+    <div id="step-explanation" class="assessment-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
+            <div class="aura-alert aura-alert-warning" style="margin-bottom: 1.5rem;">
+                <i class="fas fa-question-circle fa-lg"></i>
+                <div>
+                    <strong th:text="#{political.explanation.title}">Explanation Required</strong>
+                    <p th:text="#{political.explanation.desc}" style="margin-top: 0.25rem;">
+                        You've identified as working-class with conservative views. Please explain
+                        how these views serve your economic interests.
+                    </p>
+                </div>
+            </div>
+
+            <div class="aura-form-group">
+                <label class="aura-label" th:text="#{political.explanation.label}">Your Explanation</label>
+                <textarea class="aura-textarea" id="conservative-explanation" rows="6"
+                          th:placeholder="#{political.explanation.placeholder}"></textarea>
+                <span class="aura-help" th:text="#{political.explanation.help}">Minimum 100 characters required.</span>
+            </div>
+
+            <div style="text-align: right; margin-top: 1.5rem;">
+                <button class="aura-btn aura-btn-primary" onclick="submitExplanation()">
+                    <i class="fas fa-paper-plane"></i> <span th:text="#{button.submit}">Submit</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="step-vasectomy" class="assessment-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
+            <div class="aura-alert aura-alert-error" style="margin-bottom: 1.5rem;">
+                <i class="fas fa-exclamation-triangle fa-lg"></i>
+                <div>
+                    <strong th:text="#{political.vasectomy.title}">Verification Required</strong>
+                    <p th:text="#{political.vasectomy.desc}" style="margin-top: 0.25rem;">
+                        You've indicated support for restricting reproductive rights.
+                        To demonstrate commitment to your stated values, verification of vasectomy is required.
+                    </p>
+                </div>
+            </div>
+
+            <div class="aura-card" style="background: var(--aura-gray-50); padding: 1.5rem; margin-bottom: 1.5rem;">
+                <h4 style="font-weight: 600; margin-bottom: 0.5rem;">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <span th:text="#{political.vasectomy.why}">Why This Requirement?</span>
+                </h4>
+                <p style="color: var(--aura-gray-600); font-size: 0.875rem;" th:text="#{political.vasectomy.reason}">
+                    Those who advocate for policies restricting others' bodily autonomy
+                    should demonstrate they've taken personal responsibility to prevent
+                    unwanted pregnancies.
+                </p>
+            </div>
+
+            <div class="aura-form-group">
+                <label class="aura-label" th:text="#{political.vasectomy.upload}">Upload Verification</label>
+                <div class="aura-file-upload">
+                    <input type="file" id="vasectomy-doc" accept=".pdf,.jpg,.jpeg,.png">
+                    <div class="aura-file-upload-content">
+                        <i class="fas fa-cloud-upload-alt fa-2x" style="color: var(--aura-primary);"></i>
+                        <p>Drag & drop or click to upload</p>
+                        <span id="vasectomy-filename" style="font-size: 0.875rem; color: var(--aura-gray-500);">No file selected</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button class="aura-btn aura-btn-primary" onclick="submitVasectomy()">
+                    <i class="fas fa-upload"></i> <span th:text="#{button.submit}">Submit Verification</span>
+                </button>
+                <button class="aura-btn aura-btn-secondary" onclick="declineVasectomy()">
+                    <span th:text="#{political.vasectomy.decline}">Decline (Remain Gated)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result States -->
+    <div id="step-approved" class="assessment-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+            <div class="aura-result-icon aura-result-success">
+                <i class="fas fa-check-circle fa-4x"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem;" th:text="#{political.approved.title}">
+                Assessment Complete!
+            </h3>
+            <p style="color: var(--aura-gray-500); margin-top: 0.5rem;" th:text="#{political.approved.desc}">
+                Your profile is approved for matching.
+            </p>
+            <a href="/search" class="aura-btn aura-btn-primary aura-btn-lg" style="margin-top: 1.5rem;">
+                <i class="fas fa-heart"></i> <span th:text="#{political.approved.cta}">Start Matching</span>
+            </a>
+        </div>
+    </div>
+
+    <div id="step-rejected" class="assessment-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+            <div class="aura-result-icon aura-result-error">
+                <i class="fas fa-times-circle fa-4x"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem;" th:text="#{political.rejected.title}">
+                Incompatible Values
+            </h3>
+            <p id="rejection-message" style="color: var(--aura-gray-500); margin-top: 0.5rem;" th:text="#{political.rejected.desc}">
+                Your profile is not compatible with this platform's values.
+            </p>
+        </div>
+    </div>
+
+    <div id="step-pending" class="assessment-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+            <div class="aura-result-icon aura-result-pending">
+                <i class="fas fa-clock fa-4x"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem;" th:text="#{political.pending.title}">
+                Under Review
+            </h3>
+            <p style="color: var(--aura-gray-500); margin-top: 0.5rem;" th:text="#{political.pending.desc}">
+                Your assessment is being reviewed. Check back soon.
+            </p>
+        </div>
+    </div>
+</div>
 
 <div th:replace="~{fragments :: footer}"></div>
 
 <style>
     .assessment-step.is-hidden { display: none; }
-    .steps {
+
+    .aura-steps {
         display: flex;
         justify-content: center;
-        margin-bottom: 1.5rem;
+        gap: 2rem;
+        margin-bottom: 1rem;
     }
-    .step-item {
+
+    .aura-step {
         display: flex;
         flex-direction: column;
         align-items: center;
-        flex: 1;
-        max-width: 120px;
+        gap: 0.5rem;
     }
-    .step-marker {
-        width: 40px;
-        height: 40px;
+
+    .aura-step-marker {
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
-        background: #dbdbdb;
+        background: var(--aura-gray-200);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        color: #fff;
+        font-weight: 600;
+        font-size: 1.125rem;
+        color: var(--aura-gray-500);
+        transition: all 0.3s ease;
     }
-    .step-item.is-active .step-marker,
-    .step-item.is-completed .step-marker {
-        background: #00d1b2;
-    }
-    .step-details { margin-top: 0.5rem; text-align: center; }
-    .step-title { font-size: 0.85rem; }
 
-    .rating-btn {
-        width: 50px;
-    }
-    .rating-btn.is-selected {
-        background-color: #00d1b2;
-        border-color: #00d1b2;
+    .aura-step.active .aura-step-marker {
+        background: var(--aura-gradient);
         color: white;
+        box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+    }
+
+    .aura-step.completed .aura-step-marker {
+        background: var(--aura-success);
+        color: white;
+    }
+
+    .aura-step-label {
+        font-size: 0.75rem;
+        color: var(--aura-gray-500);
+        font-weight: 500;
+    }
+
+    .aura-step.active .aura-step-label {
+        color: var(--aura-primary);
+    }
+
+    .aura-rating-question {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--aura-gray-200);
+    }
+
+    .aura-rating-question:last-of-type {
+        border-bottom: none;
+    }
+
+    .aura-rating-question label {
+        display: block;
+        font-size: 0.9375rem;
+        color: var(--aura-gray-700);
+        margin-bottom: 0.75rem;
+        line-height: 1.5;
+    }
+
+    .aura-rating-scale {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .aura-rating-btn {
+        width: 48px;
+        height: 48px;
+        border: 2px solid var(--aura-gray-300);
+        border-radius: 12px;
+        background: white;
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--aura-gray-600);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .aura-rating-btn:hover {
+        border-color: var(--aura-primary);
+        color: var(--aura-primary);
+        transform: translateY(-2px);
+    }
+
+    .aura-rating-btn.selected {
+        background: var(--aura-gradient);
+        border-color: transparent;
+        color: white;
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+
+    .aura-checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .aura-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.75rem 1rem;
+        background: var(--aura-gray-50);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .aura-checkbox:hover {
+        background: var(--aura-gray-100);
+    }
+
+    .aura-checkbox input {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--aura-primary);
+    }
+
+    .aura-file-upload {
+        position: relative;
+        border: 2px dashed var(--aura-gray-300);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .aura-file-upload:hover {
+        border-color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    .aura-file-upload input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .aura-result-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .aura-result-success {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2));
+        color: var(--aura-success);
+    }
+
+    .aura-result-error {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2));
+        color: var(--aura-danger);
+    }
+
+    .aura-result-pending {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.2));
+        color: var(--aura-primary);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .aura-step-marker {
+            background: var(--aura-gray-700);
+            color: var(--aura-gray-400);
+        }
+
+        .aura-rating-question label {
+            color: var(--aura-gray-200);
+        }
+
+        .aura-rating-btn {
+            background: var(--aura-gray-800);
+            border-color: var(--aura-gray-600);
+            color: var(--aura-gray-300);
+        }
+
+        .aura-checkbox {
+            background: var(--aura-gray-800);
+        }
+
+        .aura-checkbox:hover {
+            background: var(--aura-gray-700);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .aura-steps {
+            gap: 1rem;
+        }
+
+        .aura-step-marker {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .aura-step-label {
+            display: none;
+        }
+
+        .aura-rating-btn {
+            width: 40px;
+            height: 40px;
+        }
     }
 </style>
 
@@ -497,7 +670,17 @@
 
     function goToStep(step) {
         document.querySelectorAll('.assessment-step').forEach(el => el.classList.add('is-hidden'));
-        document.getElementById(`step-${step}`).classList.remove('is-hidden');
+        const targetStep = document.getElementById(`step-${step}`);
+        if (targetStep) {
+            targetStep.classList.remove('is-hidden');
+            targetStep.style.opacity = '0';
+            targetStep.style.transform = 'translateY(20px)';
+            requestAnimationFrame(() => {
+                targetStep.style.transition = 'all 0.4s ease';
+                targetStep.style.opacity = '1';
+                targetStep.style.transform = 'translateY(0)';
+            });
+        }
         currentStep = step;
 
         if (step === 3) {
@@ -506,18 +689,16 @@
     }
 
     // Rating button handler
-    document.querySelectorAll('.rating-btn').forEach(btn => {
+    document.querySelectorAll('.aura-rating-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const field = this.dataset.field;
             const value = this.dataset.value;
 
-            // Clear other selections in this group
-            document.querySelectorAll(`.rating-btn[data-field="${field}"]`).forEach(b => {
-                b.classList.remove('is-selected');
+            document.querySelectorAll(`.aura-rating-btn[data-field="${field}"]`).forEach(b => {
+                b.classList.remove('selected');
             });
 
-            // Select this one
-            this.classList.add('is-selected');
+            this.classList.add('selected');
             document.getElementById(field).value = value;
         });
     });
@@ -600,21 +781,19 @@
 
             result.questions.forEach((q, index) => {
                 const field = document.createElement('div');
-                field.className = 'field mb-5';
+                field.className = 'aura-rating-question';
                 field.innerHTML = `
-                    <label class="label">${q.question}</label>
-                    <div class="control">
-                        <div class="buttons has-addons is-centered">
-                            ${q.options.map(opt => `
-                                <button class="button consciousness-btn"
-                                        data-question="${q.id}"
-                                        data-value="${opt.value}">
-                                    ${opt.text}
-                                </button>
-                            `).join('')}
-                        </div>
-                        <input type="hidden" id="consciousness-${q.id}">
+                    <label>${q.question}</label>
+                    <div class="aura-rating-scale">
+                        ${q.options.map(opt => `
+                            <button type="button" class="aura-rating-btn consciousness-btn"
+                                    data-question="${q.id}"
+                                    data-value="${opt.value}">
+                                ${opt.text}
+                            </button>
+                        `).join('')}
                     </div>
+                    <input type="hidden" id="consciousness-${q.id}">
                 `;
                 container.appendChild(field);
             });
@@ -626,9 +805,9 @@
                     const value = this.dataset.value;
 
                     document.querySelectorAll(`.consciousness-btn[data-question="${question}"]`).forEach(b => {
-                        b.classList.remove('is-primary');
+                        b.classList.remove('selected');
                     });
-                    this.classList.add('is-primary');
+                    this.classList.add('selected');
                     document.getElementById(`consciousness-${question}`).value = value;
                 });
             });
@@ -647,14 +826,12 @@
         });
 
         try {
-            // Submit consciousness answers
             await fetch('/api/v1/political-assessment/class-consciousness-test', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(answers)
             });
 
-            // Complete assessment
             const response = await fetch('/api/v1/political-assessment/complete', {
                 method: 'POST'
             });

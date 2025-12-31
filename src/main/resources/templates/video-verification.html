@@ -3,139 +3,581 @@
 
 <head th:replace="~{fragments :: head}"></head>
 
-<body>
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
 <div th:replace="~{fragments :: header}"></div>
 
-<section class="section">
-    <div class="container">
-        <div class="columns is-centered">
-            <div class="column is-8">
-                <div class="box">
-                    <h1 class="title has-text-centered">
-                        <span class="icon has-text-primary"><i class="fas fa-video"></i></span>
-                        <span th:text="#{verification.title}">Video Verification</span>
-                    </h1>
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-video mr-2"></i> <span th:text="#{verification.title}">Video Verification</span></h1>
+    <p>Build trust with a verified profile</p>
+</div>
 
-                    <!-- Already verified state -->
-                    <div th:if="${verified}" class="notification is-success">
-                        <div class="has-text-centered">
-                            <span class="icon is-large"><i class="fas fa-check-circle fa-3x"></i></span>
-                            <h3 class="title is-4 mt-3" th:text="#{verification.verified}">You're Verified!</h3>
-                            <p th:text="#{verification.verified.desc}">Your profile shows the verified badge.</p>
+<div class="aura-container">
+    <!-- Already verified state -->
+    <div th:if="${verified}" class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+        <div class="aura-verified-badge">
+            <div class="aura-verified-icon">
+                <i class="fas fa-check-circle fa-4x"></i>
+            </div>
+            <div class="aura-verified-ring"></div>
+        </div>
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; color: var(--aura-success);"
+            th:text="#{verification.verified}">You're Verified!</h2>
+        <p style="color: var(--aura-gray-500); margin-top: 0.5rem;" th:text="#{verification.verified.desc}">
+            Your profile shows the verified badge.
+        </p>
+        <div class="aura-traits" style="justify-content: center; margin-top: 1.5rem;">
+            <span class="aura-trait aura-trait-positive">
+                <i class="fas fa-shield-alt"></i> Verified Identity
+            </span>
+            <span class="aura-trait aura-trait-positive">
+                <i class="fas fa-star"></i> Trusted Profile
+            </span>
+        </div>
+    </div>
+
+    <!-- Not verified state -->
+    <div th:unless="${verified}">
+        <!-- Introduction -->
+        <div id="step-intro" class="verification-step aura-animate-fade-up">
+            <div class="aura-card" style="padding: 2rem;">
+                <div class="aura-card-header" style="margin-bottom: 1.5rem;">
+                    <div class="aura-card-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div>
+                        <div class="aura-card-title" th:text="#{verification.why.title}">Why Verify?</div>
+                        <div class="aura-card-subtitle">Unlock exclusive benefits</div>
+                    </div>
+                </div>
+
+                <div class="aura-benefits-grid">
+                    <div class="aura-benefit">
+                        <div class="aura-benefit-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+                            <i class="fas fa-badge-check"></i>
+                        </div>
+                        <div>
+                            <strong th:text="#{verification.why.1}">Get the verified badge on your profile</strong>
+                            <p>Stand out with a trust indicator</p>
                         </div>
                     </div>
-
-                    <!-- Not verified state -->
-                    <div th:unless="${verified}">
-                        <!-- Introduction -->
-                        <div id="step-intro" class="verification-step">
-                            <div class="content">
-                                <h3 th:text="#{verification.why.title}">Why Verify?</h3>
-                                <ul>
-                                    <li th:text="#{verification.why.1}">Get the verified badge on your profile</li>
-                                    <li th:text="#{verification.why.2}">Increase trust with potential matches</li>
-                                    <li th:text="#{verification.why.3}">Access more daily matches</li>
-                                    <li th:text="#{verification.why.4}">Improve your reputation score</li>
-                                </ul>
-
-                                <h3 th:text="#{verification.how.title}">How It Works</h3>
-                                <ol>
-                                    <li th:text="#{verification.how.1}">We'll show you a series of simple actions</li>
-                                    <li th:text="#{verification.how.2}">Record yourself performing each action</li>
-                                    <li th:text="#{verification.how.3}">Our AI verifies you match your profile photo</li>
-                                </ol>
-
-                                <div class="notification is-info is-light">
-                                    <p><strong th:text="#{verification.privacy}">Privacy Note:</strong>
-                                        <span th:text="#{verification.privacy.desc}">Your video is only used for verification and is deleted after processing.</span>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="buttons is-centered mt-5">
-                                <button class="button is-primary is-large" onclick="startVerification()"
-                                        th:text="#{verification.start}">Start Verification</button>
-                            </div>
+                    <div class="aura-benefit">
+                        <div class="aura-benefit-icon" style="background: linear-gradient(135deg, #ec4899, #f472b6);">
+                            <i class="fas fa-heart"></i>
                         </div>
-
-                        <!-- Camera step -->
-                        <div id="step-camera" class="verification-step is-hidden">
-                            <div class="has-text-centered mb-4">
-                                <p class="title is-5" id="challenge-instruction" th:text="#{verification.prepare}">
-                                    Get ready...
-                                </p>
-                                <p class="subtitle" id="challenge-countdown"></p>
-                            </div>
-
-                            <div class="video-container">
-                                <video id="video-preview" autoplay playsinline muted></video>
-                                <canvas id="video-canvas" class="is-hidden"></canvas>
-                            </div>
-
-                            <div class="buttons is-centered mt-4">
-                                <button id="record-btn" class="button is-danger is-large" onclick="toggleRecording()" disabled>
-                                    <span class="icon"><i class="fas fa-circle"></i></span>
-                                    <span th:text="#{verification.record}">Start Recording</span>
-                                </button>
-                            </div>
-
-                            <progress id="recording-progress" class="progress is-danger is-hidden" value="0" max="100"></progress>
+                        <div>
+                            <strong th:text="#{verification.why.2}">Increase trust with potential matches</strong>
+                            <p>More likes and connections</p>
                         </div>
-
-                        <!-- Processing step -->
-                        <div id="step-processing" class="verification-step is-hidden">
-                            <div class="has-text-centered">
-                                <span class="icon is-large"><i class="fas fa-spinner fa-spin fa-3x"></i></span>
-                                <h3 class="title is-4 mt-4" th:text="#{verification.processing}">Verifying...</h3>
-                                <p th:text="#{verification.processing.desc}">This may take a moment.</p>
-                            </div>
+                    </div>
+                    <div class="aura-benefit">
+                        <div class="aura-benefit-icon" style="background: linear-gradient(135deg, #059669, #10b981);">
+                            <i class="fas fa-users"></i>
                         </div>
-
-                        <!-- Result step -->
-                        <div id="step-result" class="verification-step is-hidden">
-                            <div id="result-success" class="notification is-success is-hidden">
-                                <div class="has-text-centered">
-                                    <span class="icon is-large"><i class="fas fa-check-circle fa-3x"></i></span>
-                                    <h3 class="title is-4 mt-3" th:text="#{verification.success}">Verification Successful!</h3>
-                                    <p th:text="#{verification.success.desc}">You're now verified.</p>
-                                </div>
-                            </div>
-
-                            <div id="result-failure" class="notification is-danger is-hidden">
-                                <div class="has-text-centered">
-                                    <span class="icon is-large"><i class="fas fa-times-circle fa-3x"></i></span>
-                                    <h3 class="title is-4 mt-3" th:text="#{verification.failed}">Verification Failed</h3>
-                                    <p id="failure-reason"></p>
-                                    <button class="button is-primary mt-3" onclick="retryVerification()"
-                                            th:text="#{verification.retry}">Try Again</button>
-                                </div>
-                            </div>
+                        <div>
+                            <strong th:text="#{verification.why.3}">Access more daily matches</strong>
+                            <p>Priority in the matching queue</p>
+                        </div>
+                    </div>
+                    <div class="aura-benefit">
+                        <div class="aura-benefit-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div>
+                            <strong th:text="#{verification.why.4}">Improve your reputation score</strong>
+                            <p>Boost your trustworthiness</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div class="aura-card aura-animate-fade-up" style="padding: 2rem; margin-top: 1rem;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.25rem;">
+                    <i class="fas fa-list-ol mr-2" style="color: var(--aura-primary);"></i>
+                    <span th:text="#{verification.how.title}">How It Works</span>
+                </h3>
+
+                <div class="aura-steps-vertical">
+                    <div class="aura-step-vertical">
+                        <div class="aura-step-number">1</div>
+                        <div class="aura-step-content">
+                            <strong th:text="#{verification.how.1}">We'll show you a series of simple actions</strong>
+                            <p>Like turning your head or smiling</p>
+                        </div>
+                    </div>
+                    <div class="aura-step-vertical">
+                        <div class="aura-step-number">2</div>
+                        <div class="aura-step-content">
+                            <strong th:text="#{verification.how.2}">Record yourself performing each action</strong>
+                            <p>Just a few seconds each</p>
+                        </div>
+                    </div>
+                    <div class="aura-step-vertical">
+                        <div class="aura-step-number">3</div>
+                        <div class="aura-step-content">
+                            <strong th:text="#{verification.how.3}">Our AI verifies you match your profile photo</strong>
+                            <p>Instant results in most cases</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="aura-alert aura-alert-info" style="margin-top: 1rem;">
+                <i class="fas fa-lock fa-lg"></i>
+                <div>
+                    <strong th:text="#{verification.privacy}">Privacy Note</strong>
+                    <p th:text="#{verification.privacy.desc}" style="margin-top: 0.25rem; opacity: 0.9;">
+                        Your video is only used for verification and is deleted after processing.
+                    </p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="aura-btn aura-btn-primary aura-btn-lg" onclick="startVerification()">
+                    <i class="fas fa-play"></i> <span th:text="#{verification.start}">Start Verification</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Camera step -->
+        <div id="step-camera" class="verification-step is-hidden">
+            <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <p id="challenge-instruction" class="aura-challenge-text" th:text="#{verification.prepare}">
+                        Get ready...
+                    </p>
+                    <div id="challenge-countdown" class="aura-countdown"></div>
+                </div>
+
+                <div class="aura-video-container">
+                    <video id="video-preview" autoplay playsinline muted></video>
+                    <canvas id="video-canvas" class="is-hidden"></canvas>
+                    <div class="aura-video-overlay">
+                        <div class="aura-face-guide"></div>
+                    </div>
+                    <div id="recording-indicator" class="aura-recording-indicator is-hidden">
+                        <span class="aura-recording-dot"></span>
+                        REC
+                    </div>
+                </div>
+
+                <div class="aura-progress-bar" style="margin-top: 1rem;">
+                    <div id="recording-progress" class="aura-progress-fill" style="width: 0%;"></div>
+                </div>
+
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <button id="record-btn" class="aura-btn aura-btn-record" onclick="toggleRecording()" disabled>
+                        <span class="record-icon"><i class="fas fa-circle"></i></span>
+                        <span th:text="#{verification.record}">Start Recording</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing step -->
+        <div id="step-processing" class="verification-step is-hidden">
+            <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+                <div class="aura-processing-animation">
+                    <div class="aura-processing-ring"></div>
+                    <div class="aura-processing-ring delay-1"></div>
+                    <div class="aura-processing-ring delay-2"></div>
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 2rem;"
+                    th:text="#{verification.processing}">Verifying...</h3>
+                <p style="color: var(--aura-gray-500); margin-top: 0.5rem;"
+                   th:text="#{verification.processing.desc}">This may take a moment.</p>
+
+                <div class="aura-processing-steps" style="margin-top: 1.5rem;">
+                    <div class="aura-processing-step active">
+                        <i class="fas fa-check-circle"></i> Analyzing video
+                    </div>
+                    <div class="aura-processing-step">
+                        <i class="fas fa-spinner fa-spin"></i> Verifying identity
+                    </div>
+                    <div class="aura-processing-step">
+                        <i class="fas fa-clock"></i> Finalizing
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result step -->
+        <div id="step-result" class="verification-step is-hidden">
+            <div id="result-success" class="aura-card aura-animate-fade-up is-hidden" style="padding: 3rem; text-align: center;">
+                <div class="aura-result-icon aura-result-success">
+                    <i class="fas fa-check-circle fa-4x"></i>
+                </div>
+                <h3 style="font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; color: var(--aura-success);"
+                    th:text="#{verification.success}">Verification Successful!</h3>
+                <p style="color: var(--aura-gray-500); margin-top: 0.5rem;"
+                   th:text="#{verification.success.desc}">You're now verified.</p>
+
+                <div class="aura-traits" style="justify-content: center; margin-top: 1.5rem;">
+                    <span class="aura-trait aura-trait-positive">
+                        <i class="fas fa-badge-check"></i> Verified
+                    </span>
+                </div>
+
+                <a href="/" class="aura-btn aura-btn-primary aura-btn-lg" style="margin-top: 2rem;">
+                    <i class="fas fa-heart"></i> Find Matches
+                </a>
+            </div>
+
+            <div id="result-failure" class="aura-card aura-animate-fade-up is-hidden" style="padding: 3rem; text-align: center;">
+                <div class="aura-result-icon aura-result-error">
+                    <i class="fas fa-times-circle fa-4x"></i>
+                </div>
+                <h3 style="font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; color: var(--aura-danger);"
+                    th:text="#{verification.failed}">Verification Failed</h3>
+                <p id="failure-reason" style="color: var(--aura-gray-500); margin-top: 0.5rem;"></p>
+
+                <div class="aura-alert aura-alert-info" style="margin-top: 1.5rem; text-align: left;">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <strong>Tips for success:</strong>
+                        <ul style="margin-top: 0.5rem; padding-left: 1.25rem;">
+                            <li>Ensure good lighting on your face</li>
+                            <li>Position your face within the guide</li>
+                            <li>Follow the instructions carefully</li>
+                            <li>Use a stable camera position</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button class="aura-btn aura-btn-primary" onclick="retryVerification()" style="margin-top: 1.5rem;">
+                    <i class="fas fa-redo"></i> <span th:text="#{verification.retry}">Try Again</span>
+                </button>
+            </div>
         </div>
     </div>
-</section>
+</div>
 
 <div th:replace="~{fragments :: footer}"></div>
 
 <style>
-    .video-container {
+    .verification-step.is-hidden { display: none; }
+
+    .aura-benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .aura-benefit {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--aura-gray-50);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .aura-benefit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .aura-benefit-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .aura-benefit strong {
+        display: block;
+        font-size: 0.9375rem;
+        color: var(--aura-gray-800);
+    }
+
+    .aura-benefit p {
+        font-size: 0.8125rem;
+        color: var(--aura-gray-500);
+        margin-top: 0.25rem;
+    }
+
+    .aura-steps-vertical {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .aura-step-vertical {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .aura-step-number {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--aura-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .aura-step-content strong {
+        display: block;
+        color: var(--aura-gray-800);
+    }
+
+    .aura-step-content p {
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+        margin-top: 0.25rem;
+    }
+
+    .aura-video-container {
         position: relative;
         width: 100%;
         max-width: 480px;
         margin: 0 auto;
-        border-radius: 8px;
+        border-radius: 16px;
         overflow: hidden;
         background: #000;
+        aspect-ratio: 4/3;
     }
-    .video-container video {
+
+    .aura-video-container video {
         width: 100%;
+        height: 100%;
+        object-fit: cover;
         transform: scaleX(-1);
     }
-    .verification-step.is-hidden {
-        display: none;
+
+    .aura-video-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    .aura-face-guide {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 260px;
+        border: 3px dashed rgba(124, 58, 237, 0.5);
+        border-radius: 50%;
+    }
+
+    .aura-recording-indicator {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .aura-recording-dot {
+        width: 10px;
+        height: 10px;
+        background: white;
+        border-radius: 50%;
+        animation: pulse 1s infinite;
+    }
+
+    .aura-challenge-text {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--aura-gray-800);
+    }
+
+    .aura-countdown {
+        font-size: 3rem;
+        font-weight: 700;
+        background: var(--aura-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        min-height: 4rem;
+    }
+
+    .aura-btn-record {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        padding: 1rem 2rem;
+        font-size: 1.125rem;
+        border-radius: 50px;
+    }
+
+    .aura-btn-record:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+    }
+
+    .aura-btn-record.recording {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .record-icon {
+        display: inline-flex;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+    }
+
+    .record-icon i {
+        color: #ef4444;
+        font-size: 0.75rem;
+    }
+
+    .aura-btn-record.recording .record-icon i {
+        color: #f59e0b;
+    }
+
+    .aura-processing-animation {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .aura-processing-animation i {
+        font-size: 2.5rem;
+        color: var(--aura-primary);
+        z-index: 1;
+    }
+
+    .aura-processing-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 3px solid transparent;
+        border-top-color: var(--aura-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .aura-processing-ring.delay-1 {
+        width: 85%;
+        height: 85%;
+        border-top-color: var(--aura-secondary);
+        animation-duration: 1.5s;
+        animation-direction: reverse;
+    }
+
+    .aura-processing-ring.delay-2 {
+        width: 70%;
+        height: 70%;
+        border-top-color: var(--aura-info);
+        animation-duration: 2s;
+    }
+
+    .aura-processing-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .aura-processing-step {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--aura-gray-400);
+        font-size: 0.875rem;
+    }
+
+    .aura-processing-step.active {
+        color: var(--aura-success);
+    }
+
+    .aura-verified-badge {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+
+    .aura-verified-icon {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--aura-success);
+        z-index: 1;
+    }
+
+    .aura-verified-ring {
+        position: absolute;
+        inset: 0;
+        border: 4px solid var(--aura-success);
+        border-radius: 50%;
+        animation: pulse-ring 2s infinite;
+    }
+
+    .aura-result-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .aura-result-success {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2));
+        color: var(--aura-success);
+    }
+
+    .aura-result-error {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2));
+        color: var(--aura-danger);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    @keyframes pulse-ring {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.5; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .aura-benefit {
+            background: var(--aura-gray-800);
+        }
+
+        .aura-benefit strong,
+        .aura-step-content strong,
+        .aura-challenge-text {
+            color: var(--aura-gray-100);
+        }
     }
 </style>
 
@@ -149,7 +591,6 @@
 
     async function startVerification() {
         try {
-            // Get verification session from server
             const response = await fetch('/video/verification/start', {
                 method: 'POST',
                 headers: {
@@ -166,14 +607,27 @@
             sessionId = data.sessionId;
             challenges = data.challenges || [];
 
-            // Switch to camera view
-            document.getElementById('step-intro').classList.add('is-hidden');
-            document.getElementById('step-camera').classList.remove('is-hidden');
+            // Animate transition
+            const intro = document.getElementById('step-intro');
+            const camera = document.getElementById('step-camera');
 
-            // Start camera
+            intro.style.opacity = '0';
+            intro.style.transform = 'translateX(-20px)';
+
+            setTimeout(() => {
+                intro.classList.add('is-hidden');
+                camera.classList.remove('is-hidden');
+                camera.style.opacity = '0';
+                camera.style.transform = 'translateX(20px)';
+
+                requestAnimationFrame(() => {
+                    camera.style.transition = 'all 0.4s ease';
+                    camera.style.opacity = '1';
+                    camera.style.transform = 'translateX(0)';
+                });
+            }, 300);
+
             await startCamera();
-
-            // Show first challenge
             showChallenge(0);
 
         } catch (error) {
@@ -212,7 +666,6 @@
 
     function showChallenge(index) {
         if (index >= challenges.length) {
-            // All challenges complete, auto-submit
             return;
         }
 
@@ -220,7 +673,6 @@
         const challenge = challenges[index];
         document.getElementById('challenge-instruction').textContent = challenge.instruction;
 
-        // Countdown before recording
         let countdown = 3;
         const countdownEl = document.getElementById('challenge-countdown');
         countdownEl.textContent = countdown;
@@ -238,47 +690,51 @@
 
     function toggleRecording() {
         const btn = document.getElementById('record-btn');
+        const indicator = document.getElementById('recording-indicator');
 
         if (!isRecording) {
-            // Start recording
             recordedChunks = [];
             mediaRecorder.start();
             isRecording = true;
-            btn.innerHTML = '<span class="icon"><i class="fas fa-stop"></i></span><span>Stop Recording</span>';
-            btn.classList.remove('is-danger');
-            btn.classList.add('is-warning');
+            btn.innerHTML = '<span class="record-icon"><i class="fas fa-stop"></i></span>Stop Recording';
+            btn.classList.add('recording');
+            indicator.classList.remove('is-hidden');
 
-            // Show progress
             const progress = document.getElementById('recording-progress');
-            progress.classList.remove('is-hidden');
             let elapsed = 0;
-            const maxTime = 10; // 10 seconds max
+            const maxTime = 10;
 
             const progressInterval = setInterval(() => {
                 elapsed++;
-                progress.value = (elapsed / maxTime) * 100;
+                progress.style.width = (elapsed / maxTime) * 100 + '%';
                 if (elapsed >= maxTime) {
                     clearInterval(progressInterval);
                     if (isRecording) {
-                        toggleRecording(); // Auto-stop
+                        toggleRecording();
                     }
                 }
             }, 1000);
 
         } else {
-            // Stop recording
             mediaRecorder.stop();
             isRecording = false;
-            btn.innerHTML = '<span class="icon"><i class="fas fa-circle"></i></span><span>Start Recording</span>';
-            btn.classList.remove('is-warning');
-            btn.classList.add('is-danger');
-            document.getElementById('recording-progress').classList.add('is-hidden');
+            btn.innerHTML = '<span class="record-icon"><i class="fas fa-circle"></i></span>Start Recording';
+            btn.classList.remove('recording');
+            indicator.classList.add('is-hidden');
+            document.getElementById('recording-progress').style.width = '0%';
         }
     }
 
     async function submitRecording() {
+        // Transition to processing
         document.getElementById('step-camera').classList.add('is-hidden');
-        document.getElementById('step-processing').classList.remove('is-hidden');
+        const processing = document.getElementById('step-processing');
+        processing.classList.remove('is-hidden');
+        processing.style.opacity = '0';
+        requestAnimationFrame(() => {
+            processing.style.transition = 'opacity 0.4s ease';
+            processing.style.opacity = '1';
+        });
 
         try {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
@@ -292,6 +748,9 @@
             });
 
             const result = await response.json();
+
+            // Simulate processing steps
+            await new Promise(r => setTimeout(r, 1500));
 
             document.getElementById('step-processing').classList.add('is-hidden');
             document.getElementById('step-result').classList.remove('is-hidden');
@@ -317,6 +776,8 @@
         document.getElementById('result-success').classList.add('is-hidden');
         document.getElementById('result-failure').classList.add('is-hidden');
         document.getElementById('step-intro').classList.remove('is-hidden');
+        document.getElementById('step-intro').style.opacity = '1';
+        document.getElementById('step-intro').style.transform = 'translateX(0)';
     }
 </script>
 
