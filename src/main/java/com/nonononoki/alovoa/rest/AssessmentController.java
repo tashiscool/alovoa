@@ -1,13 +1,17 @@
 package com.nonononoki.alovoa.rest;
 
+import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.model.AssessmentResponseDto;
+import com.nonononoki.alovoa.repo.UserRepository;
 import com.nonononoki.alovoa.service.AssessmentService;
+import com.nonononoki.alovoa.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/assessment")
@@ -15,6 +19,12 @@ public class AssessmentController {
 
     @Autowired
     private AssessmentService assessmentService;
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping("/questions/{category}")
     public ResponseEntity<?> getQuestionsByCategory(@PathVariable String category) {
@@ -81,6 +91,34 @@ public class AssessmentController {
         try {
             assessmentService.loadQuestionsFromJson();
             return ResponseEntity.ok(Map.of("success", true, "message", "Questions reloaded from JSON"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/match/{userUuid}")
+    public ResponseEntity<?> calculateMatch(@PathVariable String userUuid) {
+        try {
+            User currentUser = authService.getCurrentUser(true);
+            User matchUser = userRepository.findByUuid(UUID.fromString(userUuid))
+                    .orElseThrow(() -> new Exception("User not found"));
+
+            Map<String, Object> result = assessmentService.calculateOkCupidMatch(currentUser, matchUser);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/match/{userUuid}/explain")
+    public ResponseEntity<?> getMatchExplanation(@PathVariable String userUuid) {
+        try {
+            User currentUser = authService.getCurrentUser(true);
+            User matchUser = userRepository.findByUuid(UUID.fromString(userUuid))
+                    .orElseThrow(() -> new Exception("User not found"));
+
+            Map<String, Object> result = assessmentService.getMatchExplanation(currentUser, matchUser);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

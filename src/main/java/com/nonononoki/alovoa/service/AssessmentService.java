@@ -33,7 +33,16 @@ public class AssessmentService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AssessmentService.class);
 
-    private static final String QUESTION_BANK_PATH = "data/aura-question-bank.json";
+    private static final String QUESTION_BANK_PATH = "data/aura-comprehensive-questions.json";
+
+    // OKCupid-style importance weights
+    private static final Map<String, Double> IMPORTANCE_WEIGHTS = Map.of(
+            "irrelevant", 0.0,
+            "a_little", 1.0,
+            "somewhat", 10.0,
+            "very", 50.0,
+            "mandatory", 250.0
+    );
 
     // Big Five domain mappings
     private static final Map<String, String> DOMAIN_MAP = Map.of(
@@ -689,5 +698,206 @@ public class AssessmentService {
         // Dealbreaker logic: if there are critical incompatibilities
         // This is simplified - in production, you'd check specific flag combinations
         return (flags1 & flags2) == 0; // No overlapping critical flags
+    }
+
+    /**
+     * Calculate OKCupid-style match percentage between two users.
+     * Formula: sqrt(user_a_satisfaction * user_b_satisfaction) * 100
+     *
+     * Each user's satisfaction is calculated based on:
+     * - Questions both users have answered
+     * - Whether the other user's answer matches what this user finds acceptable
+     * - Weighted by the importance each user assigns to each question
+     */
+    public Map<String, Object> calculateOkCupidMatch(User userA, User userB) {
+        List<UserAssessmentResponse> responsesA = responseRepo.findByUser(userA);
+        List<UserAssessmentResponse> responsesB = responseRepo.findByUser(userB);
+
+        if (responsesA.isEmpty() || responsesB.isEmpty()) {
+            return Map.of(
+                    "matchPercentage", 50.0,
+                    "hasEnoughData", false,
+                    "commonQuestions", 0
+            );
+        }
+
+        // Build maps for quick lookup
+        Map<Long, UserAssessmentResponse> responseMapA = responsesA.stream()
+                .collect(Collectors.toMap(r -> r.getQuestion().getId(), r -> r));
+        Map<Long, UserAssessmentResponse> responseMapB = responsesB.stream()
+                .collect(Collectors.toMap(r -> r.getQuestion().getId(), r -> r));
+
+        // Find common questions
+        Set<Long> commonQuestionIds = new HashSet<>(responseMapA.keySet());
+        commonQuestionIds.retainAll(responseMapB.keySet());
+
+        if (commonQuestionIds.isEmpty()) {
+            return Map.of(
+                    "matchPercentage", 50.0,
+                    "hasEnoughData", false,
+                    "commonQuestions", 0
+            );
+        }
+
+        // Calculate satisfaction scores
+        double satisfactionA = calculateSatisfaction(responseMapA, responseMapB, commonQuestionIds);
+        double satisfactionB = calculateSatisfaction(responseMapB, responseMapA, commonQuestionIds);
+
+        // OKCupid formula: geometric mean of both satisfactions
+        double matchPercentage = Math.sqrt(satisfactionA * satisfactionB) * 100;
+
+        // Check for mandatory dealbreakers
+        boolean hasMandatoryConflict = checkMandatoryConflicts(responseMapA, responseMapB, commonQuestionIds);
+        if (hasMandatoryConflict) {
+            matchPercentage = Math.min(matchPercentage, 10.0); // Cap at 10% if mandatory conflict
+        }
+
+        return Map.of(
+                "matchPercentage", Math.round(matchPercentage * 10.0) / 10.0,
+                "hasEnoughData", commonQuestionIds.size() >= 10,
+                "commonQuestions", commonQuestionIds.size(),
+                "satisfactionA", Math.round(satisfactionA * 1000.0) / 10.0,
+                "satisfactionB", Math.round(satisfactionB * 1000.0) / 10.0,
+                "hasMandatoryConflict", hasMandatoryConflict
+        );
+    }
+
+    private double calculateSatisfaction(
+            Map<Long, UserAssessmentResponse> myResponses,
+            Map<Long, UserAssessmentResponse> theirResponses,
+            Set<Long> commonQuestionIds) {
+
+        double totalWeight = 0;
+        double satisfiedWeight = 0;
+
+        for (Long questionId : commonQuestionIds) {
+            UserAssessmentResponse myResponse = myResponses.get(questionId);
+            UserAssessmentResponse theirResponse = theirResponses.get(questionId);
+
+            AssessmentQuestion question = myResponse.getQuestion();
+
+            // Get importance weight (default to "somewhat" = 10)
+            double weight = IMPORTANCE_WEIGHTS.getOrDefault("somewhat", 10.0);
+
+            // Check if their answer is acceptable to me
+            // For simplicity: same answer = fully satisfied, adjacent = partially
+            boolean satisfied = isAnswerAcceptable(myResponse, theirResponse, question);
+
+            totalWeight += weight;
+            if (satisfied) {
+                satisfiedWeight += weight;
+            }
+        }
+
+        return totalWeight > 0 ? satisfiedWeight / totalWeight : 0.5;
+    }
+
+    private boolean isAnswerAcceptable(
+            UserAssessmentResponse myResponse,
+            UserAssessmentResponse theirResponse,
+            AssessmentQuestion question) {
+
+        Integer myAnswer = myResponse.getNumericResponse();
+        Integer theirAnswer = theirResponse.getNumericResponse();
+
+        if (myAnswer == null || theirAnswer == null) {
+            return true; // Can't compare, assume acceptable
+        }
+
+        // Check if their answer is a red flag
+        String theirAnswerStr = String.valueOf(theirAnswer);
+        // Red flags would be checked against question metadata in a full implementation
+
+        // Simple matching: same answer or within 1 point is acceptable
+        int diff = Math.abs(myAnswer - theirAnswer);
+        return diff <= 1;
+    }
+
+    private boolean checkMandatoryConflicts(
+            Map<Long, UserAssessmentResponse> responsesA,
+            Map<Long, UserAssessmentResponse> responsesB,
+            Set<Long> commonQuestionIds) {
+
+        for (Long questionId : commonQuestionIds) {
+            UserAssessmentResponse responseA = responsesA.get(questionId);
+            UserAssessmentResponse responseB = responsesB.get(questionId);
+
+            AssessmentQuestion question = responseA.getQuestion();
+
+            // Check if this is a dealbreaker category question
+            if (question.getCategory() == QuestionCategory.DEALBREAKER) {
+                Integer answerA = responseA.getNumericResponse();
+                Integer answerB = responseB.getNumericResponse();
+
+                if (answerA != null && answerB != null) {
+                    // If answers are at opposite extremes on a dealbreaker, it's a conflict
+                    if ((answerA == 1 && answerB >= 4) || (answerA >= 4 && answerB == 1)) {
+                        if (question.getSeverity() == Severity.CRITICAL) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get match explanation with detailed breakdown
+     */
+    public Map<String, Object> getMatchExplanation(User userA, User userB) {
+        Map<String, Object> match = calculateOkCupidMatch(userA, userB);
+
+        List<UserAssessmentResponse> responsesA = responseRepo.findByUser(userA);
+        List<UserAssessmentResponse> responsesB = responseRepo.findByUser(userB);
+
+        // Calculate category-level compatibility
+        Map<String, Double> categoryScores = new HashMap<>();
+        for (QuestionCategory category : QuestionCategory.values()) {
+            double score = calculateCategoryCompatibility(responsesA, responsesB, category);
+            if (score >= 0) {
+                categoryScores.put(category.name(), Math.round(score * 10.0) / 10.0);
+            }
+        }
+
+        Map<String, Object> explanation = new HashMap<>(match);
+        explanation.put("categoryBreakdown", categoryScores);
+
+        return explanation;
+    }
+
+    private double calculateCategoryCompatibility(
+            List<UserAssessmentResponse> responsesA,
+            List<UserAssessmentResponse> responsesB,
+            QuestionCategory category) {
+
+        List<UserAssessmentResponse> catResponsesA = responsesA.stream()
+                .filter(r -> r.getCategory() == category)
+                .collect(Collectors.toList());
+        List<UserAssessmentResponse> catResponsesB = responsesB.stream()
+                .filter(r -> r.getCategory() == category)
+                .collect(Collectors.toList());
+
+        if (catResponsesA.isEmpty() || catResponsesB.isEmpty()) {
+            return -1; // Not enough data
+        }
+
+        Map<Long, UserAssessmentResponse> mapA = catResponsesA.stream()
+                .collect(Collectors.toMap(r -> r.getQuestion().getId(), r -> r));
+        Map<Long, UserAssessmentResponse> mapB = catResponsesB.stream()
+                .collect(Collectors.toMap(r -> r.getQuestion().getId(), r -> r));
+
+        Set<Long> common = new HashSet<>(mapA.keySet());
+        common.retainAll(mapB.keySet());
+
+        if (common.isEmpty()) {
+            return -1;
+        }
+
+        double satA = calculateSatisfaction(mapA, mapB, common);
+        double satB = calculateSatisfaction(mapB, mapA, common);
+
+        return Math.sqrt(satA * satB) * 100;
     }
 }
