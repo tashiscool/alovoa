@@ -1,0 +1,140 @@
+package com.nonononoki.alovoa.entity;
+
+import java.util.Date;
+
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(indexes = {
+    @Index(name = "idx_profile_user", columnList = "user_id")
+})
+public class UserAssessmentProfile {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    @Column
+    private Double opennessScore;
+
+    @Column
+    private Double conscientiousnessScore;
+
+    @Column
+    private Double extraversionScore;
+
+    @Column
+    private Double agreeablenessScore;
+
+    @Column
+    private Double neuroticismScore;
+
+    @Column
+    private Double emotionalStabilityScore;
+
+    @Column
+    private Double attachmentAnxietyScore;
+
+    @Column
+    private Double attachmentAvoidanceScore;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private AttachmentStyle attachmentStyle;
+
+    @Column
+    private Double valuesProgressiveScore;
+
+    @Column
+    private Double valuesEgalitarianScore;
+
+    @Column
+    private Double lifestyleSocialScore;
+
+    @Column
+    private Double lifestyleHealthScore;
+
+    @Column
+    private Double lifestyleWorkLifeScore;
+
+    @Column
+    private Double lifestyleFinanceScore;
+
+    @Column
+    private Integer dealbreakerFlags;
+
+    @Column
+    private Integer bigFiveQuestionsAnswered;
+
+    @Column
+    private Integer attachmentQuestionsAnswered;
+
+    @Column
+    private Integer valuesQuestionsAnswered;
+
+    @Column
+    private Integer lifestyleQuestionsAnswered;
+
+    @Column
+    private Integer dealbreakerQuestionsAnswered;
+
+    @Column
+    private Boolean bigFiveComplete;
+
+    @Column
+    private Boolean attachmentComplete;
+
+    @Column
+    private Boolean valuesComplete;
+
+    @Column
+    private Boolean dealbreakerComplete;
+
+    @Column
+    private Boolean lifestyleComplete;
+
+    @Column
+    private Boolean profileComplete;
+
+    @Column(nullable = false)
+    private Date lastUpdated;
+
+    @PrePersist
+    @PreUpdate
+    protected void onSave() {
+        lastUpdated = new Date();
+        checkCompletion();
+    }
+
+    private void checkCompletion() {
+        bigFiveComplete = bigFiveQuestionsAnswered != null && bigFiveQuestionsAnswered >= 120;
+        attachmentComplete = attachmentQuestionsAnswered != null && attachmentQuestionsAnswered >= 9;
+        valuesComplete = valuesQuestionsAnswered != null && valuesQuestionsAnswered >= 10;
+        dealbreakerComplete = dealbreakerQuestionsAnswered != null && dealbreakerQuestionsAnswered >= 10;
+        lifestyleComplete = lifestyleQuestionsAnswered != null && lifestyleQuestionsAnswered >= 12;
+
+        profileComplete = Boolean.TRUE.equals(bigFiveComplete) &&
+                          Boolean.TRUE.equals(attachmentComplete) &&
+                          Boolean.TRUE.equals(valuesComplete) &&
+                          Boolean.TRUE.equals(dealbreakerComplete);
+    }
+
+    public enum AttachmentStyle {
+        SECURE,
+        ANXIOUS_PREOCCUPIED,
+        DISMISSIVE_AVOIDANT,
+        FEARFUL_AVOIDANT
+    }
+}

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nonononoki.alovoa.entity.CompatibilityScore;
 import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.entity.UserAssessmentProfile;
 import com.nonononoki.alovoa.entity.user.UserDailyMatchLimit;
 import com.nonononoki.alovoa.entity.user.UserPersonalityProfile;
 import com.nonononoki.alovoa.model.MatchRecommendationDto;
@@ -56,6 +57,12 @@ public class MatchingService {
 
     @Autowired
     private PoliticalAssessmentService politicalAssessmentService;
+
+    @Autowired
+    private UserAssessmentProfileRepository assessmentProfileRepo;
+
+    @Autowired
+    private AssessmentService assessmentService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -247,44 +254,187 @@ public class MatchingService {
     }
 
     private void calculatePersonalityBasedCompatibility(CompatibilityScore score, User userA, User userB) {
-        // Simple personality-based compatibility calculation
-        double personalityScore = 50.0;
-
-        UserPersonalityProfile profileA = personalityRepo.findByUser(userA).orElse(null);
-        UserPersonalityProfile profileB = personalityRepo.findByUser(userB).orElse(null);
-
-        if (profileA != null && profileB != null && profileA.isComplete() && profileB.isComplete()) {
-            // Calculate Big Five similarity
-            double diff = 0;
-            diff += Math.abs(profileA.getOpenness() - profileB.getOpenness());
-            diff += Math.abs(profileA.getConscientiousness() - profileB.getConscientiousness());
-            diff += Math.abs(profileA.getExtraversion() - profileB.getExtraversion());
-            diff += Math.abs(profileA.getAgreeableness() - profileB.getAgreeableness());
-            diff += Math.abs(profileA.getNeuroticism() - profileB.getNeuroticism());
-
-            // Max diff is 500 (5 traits * 100), normalize to 0-100 compatibility
-            personalityScore = 100 - (diff / 5);
+        // Check dealbreakers first
+        if (!assessmentService.checkDealbreakers(userA, userB)) {
+            score.setPersonalityScore(0.0);
+            score.setValuesScore(0.0);
+            score.setLifestyleScore(0.0);
+            score.setAttractionScore(0.0);
+            score.setCircumstantialScore(0.0);
+            score.setGrowthScore(0.0);
+            score.setOverallScore(0.0);
+            return;
         }
 
-        // Calculate economic values compatibility
-        double valuesScore = calculateEconomicValuesCompatibility(userA, userB);
+        // Try comprehensive AURA assessment first
+        UserAssessmentProfile assessmentA = assessmentProfileRepo.findByUser(userA).orElse(null);
+        UserAssessmentProfile assessmentB = assessmentProfileRepo.findByUser(userB).orElse(null);
+
+        double personalityScore = 50.0;
+        double valuesScore = 50.0;
+        double lifestyleScore = 50.0;
+
+        // Calculate Big Five personality compatibility from comprehensive assessment
+        if (assessmentA != null && assessmentB != null &&
+            Boolean.TRUE.equals(assessmentA.getBigFiveComplete()) &&
+            Boolean.TRUE.equals(assessmentB.getBigFiveComplete())) {
+
+            personalityScore = calculateBigFiveCompatibility(assessmentA, assessmentB);
+
+            // Attachment style compatibility bonus
+            if (assessmentA.getAttachmentStyle() != null && assessmentB.getAttachmentStyle() != null) {
+                double attachmentBonus = calculateAttachmentCompatibility(assessmentA, assessmentB);
+                personalityScore = (personalityScore * 0.8) + (attachmentBonus * 0.2);
+            }
+        } else {
+            // Fallback to legacy personality profile
+            UserPersonalityProfile profileA = personalityRepo.findByUser(userA).orElse(null);
+            UserPersonalityProfile profileB = personalityRepo.findByUser(userB).orElse(null);
+
+            if (profileA != null && profileB != null && profileA.isComplete() && profileB.isComplete()) {
+                double diff = 0;
+                diff += Math.abs(profileA.getOpenness() - profileB.getOpenness());
+                diff += Math.abs(profileA.getConscientiousness() - profileB.getConscientiousness());
+                diff += Math.abs(profileA.getExtraversion() - profileB.getExtraversion());
+                diff += Math.abs(profileA.getAgreeableness() - profileB.getAgreeableness());
+                diff += Math.abs(profileA.getNeuroticism() - profileB.getNeuroticism());
+                personalityScore = 100 - (diff / 5);
+            }
+        }
+
+        // Calculate values compatibility from comprehensive assessment
+        if (assessmentA != null && assessmentB != null &&
+            Boolean.TRUE.equals(assessmentA.getValuesComplete()) &&
+            Boolean.TRUE.equals(assessmentB.getValuesComplete())) {
+            valuesScore = calculateValuesCompatibility(assessmentA, assessmentB);
+        } else {
+            // Fallback to economic values compatibility
+            valuesScore = calculateEconomicValuesCompatibility(userA, userB);
+        }
+
+        // Calculate lifestyle compatibility from comprehensive assessment
+        if (assessmentA != null && assessmentB != null &&
+            Boolean.TRUE.equals(assessmentA.getLifestyleComplete()) &&
+            Boolean.TRUE.equals(assessmentB.getLifestyleComplete())) {
+            lifestyleScore = calculateLifestyleCompatibility(assessmentA, assessmentB);
+        }
 
         score.setPersonalityScore(personalityScore);
         score.setValuesScore(valuesScore);
-        score.setLifestyleScore(50.0);
+        score.setLifestyleScore(lifestyleScore);
         score.setAttractionScore(50.0);
         score.setCircumstantialScore(50.0);
         score.setGrowthScore(50.0);
 
-        // Weighted average with economic values now included
+        // Weighted average with all comprehensive scores
         score.setOverallScore(
                 personalityScore * 0.25 +
-                valuesScore * 0.25 + // economic values now weighted
-                50.0 * 0.2 + // lifestyle
+                valuesScore * 0.25 +
+                lifestyleScore * 0.2 +
                 50.0 * 0.15 + // attraction
-                50.0 * 0.1 + // circumstantial
-                50.0 * 0.05  // growth
+                50.0 * 0.1 +  // circumstantial
+                50.0 * 0.05   // growth
         );
+    }
+
+    private double calculateBigFiveCompatibility(UserAssessmentProfile a, UserAssessmentProfile b) {
+        double totalDiff = 0;
+        int count = 0;
+
+        if (a.getOpennessScore() != null && b.getOpennessScore() != null) {
+            totalDiff += Math.abs(a.getOpennessScore() - b.getOpennessScore());
+            count++;
+        }
+        if (a.getConscientiousnessScore() != null && b.getConscientiousnessScore() != null) {
+            totalDiff += Math.abs(a.getConscientiousnessScore() - b.getConscientiousnessScore());
+            count++;
+        }
+        if (a.getExtraversionScore() != null && b.getExtraversionScore() != null) {
+            totalDiff += Math.abs(a.getExtraversionScore() - b.getExtraversionScore());
+            count++;
+        }
+        if (a.getAgreeablenessScore() != null && b.getAgreeablenessScore() != null) {
+            totalDiff += Math.abs(a.getAgreeablenessScore() - b.getAgreeablenessScore());
+            count++;
+        }
+        if (a.getEmotionalStabilityScore() != null && b.getEmotionalStabilityScore() != null) {
+            totalDiff += Math.abs(a.getEmotionalStabilityScore() - b.getEmotionalStabilityScore());
+            count++;
+        }
+
+        if (count == 0) return 50.0;
+        return 100 - (totalDiff / count);
+    }
+
+    private double calculateAttachmentCompatibility(UserAssessmentProfile a, UserAssessmentProfile b) {
+        UserAssessmentProfile.AttachmentStyle styleA = a.getAttachmentStyle();
+        UserAssessmentProfile.AttachmentStyle styleB = b.getAttachmentStyle();
+
+        // Secure-Secure is ideal
+        if (styleA == UserAssessmentProfile.AttachmentStyle.SECURE &&
+            styleB == UserAssessmentProfile.AttachmentStyle.SECURE) {
+            return 100.0;
+        }
+        // One secure can stabilize another
+        if (styleA == UserAssessmentProfile.AttachmentStyle.SECURE ||
+            styleB == UserAssessmentProfile.AttachmentStyle.SECURE) {
+            return 80.0;
+        }
+        // Anxious-Avoidant is challenging
+        if ((styleA == UserAssessmentProfile.AttachmentStyle.ANXIOUS_PREOCCUPIED &&
+             styleB == UserAssessmentProfile.AttachmentStyle.DISMISSIVE_AVOIDANT) ||
+            (styleA == UserAssessmentProfile.AttachmentStyle.DISMISSIVE_AVOIDANT &&
+             styleB == UserAssessmentProfile.AttachmentStyle.ANXIOUS_PREOCCUPIED)) {
+            return 30.0;
+        }
+        // Same insecure style
+        if (styleA == styleB) {
+            return 50.0;
+        }
+        // Default mixed insecure
+        return 40.0;
+    }
+
+    private double calculateValuesCompatibility(UserAssessmentProfile a, UserAssessmentProfile b) {
+        double totalDiff = 0;
+        int count = 0;
+
+        if (a.getValuesProgressiveScore() != null && b.getValuesProgressiveScore() != null) {
+            totalDiff += Math.abs(a.getValuesProgressiveScore() - b.getValuesProgressiveScore());
+            count++;
+        }
+        if (a.getValuesEgalitarianScore() != null && b.getValuesEgalitarianScore() != null) {
+            totalDiff += Math.abs(a.getValuesEgalitarianScore() - b.getValuesEgalitarianScore());
+            count++;
+        }
+
+        if (count == 0) return 50.0;
+        return 100 - (totalDiff / count);
+    }
+
+    private double calculateLifestyleCompatibility(UserAssessmentProfile a, UserAssessmentProfile b) {
+        double totalDiff = 0;
+        int count = 0;
+
+        if (a.getLifestyleSocialScore() != null && b.getLifestyleSocialScore() != null) {
+            totalDiff += Math.abs(a.getLifestyleSocialScore() - b.getLifestyleSocialScore());
+            count++;
+        }
+        if (a.getLifestyleHealthScore() != null && b.getLifestyleHealthScore() != null) {
+            totalDiff += Math.abs(a.getLifestyleHealthScore() - b.getLifestyleHealthScore());
+            count++;
+        }
+        if (a.getLifestyleWorkLifeScore() != null && b.getLifestyleWorkLifeScore() != null) {
+            totalDiff += Math.abs(a.getLifestyleWorkLifeScore() - b.getLifestyleWorkLifeScore());
+            count++;
+        }
+        if (a.getLifestyleFinanceScore() != null && b.getLifestyleFinanceScore() != null) {
+            totalDiff += Math.abs(a.getLifestyleFinanceScore() - b.getLifestyleFinanceScore());
+            count++;
+        }
+
+        if (count == 0) return 50.0;
+        return 100 - (totalDiff / count);
     }
 
     private double calculateEconomicValuesCompatibility(User userA, User userB) {
@@ -297,7 +447,63 @@ public class MatchingService {
         profile.put("id", user.getId());
         profile.put("uuid", user.getUuid().toString());
 
-        if (user.getPersonalityProfile() != null && user.getPersonalityProfile().isComplete()) {
+        // Try comprehensive AURA assessment first
+        UserAssessmentProfile assessment = assessmentProfileRepo.findByUser(user).orElse(null);
+        if (assessment != null && Boolean.TRUE.equals(assessment.getBigFiveComplete())) {
+            Map<String, Object> personalityData = new HashMap<>();
+            personalityData.put("openness", assessment.getOpennessScore());
+            personalityData.put("conscientiousness", assessment.getConscientiousnessScore());
+            personalityData.put("extraversion", assessment.getExtraversionScore());
+            personalityData.put("agreeableness", assessment.getAgreeablenessScore());
+            personalityData.put("emotionalStability", assessment.getEmotionalStabilityScore());
+            personalityData.put("neuroticism", assessment.getNeuroticismScore());
+            profile.put("personality", personalityData);
+
+            // Add attachment style if available
+            if (Boolean.TRUE.equals(assessment.getAttachmentComplete())) {
+                profile.put("attachment", Map.of(
+                        "style", assessment.getAttachmentStyle().name(),
+                        "anxiety", assessment.getAttachmentAnxietyScore(),
+                        "avoidance", assessment.getAttachmentAvoidanceScore()
+                ));
+            }
+
+            // Add values if complete
+            if (Boolean.TRUE.equals(assessment.getValuesComplete())) {
+                Map<String, Object> valuesData = new HashMap<>();
+                if (assessment.getValuesProgressiveScore() != null) {
+                    valuesData.put("progressive", assessment.getValuesProgressiveScore());
+                }
+                if (assessment.getValuesEgalitarianScore() != null) {
+                    valuesData.put("egalitarian", assessment.getValuesEgalitarianScore());
+                }
+                profile.put("assessmentValues", valuesData);
+            }
+
+            // Add lifestyle if complete
+            if (Boolean.TRUE.equals(assessment.getLifestyleComplete())) {
+                Map<String, Object> lifestyleData = new HashMap<>();
+                if (assessment.getLifestyleSocialScore() != null) {
+                    lifestyleData.put("social", assessment.getLifestyleSocialScore());
+                }
+                if (assessment.getLifestyleHealthScore() != null) {
+                    lifestyleData.put("health", assessment.getLifestyleHealthScore());
+                }
+                if (assessment.getLifestyleWorkLifeScore() != null) {
+                    lifestyleData.put("workLife", assessment.getLifestyleWorkLifeScore());
+                }
+                if (assessment.getLifestyleFinanceScore() != null) {
+                    lifestyleData.put("finance", assessment.getLifestyleFinanceScore());
+                }
+                profile.put("lifestyle", lifestyleData);
+            }
+
+            // Add dealbreaker flags
+            if (Boolean.TRUE.equals(assessment.getDealbreakerComplete()) && assessment.getDealbreakerFlags() != null) {
+                profile.put("dealbreakerFlags", assessment.getDealbreakerFlags());
+            }
+        } else if (user.getPersonalityProfile() != null && user.getPersonalityProfile().isComplete()) {
+            // Fallback to legacy personality profile
             UserPersonalityProfile pp = user.getPersonalityProfile();
             profile.put("personality", Map.of(
                     "openness", pp.getOpenness(),

@@ -1,0 +1,461 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-01",
+  "sources": {
+    "bigFive": "IPIP-NEO (Johnson, 2014) - Public Domain",
+    "attachment": "ECR-R Short Form - Public Domain",
+    "aura": "AURA Platform - Original Content"
+  },
+  "responseScales": {
+    "likert5": {
+      "1": "Very Inaccurate",
+      "2": "Moderately Inaccurate",
+      "3": "Neither Accurate Nor Inaccurate",
+      "4": "Moderately Accurate",
+      "5": "Very Accurate"
+    },
+    "agreement5": {
+      "1": "Strongly Disagree",
+      "2": "Disagree",
+      "3": "Neutral",
+      "4": "Agree",
+      "5": "Strongly Agree"
+    },
+    "binary": {
+      "1": "No",
+      "2": "Yes"
+    },
+    "frequency5": {
+      "1": "Never",
+      "2": "Rarely",
+      "3": "Sometimes",
+      "4": "Often",
+      "5": "Always"
+    }
+  },
+  "categories": {
+    "BIG_FIVE": {
+      "name": "Personality Assessment",
+      "description": "IPIP-NEO Big Five personality traits",
+      "required": true,
+      "order": 1
+    },
+    "ATTACHMENT": {
+      "name": "Attachment Style",
+      "description": "ECR-R based attachment assessment",
+      "required": true,
+      "order": 2
+    },
+    "DEALBREAKER": {
+      "name": "Dealbreakers",
+      "description": "Binary questions that may eliminate matches",
+      "required": true,
+      "order": 3
+    },
+    "VALUES": {
+      "name": "Values Alignment",
+      "description": "Core values and beliefs for compatibility",
+      "required": true,
+      "order": 4
+    },
+    "LIFESTYLE": {
+      "name": "Lifestyle Compatibility",
+      "description": "Daily life and habits questions",
+      "required": false,
+      "order": 5
+    },
+    "RED_FLAG": {
+      "name": "Behavioral Patterns",
+      "description": "Indirect questions revealing relationship patterns",
+      "required": false,
+      "order": 6
+    }
+  },
+  "questions": {
+    "BIG_FIVE": {
+      "OPENNESS": {
+        "description": "Openness to experience - imagination, creativity, curiosity",
+        "facets": {
+          "1": "Imagination",
+          "2": "Artistic Interests",
+          "3": "Emotionality",
+          "4": "Adventurousness",
+          "5": "Intellect",
+          "6": "Liberalism"
+        },
+        "questions": [
+          {"id": "O1", "text": "Have a vivid imagination", "keyed": "plus", "facet": 1},
+          {"id": "O2", "text": "Believe in the importance of art", "keyed": "plus", "facet": 2},
+          {"id": "O3", "text": "Experience my emotions intensely", "keyed": "plus", "facet": 3},
+          {"id": "O4", "text": "Prefer variety to routine", "keyed": "plus", "facet": 4},
+          {"id": "O5", "text": "Love to read challenging material", "keyed": "plus", "facet": 5},
+          {"id": "O6", "text": "Tend to vote for liberal political candidates", "keyed": "plus", "facet": 6},
+          {"id": "O7", "text": "Enjoy wild flights of fantasy", "keyed": "plus", "facet": 1},
+          {"id": "O8", "text": "See beauty in things that others might not notice", "keyed": "plus", "facet": 2},
+          {"id": "O9", "text": "Feel others' emotions", "keyed": "plus", "facet": 3},
+          {"id": "O10", "text": "Prefer to stick with things that I know", "keyed": "minus", "facet": 4},
+          {"id": "O11", "text": "Avoid philosophical discussions", "keyed": "minus", "facet": 5},
+          {"id": "O12", "text": "Believe that there is no absolute right and wrong", "keyed": "plus", "facet": 6},
+          {"id": "O13", "text": "Love to daydream", "keyed": "plus", "facet": 1},
+          {"id": "O14", "text": "Do not like poetry", "keyed": "minus", "facet": 2},
+          {"id": "O15", "text": "Rarely notice my emotional reactions", "keyed": "minus", "facet": 3},
+          {"id": "O16", "text": "Dislike changes", "keyed": "minus", "facet": 4},
+          {"id": "O17", "text": "Have difficulty understanding abstract ideas", "keyed": "minus", "facet": 5},
+          {"id": "O18", "text": "Tend to vote for conservative political candidates", "keyed": "minus", "facet": 6},
+          {"id": "O19", "text": "Like to get lost in thought", "keyed": "plus", "facet": 1},
+          {"id": "O20", "text": "Do not enjoy going to art museums", "keyed": "minus", "facet": 2},
+          {"id": "O21", "text": "Don't understand people who get emotional", "keyed": "minus", "facet": 3},
+          {"id": "O22", "text": "Am attached to conventional ways", "keyed": "minus", "facet": 4},
+          {"id": "O23", "text": "Am not interested in theoretical discussions", "keyed": "minus", "facet": 5},
+          {"id": "O24", "text": "Believe that we should be tough on crime", "keyed": "minus", "facet": 6}
+        ]
+      },
+      "CONSCIENTIOUSNESS": {
+        "description": "Conscientiousness - organization, dependability, self-discipline",
+        "facets": {
+          "1": "Self-Efficacy",
+          "2": "Orderliness",
+          "3": "Dutifulness",
+          "4": "Achievement-Striving",
+          "5": "Self-Discipline",
+          "6": "Cautiousness"
+        },
+        "questions": [
+          {"id": "C1", "text": "Complete tasks successfully", "keyed": "plus", "facet": 1},
+          {"id": "C2", "text": "Like to tidy up", "keyed": "plus", "facet": 2},
+          {"id": "C3", "text": "Keep my promises", "keyed": "plus", "facet": 3},
+          {"id": "C4", "text": "Work hard", "keyed": "plus", "facet": 4},
+          {"id": "C5", "text": "Am always prepared", "keyed": "plus", "facet": 5},
+          {"id": "C6", "text": "Jump into things without thinking", "keyed": "minus", "facet": 6},
+          {"id": "C7", "text": "Excel in what I do", "keyed": "plus", "facet": 1},
+          {"id": "C8", "text": "Often forget to put things back in their proper place", "keyed": "minus", "facet": 2},
+          {"id": "C9", "text": "Tell the truth", "keyed": "plus", "facet": 3},
+          {"id": "C10", "text": "Do more than what's expected of me", "keyed": "plus", "facet": 4},
+          {"id": "C11", "text": "Carry out my plans", "keyed": "plus", "facet": 5},
+          {"id": "C12", "text": "Make rash decisions", "keyed": "minus", "facet": 6},
+          {"id": "C13", "text": "Handle tasks smoothly", "keyed": "plus", "facet": 1},
+          {"id": "C14", "text": "Leave a mess in my room", "keyed": "minus", "facet": 2},
+          {"id": "C15", "text": "Break rules", "keyed": "minus", "facet": 3},
+          {"id": "C16", "text": "Do just enough work to get by", "keyed": "minus", "facet": 4},
+          {"id": "C17", "text": "Waste my time", "keyed": "minus", "facet": 5},
+          {"id": "C18", "text": "Rush into things", "keyed": "minus", "facet": 6},
+          {"id": "C19", "text": "Know how to get things done", "keyed": "plus", "facet": 1},
+          {"id": "C20", "text": "Leave my belongings around", "keyed": "minus", "facet": 2},
+          {"id": "C21", "text": "Break my promises", "keyed": "minus", "facet": 3},
+          {"id": "C22", "text": "Put little time and effort into my work", "keyed": "minus", "facet": 4},
+          {"id": "C23", "text": "Have difficulty starting tasks", "keyed": "minus", "facet": 5},
+          {"id": "C24", "text": "Act without thinking", "keyed": "minus", "facet": 6}
+        ]
+      },
+      "EXTRAVERSION": {
+        "description": "Extraversion - sociability, assertiveness, positive emotions",
+        "facets": {
+          "1": "Friendliness",
+          "2": "Gregariousness",
+          "3": "Assertiveness",
+          "4": "Activity Level",
+          "5": "Excitement-Seeking",
+          "6": "Cheerfulness"
+        },
+        "questions": [
+          {"id": "E1", "text": "Make friends easily", "keyed": "plus", "facet": 1},
+          {"id": "E2", "text": "Love large parties", "keyed": "plus", "facet": 2},
+          {"id": "E3", "text": "Take charge", "keyed": "plus", "facet": 3},
+          {"id": "E4", "text": "Am always busy", "keyed": "plus", "facet": 4},
+          {"id": "E5", "text": "Love excitement", "keyed": "plus", "facet": 5},
+          {"id": "E6", "text": "Radiate joy", "keyed": "plus", "facet": 6},
+          {"id": "E7", "text": "Feel comfortable around people", "keyed": "plus", "facet": 1},
+          {"id": "E8", "text": "Talk to a lot of different people at parties", "keyed": "plus", "facet": 2},
+          {"id": "E9", "text": "Try to lead others", "keyed": "plus", "facet": 3},
+          {"id": "E10", "text": "Am always on the go", "keyed": "plus", "facet": 4},
+          {"id": "E11", "text": "Seek adventure", "keyed": "plus", "facet": 5},
+          {"id": "E12", "text": "Have a lot of fun", "keyed": "plus", "facet": 6},
+          {"id": "E13", "text": "Avoid contacts with others", "keyed": "minus", "facet": 1},
+          {"id": "E14", "text": "Prefer to be alone", "keyed": "minus", "facet": 2},
+          {"id": "E15", "text": "Take control of things", "keyed": "plus", "facet": 3},
+          {"id": "E16", "text": "Do a lot in my spare time", "keyed": "plus", "facet": 4},
+          {"id": "E17", "text": "Enjoy being reckless", "keyed": "plus", "facet": 5},
+          {"id": "E18", "text": "Love life", "keyed": "plus", "facet": 6},
+          {"id": "E19", "text": "Keep others at a distance", "keyed": "minus", "facet": 1},
+          {"id": "E20", "text": "Avoid crowds", "keyed": "minus", "facet": 2},
+          {"id": "E21", "text": "Wait for others to lead the way", "keyed": "minus", "facet": 3},
+          {"id": "E22", "text": "Like to take it easy", "keyed": "minus", "facet": 4},
+          {"id": "E23", "text": "Act wild and crazy", "keyed": "plus", "facet": 5},
+          {"id": "E24", "text": "Look at the bright side of life", "keyed": "plus", "facet": 6}
+        ]
+      },
+      "AGREEABLENESS": {
+        "description": "Agreeableness - compassion, cooperation, trust",
+        "facets": {
+          "1": "Trust",
+          "2": "Morality",
+          "3": "Altruism",
+          "4": "Cooperation",
+          "5": "Modesty",
+          "6": "Sympathy"
+        },
+        "questions": [
+          {"id": "A1", "text": "Trust others", "keyed": "plus", "facet": 1},
+          {"id": "A2", "text": "Use others for my own ends", "keyed": "minus", "facet": 2},
+          {"id": "A3", "text": "Love to help others", "keyed": "plus", "facet": 3},
+          {"id": "A4", "text": "Love a good fight", "keyed": "minus", "facet": 4},
+          {"id": "A5", "text": "Believe that I am better than others", "keyed": "minus", "facet": 5},
+          {"id": "A6", "text": "Sympathize with the homeless", "keyed": "plus", "facet": 6},
+          {"id": "A7", "text": "Believe that others have good intentions", "keyed": "plus", "facet": 1},
+          {"id": "A8", "text": "Cheat to get ahead", "keyed": "minus", "facet": 2},
+          {"id": "A9", "text": "Am concerned about others", "keyed": "plus", "facet": 3},
+          {"id": "A10", "text": "Yell at people", "keyed": "minus", "facet": 4},
+          {"id": "A11", "text": "Think highly of myself", "keyed": "minus", "facet": 5},
+          {"id": "A12", "text": "Feel sympathy for those who are worse off than myself", "keyed": "plus", "facet": 6},
+          {"id": "A13", "text": "Trust what people say", "keyed": "plus", "facet": 1},
+          {"id": "A14", "text": "Take advantage of others", "keyed": "minus", "facet": 2},
+          {"id": "A15", "text": "Am indifferent to the feelings of others", "keyed": "minus", "facet": 3},
+          {"id": "A16", "text": "Insult people", "keyed": "minus", "facet": 4},
+          {"id": "A17", "text": "Have a high opinion of myself", "keyed": "minus", "facet": 5},
+          {"id": "A18", "text": "Am not interested in other people's problems", "keyed": "minus", "facet": 6},
+          {"id": "A19", "text": "Distrust people", "keyed": "minus", "facet": 1},
+          {"id": "A20", "text": "Obstruct others' plans", "keyed": "minus", "facet": 2},
+          {"id": "A21", "text": "Take no time for others", "keyed": "minus", "facet": 3},
+          {"id": "A22", "text": "Get back at others", "keyed": "minus", "facet": 4},
+          {"id": "A23", "text": "Boast about my virtues", "keyed": "minus", "facet": 5},
+          {"id": "A24", "text": "Try not to think about the needy", "keyed": "minus", "facet": 6}
+        ]
+      },
+      "NEUROTICISM": {
+        "description": "Neuroticism - emotional instability, anxiety, moodiness",
+        "facets": {
+          "1": "Anxiety",
+          "2": "Anger",
+          "3": "Depression",
+          "4": "Self-Consciousness",
+          "5": "Immoderation",
+          "6": "Vulnerability"
+        },
+        "questions": [
+          {"id": "N1", "text": "Worry about things", "keyed": "plus", "facet": 1},
+          {"id": "N2", "text": "Get angry easily", "keyed": "plus", "facet": 2},
+          {"id": "N3", "text": "Often feel blue", "keyed": "plus", "facet": 3},
+          {"id": "N4", "text": "Find it difficult to approach others", "keyed": "plus", "facet": 4},
+          {"id": "N5", "text": "Go on binges", "keyed": "plus", "facet": 5},
+          {"id": "N6", "text": "Panic easily", "keyed": "plus", "facet": 6},
+          {"id": "N7", "text": "Fear for the worst", "keyed": "plus", "facet": 1},
+          {"id": "N8", "text": "Get irritated easily", "keyed": "plus", "facet": 2},
+          {"id": "N9", "text": "Dislike myself", "keyed": "plus", "facet": 3},
+          {"id": "N10", "text": "Am afraid to draw attention to myself", "keyed": "plus", "facet": 4},
+          {"id": "N11", "text": "Rarely overindulge", "keyed": "minus", "facet": 5},
+          {"id": "N12", "text": "Become overwhelmed by events", "keyed": "plus", "facet": 6},
+          {"id": "N13", "text": "Am afraid of many things", "keyed": "plus", "facet": 1},
+          {"id": "N14", "text": "Lose my temper", "keyed": "plus", "facet": 2},
+          {"id": "N15", "text": "Am often down in the dumps", "keyed": "plus", "facet": 3},
+          {"id": "N16", "text": "Only feel comfortable with friends", "keyed": "plus", "facet": 4},
+          {"id": "N17", "text": "Easily resist temptations", "keyed": "minus", "facet": 5},
+          {"id": "N18", "text": "Feel that I'm unable to deal with things", "keyed": "plus", "facet": 6},
+          {"id": "N19", "text": "Get stressed out easily", "keyed": "plus", "facet": 1},
+          {"id": "N20", "text": "Am not easily annoyed", "keyed": "minus", "facet": 2},
+          {"id": "N21", "text": "Feel comfortable with myself", "keyed": "minus", "facet": 3},
+          {"id": "N22", "text": "Am not bothered by difficult social situations", "keyed": "minus", "facet": 4},
+          {"id": "N23", "text": "Am able to control my cravings", "keyed": "minus", "facet": 5},
+          {"id": "N24", "text": "Remain calm under pressure", "keyed": "minus", "facet": 6}
+        ]
+      }
+    },
+    "ATTACHMENT": {
+      "description": "ECR-R Short Form for attachment style assessment",
+      "responseScale": "agreement5",
+      "dimensions": {
+        "ANXIETY": "Fear of abandonment and rejection",
+        "AVOIDANCE": "Discomfort with closeness and dependency"
+      },
+      "questions": [
+        {"id": "ATT1", "text": "I worry about being abandoned", "dimension": "ANXIETY"},
+        {"id": "ATT2", "text": "I worry a lot about my relationships", "dimension": "ANXIETY"},
+        {"id": "ATT3", "text": "I worry that romantic partners won't care about me as much as I care about them", "dimension": "ANXIETY"},
+        {"id": "ATT4", "text": "I need a lot of reassurance that I am loved by my partner", "dimension": "ANXIETY"},
+        {"id": "ATT5", "text": "When I show my feelings for romantic partners, I'm afraid they will not feel the same about me", "dimension": "ANXIETY"},
+        {"id": "ATT6", "text": "I am nervous when partners get too close to me", "dimension": "AVOIDANCE"},
+        {"id": "ATT7", "text": "I prefer not to show a partner how I feel deep down", "dimension": "AVOIDANCE"},
+        {"id": "ATT8", "text": "I find it difficult to allow myself to depend on romantic partners", "dimension": "AVOIDANCE"},
+        {"id": "ATT9", "text": "I don't feel comfortable opening up to romantic partners", "dimension": "AVOIDANCE"}
+      ],
+      "scoring": {
+        "SECURE": "Low anxiety + Low avoidance",
+        "ANXIOUS_PREOCCUPIED": "High anxiety + Low avoidance",
+        "DISMISSIVE_AVOIDANT": "Low anxiety + High avoidance",
+        "FEARFUL_AVOIDANT": "High anxiety + High avoidance"
+      }
+    },
+    "DEALBREAKER": {
+      "description": "Binary questions that may result in automatic filtering",
+      "responseScale": "binary",
+      "warningLevel": "HIGH",
+      "questions": [
+        {"id": "DB1", "text": "Have you ever sent unsolicited intimate images to someone?", "redFlagIf": 2, "severity": "CRITICAL"},
+        {"id": "DB2", "text": "Do you believe women should have fewer legal rights than men?", "redFlagIf": 2, "severity": "CRITICAL"},
+        {"id": "DB3", "text": "Have you ever been physically aggressive with a romantic partner?", "redFlagIf": 2, "severity": "CRITICAL"},
+        {"id": "DB4", "text": "Have you cheated in a committed relationship?", "redFlagIf": 2, "severity": "HIGH"},
+        {"id": "DB5", "text": "Do you have children that you are not in contact with?", "redFlagIf": 2, "severity": "MODERATE"},
+        {"id": "DB6", "text": "Have you ever been convicted of a violent crime?", "redFlagIf": 2, "severity": "CRITICAL"},
+        {"id": "DB7", "text": "Do you believe your partner should not work outside the home?", "redFlagIf": 2, "severity": "HIGH"},
+        {"id": "DB8", "text": "Have you ever deliberately damaged a partner's property during an argument?", "redFlagIf": 2, "severity": "CRITICAL"},
+        {"id": "DB9", "text": "Do you regularly consume pornography?", "redFlagIf": 2, "severity": "MODERATE", "note": "User preference driven"},
+        {"id": "DB10", "text": "Have you ever monitored a partner's phone or social media without permission?", "redFlagIf": 2, "severity": "HIGH"}
+      ]
+    },
+    "VALUES": {
+      "description": "Core values for compatibility matching",
+      "responseScale": "agreement5",
+      "subcategories": {
+        "ECONOMIC": {
+          "name": "Economic Values",
+          "questions": [
+            {"id": "VAL_E1", "text": "Wealth inequality is a significant societal problem that needs addressing", "dimension": "PROGRESSIVE"},
+            {"id": "VAL_E2", "text": "Everyone should have access to free healthcare", "dimension": "PROGRESSIVE"},
+            {"id": "VAL_E3", "text": "Workers deserve more power relative to employers", "dimension": "PROGRESSIVE"},
+            {"id": "VAL_E4", "text": "The wealthy have an obligation to help those less fortunate", "dimension": "PROGRESSIVE"},
+            {"id": "VAL_E5", "text": "People who work hard will succeed regardless of background", "dimension": "MERITOCRACY"},
+            {"id": "VAL_E6", "text": "The free market is the best way to organize an economy", "dimension": "MERITOCRACY"}
+          ]
+        },
+        "REPRODUCTIVE": {
+          "name": "Reproductive Rights",
+          "questions": [
+            {"id": "VAL_R1", "text": "People should have full autonomy over their own reproductive decisions", "dimension": "PROGRESSIVE"},
+            {"id": "VAL_R2", "text": "Access to contraception is a fundamental right", "dimension": "PROGRESSIVE"},
+            {"id": "VAL_R3", "text": "The government should not restrict reproductive healthcare", "dimension": "PROGRESSIVE"}
+          ]
+        },
+        "GENDER": {
+          "name": "Gender Roles",
+          "questions": [
+            {"id": "VAL_G1", "text": "Household responsibilities should be shared equally", "dimension": "EGALITARIAN"},
+            {"id": "VAL_G2", "text": "Both partners should contribute equally to emotional labor", "dimension": "EGALITARIAN"},
+            {"id": "VAL_G3", "text": "Career advancement should not be limited by gender", "dimension": "EGALITARIAN"},
+            {"id": "VAL_G4", "text": "Childcare is equally the responsibility of both parents", "dimension": "EGALITARIAN"},
+            {"id": "VAL_G5", "text": "Traditional gender roles provide stability in relationships", "dimension": "TRADITIONAL"}
+          ]
+        },
+        "RELATIONSHIP": {
+          "name": "Relationship Values",
+          "questions": [
+            {"id": "VAL_REL1", "text": "Open and honest communication is essential in relationships", "dimension": "COMMUNICATION"},
+            {"id": "VAL_REL2", "text": "Partners should support each other's personal growth", "dimension": "GROWTH"},
+            {"id": "VAL_REL3", "text": "Maintaining individual identity is important in a relationship", "dimension": "INDEPENDENCE"},
+            {"id": "VAL_REL4", "text": "Long-term commitment is more important than passion", "dimension": "COMMITMENT"},
+            {"id": "VAL_REL5", "text": "Financial decisions should always be made jointly", "dimension": "PARTNERSHIP"}
+          ]
+        }
+      }
+    },
+    "LIFESTYLE": {
+      "description": "Daily life and habits for compatibility",
+      "responseScale": "frequency5",
+      "subcategories": {
+        "SOCIAL": {
+          "name": "Social Life",
+          "questions": [
+            {"id": "LS_S1", "text": "I prefer quiet evenings at home over going out", "inverse": true},
+            {"id": "LS_S2", "text": "I enjoy hosting gatherings with friends"},
+            {"id": "LS_S3", "text": "I need regular alone time to recharge", "inverse": true},
+            {"id": "LS_S4", "text": "I prefer small groups to large parties"}
+          ]
+        },
+        "HEALTH": {
+          "name": "Health & Wellness",
+          "questions": [
+            {"id": "LS_H1", "text": "I exercise regularly"},
+            {"id": "LS_H2", "text": "I prioritize healthy eating"},
+            {"id": "LS_H3", "text": "I consume alcohol"},
+            {"id": "LS_H4", "text": "I use recreational substances"}
+          ]
+        },
+        "WORK_LIFE": {
+          "name": "Work-Life Balance",
+          "questions": [
+            {"id": "LS_W1", "text": "My career is my top priority"},
+            {"id": "LS_W2", "text": "I prefer to keep work and personal life separate"},
+            {"id": "LS_W3", "text": "I work long hours when needed"},
+            {"id": "LS_W4", "text": "I value flexible work arrangements"}
+          ]
+        },
+        "FINANCE": {
+          "name": "Financial Habits",
+          "questions": [
+            {"id": "LS_F1", "text": "I save money regularly"},
+            {"id": "LS_F2", "text": "I prefer to plan major purchases in advance"},
+            {"id": "LS_F3", "text": "I am comfortable with debt for investments"},
+            {"id": "LS_F4", "text": "I track my spending carefully"}
+          ]
+        }
+      }
+    },
+    "RED_FLAG": {
+      "description": "Indirect questions that reveal behavioral patterns",
+      "responseScale": "freeText",
+      "analysisRequired": true,
+      "questions": [
+        {
+          "id": "RF1",
+          "text": "How did your last relationship end?",
+          "redFlags": ["always blames partner", "no self-reflection", "multiple similar endings"],
+          "greenFlags": ["acknowledges own role", "learned lessons", "amicable ending"]
+        },
+        {
+          "id": "RF2",
+          "text": "What do you think your ex-partners would say about you?",
+          "redFlags": ["all negative about exes", "victim mentality", "no positive acknowledgment"],
+          "greenFlags": ["balanced view", "acknowledges faults", "growth oriented"]
+        },
+        {
+          "id": "RF3",
+          "text": "How do you handle it when someone doesn't respond to your messages quickly?",
+          "redFlags": ["anger", "repeated messaging", "anxiety spiraling", "accusations"],
+          "greenFlags": ["patience", "assumes positive intent", "gives space"]
+        },
+        {
+          "id": "RF4",
+          "text": "What makes you angry?",
+          "redFlags": ["minor inconveniences", "others' emotions", "being questioned"],
+          "greenFlags": ["injustice", "clear boundaries being violated", "measured response"]
+        },
+        {
+          "id": "RF5",
+          "text": "Describe a time you were wrong in an argument. What did you do?",
+          "redFlags": ["can't think of one", "still justifies", "blames circumstances"],
+          "greenFlags": ["admits fault", "apologized", "changed behavior"]
+        },
+        {
+          "id": "RF6",
+          "text": "How do you typically resolve conflicts with a partner?",
+          "redFlags": ["silent treatment", "yelling", "leaving", "manipulation"],
+          "greenFlags": ["discussion", "compromise", "active listening", "taking breaks"]
+        }
+      ]
+    }
+  },
+  "scoring": {
+    "bigFive": {
+      "method": "Calculate mean score for each domain and facet",
+      "plusKeyed": "Use raw score (1-5)",
+      "minusKeyed": "Reverse score (6 - raw score)",
+      "normalization": "Convert to percentile using population norms"
+    },
+    "attachment": {
+      "method": "Mean score for each dimension",
+      "anxietyThreshold": 3.0,
+      "avoidanceThreshold": 3.0,
+      "styles": {
+        "SECURE": "anxiety < threshold AND avoidance < threshold",
+        "ANXIOUS": "anxiety >= threshold AND avoidance < threshold",
+        "AVOIDANT": "anxiety < threshold AND avoidance >= threshold",
+        "FEARFUL": "anxiety >= threshold AND avoidance >= threshold"
+      }
+    },
+    "compatibility": {
+      "bigFiveWeight": 0.25,
+      "attachmentWeight": 0.20,
+      "valuesWeight": 0.30,
+      "lifestyleWeight": 0.15,
+      "dealbreakerWeight": 0.10
+    }
+  }
+}
