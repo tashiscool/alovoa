@@ -41,12 +41,7 @@ Like this project? Consider making a donation.
 
 | Platform        | Link                                                                                              |
 | :-------------: | :----------------------------------------:                                                        |
-| Alovoa          | [alovoa.com/donate-list](https://alovoa.com/donate-list)                                          |
-| BuyMeACoffee    | [buymeacoffee.com/alovoa](https://www.buymeacoffee.com/alovoa)                                    |
-| Ko-fi           | [ko-fi.com/Alovoa](https://ko-fi.com/Alovoa)                                                      |
-| Liberapay       | [liberapay.com/alovoa/donate](https://liberapay.com/alovoa/donate)                                |
-| Open Collective | [opencollective.com/alovoa](https://opencollective.com/alovoa)                                    |
-| BTC             | <details><summary>Click to reveal</summary>`bc1q5yejhe5rv0m7j0euxml7klkd2ummw0gc3vx58p`</details> |
+| GitHub Sponsors | [github.com/sponsors/tashiscool](https://github.com/sponsors/tashiscool)                          |
 
 
 ### How to build
