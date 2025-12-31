@@ -168,6 +168,115 @@ public class User implements UserDetails {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private UserSettings userSettings;
 
+    // AURA Extensions
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    private List<UserVideo> videos;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn
+    private UserVideoVerification videoVerification;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn
+    private UserReputationScore reputationScore;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    @JsonIgnore
+    private List<UserBehaviorEvent> behaviorEvents;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn
+    private UserPersonalityProfile personalityProfile;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    @JsonIgnore
+    private List<UserDailyMatchLimit> dailyMatchLimits;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userA")
+    @JsonIgnore
+    private List<VideoDate> videoDatesInitiated;
+
+    @OneToMany(mappedBy = "userB")
+    @JsonIgnore
+    private List<VideoDate> videoDatesReceived;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn
+    private UserPoliticalAssessment politicalAssessment;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "subject")
+    @JsonIgnore
+    private List<UserAccountabilityReport> accountabilityReportsReceived;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "reporter")
+    @JsonIgnore
+    private List<UserAccountabilityReport> accountabilityReportsSubmitted;
+
+    // AURA Helper methods
+    public boolean isVideoVerified() {
+        return videoVerification != null && videoVerification.isVerified();
+    }
+
+    public UserReputationScore.TrustLevel getTrustLevel() {
+        if (reputationScore == null) {
+            return UserReputationScore.TrustLevel.NEW_MEMBER;
+        }
+        return reputationScore.getTrustLevel();
+    }
+
+    public Double getReputationOverall() {
+        if (reputationScore == null) return 50.0;
+        return reputationScore.getOverallScore();
+    }
+
+    public UserVideo getIntroVideo() {
+        if (videos == null) return null;
+        return videos.stream()
+            .filter(v -> Boolean.TRUE.equals(v.getIsIntro()))
+            .findFirst()
+            .orElse(null);
+    }
+
+    public boolean isPoliticalAssessmentComplete() {
+        return politicalAssessment != null &&
+               politicalAssessment.getGateStatus() != UserPoliticalAssessment.GateStatus.PENDING_ASSESSMENT;
+    }
+
+    public boolean isPoliticallyApproved() {
+        return politicalAssessment != null &&
+               politicalAssessment.getGateStatus() == UserPoliticalAssessment.GateStatus.APPROVED;
+    }
+
+    public UserPoliticalAssessment.GateStatus getPoliticalGateStatus() {
+        if (politicalAssessment == null) {
+            return UserPoliticalAssessment.GateStatus.PENDING_ASSESSMENT;
+        }
+        return politicalAssessment.getGateStatus();
+    }
+
+    public int getPublicFeedbackCount() {
+        if (accountabilityReportsReceived == null) return 0;
+        return (int) accountabilityReportsReceived.stream()
+            .filter(r -> r.getStatus() == UserAccountabilityReport.ReportStatus.PUBLISHED)
+            .count();
+    }
+
+    public int getPositiveFeedbackCount() {
+        if (accountabilityReportsReceived == null) return 0;
+        return (int) accountabilityReportsReceived.stream()
+            .filter(r -> r.getStatus() == UserAccountabilityReport.ReportStatus.PUBLISHED)
+            .filter(r -> r.getCategory() == UserAccountabilityReport.AccountabilityCategory.POSITIVE_EXPERIENCE)
+            .count();
+    }
+
+    public int getNegativeFeedbackCount() {
+        if (accountabilityReportsReceived == null) return 0;
+        return (int) accountabilityReportsReceived.stream()
+            .filter(r -> r.getStatus() == UserAccountabilityReport.ReportStatus.PUBLISHED)
+            .filter(r -> r.getCategory() != UserAccountabilityReport.AccountabilityCategory.POSITIVE_EXPERIENCE)
+            .count();
+    }
+
     @Deprecated
     public User() {
         email = null;

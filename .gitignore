@@ -44,3 +44,14 @@ alovoa.txt
 application-dev.properties
 application-prod.properties
 
+### Python (AURA microservices) ###
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.env
+*.egg-info/
+.pytest_cache/

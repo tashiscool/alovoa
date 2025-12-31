@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body>
+<div th:replace="~{fragments :: header}"></div>
+
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-10">
+                <div class="box">
+                    <h1 class="title has-text-centered" th:text="#{personality.results.title}">Your Personality Profile</h1>
+
+                    <!-- Big Five Chart -->
+                    <div class="columns is-centered">
+                        <div class="column is-8">
+                            <canvas id="big-five-chart" height="300"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Trait breakdown -->
+                    <div class="columns is-multiline mt-5">
+                        <div class="column is-6">
+                            <div class="box">
+                                <h3 class="title is-5">
+                                    <span class="icon"><i class="fas fa-lightbulb"></i></span>
+                                    <span th:text="#{personality.openness}">Openness</span>
+                                </h3>
+                                <progress class="progress is-primary" th:value="${profile.openness}" max="100"></progress>
+                                <p class="has-text-grey" th:text="${profile.openness + '%'}"></p>
+                                <p th:text="#{personality.openness.desc}">
+                                    Your curiosity and openness to new experiences.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="column is-6">
+                            <div class="box">
+                                <h3 class="title is-5">
+                                    <span class="icon"><i class="fas fa-tasks"></i></span>
+                                    <span th:text="#{personality.conscientiousness}">Conscientiousness</span>
+                                </h3>
+                                <progress class="progress is-success" th:value="${profile.conscientiousness}" max="100"></progress>
+                                <p class="has-text-grey" th:text="${profile.conscientiousness + '%'}"></p>
+                                <p th:text="#{personality.conscientiousness.desc}">
+                                    Your organization and dependability.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="column is-6">
+                            <div class="box">
+                                <h3 class="title is-5">
+                                    <span class="icon"><i class="fas fa-users"></i></span>
+                                    <span th:text="#{personality.extraversion}">Extraversion</span>
+                                </h3>
+                                <progress class="progress is-warning" th:value="${profile.extraversion}" max="100"></progress>
+                                <p class="has-text-grey" th:text="${profile.extraversion + '%'}"></p>
+                                <p th:text="#{personality.extraversion.desc}">
+                                    Your energy from social interactions.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="column is-6">
+                            <div class="box">
+                                <h3 class="title is-5">
+                                    <span class="icon"><i class="fas fa-heart"></i></span>
+                                    <span th:text="#{personality.agreeableness}">Agreeableness</span>
+                                </h3>
+                                <progress class="progress is-info" th:value="${profile.agreeableness}" max="100"></progress>
+                                <p class="has-text-grey" th:text="${profile.agreeableness + '%'}"></p>
+                                <p th:text="#{personality.agreeableness.desc}">
+                                    Your compassion and cooperation with others.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="column is-6">
+                            <div class="box">
+                                <h3 class="title is-5">
+                                    <span class="icon"><i class="fas fa-brain"></i></span>
+                                    <span th:text="#{personality.neuroticism}">Emotional Stability</span>
+                                </h3>
+                                <progress class="progress is-danger" th:value="${100 - profile.neuroticism}" max="100"></progress>
+                                <p class="has-text-grey" th:text="${(100 - profile.neuroticism) + '%'}"></p>
+                                <p th:text="#{personality.neuroticism.desc}">
+                                    Your emotional resilience and stability.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="column is-6">
+                            <div class="box">
+                                <h3 class="title is-5">
+                                    <span class="icon"><i class="fas fa-link"></i></span>
+                                    <span th:text="#{personality.attachment}">Attachment Style</span>
+                                </h3>
+                                <span class="tag is-large is-primary" th:text="${profile.attachmentStyle}">Secure</span>
+                                <p class="mt-3" th:text="#{personality.attachment.desc}">
+                                    How you relate to others in close relationships.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Matching insights -->
+                    <div class="notification is-success is-light mt-5" th:if="${matchingInsights}">
+                        <h3 class="title is-5" th:text="#{personality.matching.insights}">What This Means for Your Matches</h3>
+                        <ul>
+                            <li th:each="insight : ${matchingInsights}" th:text="${insight}"></li>
+                        </ul>
+                    </div>
+
+                    <div class="buttons is-centered mt-5">
+                        <a th:href="@{/personality/assessment}" class="button is-outlined"
+                           th:text="#{personality.retake}">Retake Assessment</a>
+                        <a th:href="@{/}" class="button is-primary"
+                           th:text="#{personality.find.matches}">Find Matches</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:inline="javascript">
+    const profile = {
+        openness: [[${profile.openness}]],
+        conscientiousness: [[${profile.conscientiousness}]],
+        extraversion: [[${profile.extraversion}]],
+        agreeableness: [[${profile.agreeableness}]],
+        neuroticism: [[${profile.neuroticism}]]
+    };
+
+    const ctx = document.getElementById('big-five-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Openness', 'Conscientiousness', 'Extraversion', 'Agreeableness', 'Emotional Stability'],
+            datasets: [{
+                label: 'Your Profile',
+                data: [
+                    profile.openness,
+                    profile.conscientiousness,
+                    profile.extraversion,
+                    profile.agreeableness,
+                    100 - profile.neuroticism
+                ],
+                fill: true,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgb(54, 162, 235)',
+                pointBackgroundColor: 'rgb(54, 162, 235)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(54, 162, 235)'
+            }]
+        },
+        options: {
+            elements: {
+                line: { borderWidth: 3 }
+            },
+            scales: {
+                r: {
+                    angleLines: { display: true },
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

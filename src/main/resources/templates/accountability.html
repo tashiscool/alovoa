@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body>
+<div th:replace="~{fragments :: header}"></div>
+
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-10">
+                <h1 class="title has-text-centered">
+                    <span class="icon has-text-primary"><i class="fas fa-users"></i></span>
+                    <span th:text="#{accountability.title}">Feedback from Others</span>
+                </h1>
+
+                <!-- Summary Card -->
+                <div class="box">
+                    <div class="columns is-vcentered">
+                        <div class="column is-4 has-text-centered">
+                            <div class="feedback-score-circle"
+                                 th:classappend="${feedbackScore >= 70} ? 'is-success' : (${feedbackScore >= 40} ? 'is-warning' : 'is-danger')">
+                                <span class="score-value" th:text="${feedbackScore}">75</span>
+                                <span class="score-label">%</span>
+                            </div>
+                            <p class="is-size-7 mt-2" th:text="#{accountability.positive.ratio}">Positive Feedback Ratio</p>
+                        </div>
+                        <div class="column is-8">
+                            <div class="columns has-text-centered">
+                                <div class="column">
+                                    <p class="title is-3 has-text-success" th:text="${positiveCount}">8</p>
+                                    <p class="subtitle is-6" th:text="#{accountability.positive}">Positive</p>
+                                </div>
+                                <div class="column">
+                                    <p class="title is-3 has-text-danger" th:text="${negativeCount}">2</p>
+                                    <p class="subtitle is-6" th:text="#{accountability.negative}">Negative</p>
+                                </div>
+                                <div class="column">
+                                    <p class="title is-3" th:text="${totalCount}">10</p>
+                                    <p class="subtitle is-6" th:text="#{accountability.total}">Total</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="box" th:if="${not #maps.isEmpty(categoryBreakdown)}">
+                    <h3 class="title is-5" th:text="#{accountability.breakdown}">Feedback Breakdown</h3>
+                    <div class="tags are-medium">
+                        <th:block th:each="entry : ${categoryBreakdown}">
+                            <span class="tag"
+                                  th:classappend="${entry.key == 'POSITIVE_EXPERIENCE'} ? 'is-success' : 'is-danger is-light'">
+                                <span th:text="${entry.key}">Category</span>
+                                <span class="ml-1">(<span th:text="${entry.value}">0</span>)</span>
+                            </span>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- Feedback List -->
+                <div th:if="${not #lists.isEmpty(feedback)}">
+                    <h3 class="title is-5" th:text="#{accountability.recent}">Recent Feedback</h3>
+
+                    <div th:each="report : ${feedback}" class="box mb-4">
+                        <article class="media">
+                            <div class="media-left">
+                                <span class="icon is-large"
+                                      th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'has-text-success' : 'has-text-danger'">
+                                    <i th:class="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'fas fa-thumbs-up fa-2x' : 'fas fa-exclamation-triangle fa-2x'"></i>
+                                </span>
+                            </div>
+                            <div class="media-content">
+                                <div class="content">
+                                    <p>
+                                        <strong th:text="${report.title}">Report Title</strong>
+                                        <span class="tag is-small ml-2"
+                                              th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'is-success is-light' : 'is-danger is-light'"
+                                              th:text="${#strings.replace(report.category.name(), '_', ' ')}">Category</span>
+                                        <span class="tag is-info is-light is-small ml-1" th:if="${report.evidenceVerified}">
+                                            <span class="icon is-small"><i class="fas fa-check"></i></span>
+                                            <span th:text="#{accountability.verified}">Verified</span>
+                                        </span>
+                                        <br>
+                                        <span th:text="${report.description}">Description of the feedback...</span>
+                                        <br>
+                                        <small class="has-text-grey">
+                                            <span th:if="${!report.anonymous}" th:text="${'- ' + report.reporterName}">Reporter</span>
+                                            <span th:if="${report.anonymous}" th:text="#{accountability.anonymous}">- Anonymous</span>
+                                            <span class="ml-2" th:text="${#dates.format(report.createdAt, 'MMM dd, yyyy')}">Date</span>
+                                        </small>
+                                    </p>
+
+                                    <!-- Subject's Response -->
+                                    <div th:if="${report.subjectResponse != null}" class="notification is-light mt-3">
+                                        <p>
+                                            <strong th:text="#{accountability.response}">Response:</strong>
+                                            <span th:text="${report.subjectResponse}">Their response...</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <nav class="level is-mobile">
+                                    <div class="level-left">
+                                        <a class="level-item" onclick="markHelpful(this)" th:data-uuid="${report.uuid}">
+                                            <span class="icon is-small"><i class="fas fa-thumbs-up"></i></span>
+                                            <span class="ml-1" th:text="${report.helpfulCount}">0</span>
+                                            <span class="ml-1 is-size-7" th:text="#{accountability.helpful}">helpful</span>
+                                        </a>
+                                        <a class="level-item has-text-grey" onclick="flagReport(this)" th:data-uuid="${report.uuid}">
+                                            <span class="icon is-small"><i class="fas fa-flag"></i></span>
+                                            <span class="ml-1 is-size-7" th:text="#{accountability.flag}">Flag</span>
+                                        </a>
+                                    </div>
+                                </nav>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- No Feedback State -->
+                <div th:if="${#lists.isEmpty(feedback)}" class="notification is-info is-light has-text-centered">
+                    <p th:text="#{accountability.no.feedback}">No public feedback yet.</p>
+                </div>
+
+                <!-- Submit Feedback Button (for viewing other users) -->
+                <div th:if="${canSubmitFeedback}" class="has-text-centered mt-5">
+                    <button class="button is-primary is-large" onclick="openSubmitModal()">
+                        <span class="icon"><i class="fas fa-comment-alt"></i></span>
+                        <span th:text="#{accountability.submit}">Leave Feedback</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Submit Feedback Modal -->
+<div id="submit-modal" class="modal">
+    <div class="modal-background" onclick="closeSubmitModal()"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title" th:text="#{accountability.submit.title}">Submit Feedback</p>
+            <button class="delete" aria-label="close" onclick="closeSubmitModal()"></button>
+        </header>
+        <section class="modal-card-body">
+            <form id="feedback-form">
+                <input type="hidden" id="subject-uuid" th:value="${subjectUuid}">
+
+                <div class="field">
+                    <label class="label" th:text="#{accountability.form.type}">Feedback Type</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="category" onchange="updateBehaviors()">
+                                <option value="POSITIVE_EXPERIENCE">Positive Experience</option>
+                                <option value="GHOSTING">Ghosting</option>
+                                <option value="DISHONESTY">Dishonesty</option>
+                                <option value="DISRESPECT">Disrespect</option>
+                                <option value="HARASSMENT">Harassment</option>
+                                <option value="MANIPULATION">Manipulation</option>
+                                <option value="BOUNDARY_VIOLATION">Boundary Violation</option>
+                                <option value="DATE_NO_SHOW">Date No-Show</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" th:text="#{accountability.form.behavior}">Specific Behavior</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="behavior-type">
+                                <!-- Populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" th:text="#{accountability.form.title}">Title</label>
+                    <div class="control">
+                        <input class="input" type="text" id="report-title" maxlength="200"
+                               th:placeholder="#{accountability.form.title.placeholder}">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" th:text="#{accountability.form.description}">Description</label>
+                    <div class="control">
+                        <textarea class="textarea" id="report-description" rows="4"
+                                  th:placeholder="#{accountability.form.description.placeholder}"></textarea>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="checkbox">
+                        <input type="checkbox" id="anonymous">
+                        <span th:text="#{accountability.form.anonymous}">Submit anonymously</span>
+                    </label>
+                </div>
+
+                <div class="notification is-warning is-light">
+                    <p class="is-size-7" th:text="#{accountability.form.warning}">
+                        False or malicious reports will affect your own reputation score.
+                        Please only submit honest feedback.
+                    </p>
+                </div>
+            </form>
+        </section>
+        <footer class="modal-card-foot">
+            <button class="button is-primary" onclick="submitFeedback()" th:text="#{accountability.submit}">Submit</button>
+            <button class="button" onclick="closeSubmitModal()" th:text="#{button.cancel}">Cancel</button>
+        </footer>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .feedback-score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 6px solid;
+        margin: 0 auto;
+    }
+    .feedback-score-circle.is-success { border-color: #48c774; }
+    .feedback-score-circle.is-warning { border-color: #ffdd57; }
+    .feedback-score-circle.is-danger { border-color: #f14668; }
+    .score-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        line-height: 1;
+    }
+    .score-label {
+        font-size: 1rem;
+        color: #666;
+    }
+</style>
+
+<script th:inline="javascript">
+    const behaviors = {
+        'POSITIVE_EXPERIENCE': [
+            {value: 'RESPECTFUL_COMMUNICATOR', label: 'Respectful Communicator'},
+            {value: 'HONEST_AND_AUTHENTIC', label: 'Honest and Authentic'},
+            {value: 'GRACEFUL_REJECTION', label: 'Graceful Rejection'},
+            {value: 'GREAT_DATE', label: 'Great Date'}
+        ],
+        'GHOSTING': [
+            {value: 'UNMATCHED_WITHOUT_EXPLANATION', label: 'Unmatched Without Explanation'},
+            {value: 'STOPPED_RESPONDING', label: 'Stopped Responding'},
+            {value: 'STOOD_UP_ON_DATE', label: 'Stood Up on Date'}
+        ],
+        'DISHONESTY': [
+            {value: 'FAKE_PHOTOS', label: 'Fake Photos'},
+            {value: 'LIED_ABOUT_INTENTIONS', label: 'Lied About Intentions'},
+            {value: 'MISREPRESENTED_RELATIONSHIP_STATUS', label: 'Misrepresented Relationship Status'}
+        ],
+        'DISRESPECT': [
+            {value: 'INSULTS', label: 'Insults'},
+            {value: 'BODY_SHAMING', label: 'Body Shaming'},
+            {value: 'CRUDE_BEHAVIOR', label: 'Crude Behavior'}
+        ],
+        'HARASSMENT': [
+            {value: 'SPAM_MESSAGING', label: 'Spam Messaging'},
+            {value: 'CONTACTED_OUTSIDE_APP', label: 'Contacted Outside App'},
+            {value: 'REFUSED_TO_ACCEPT_REJECTION', label: 'Refused to Accept Rejection'}
+        ],
+        'MANIPULATION': [
+            {value: 'LOVE_BOMBING', label: 'Love Bombing'},
+            {value: 'GASLIGHTING', label: 'Gaslighting'},
+            {value: 'GUILT_TRIPPING', label: 'Guilt Tripping'}
+        ]
+    };
+
+    function updateBehaviors() {
+        const category = document.getElementById('category').value;
+        const behaviorSelect = document.getElementById('behavior-type');
+        behaviorSelect.innerHTML = '';
+
+        const options = behaviors[category] || [];
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            behaviorSelect.appendChild(option);
+        });
+    }
+
+    function openSubmitModal() {
+        document.getElementById('submit-modal').classList.add('is-active');
+        updateBehaviors();
+    }
+
+    function closeSubmitModal() {
+        document.getElementById('submit-modal').classList.remove('is-active');
+    }
+
+    async function submitFeedback() {
+        const data = {
+            subjectUuid: document.getElementById('subject-uuid').value,
+            category: document.getElementById('category').value,
+            behaviorType: document.getElementById('behavior-type').value,
+            title: document.getElementById('report-title').value,
+            description: document.getElementById('report-description').value,
+            anonymous: document.getElementById('anonymous').checked
+        };
+
+        try {
+            const response = await fetch('/api/v1/accountability/report', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert('Feedback submitted successfully!');
+                closeSubmitModal();
+                location.reload();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('Failed to submit feedback');
+        }
+    }
+
+    async function markHelpful(element) {
+        const uuid = element.dataset.uuid;
+        try {
+            await fetch(`/api/v1/accountability/report/${uuid}/helpful`, {method: 'POST'});
+            location.reload();
+        } catch (error) {
+            console.error('Failed to mark helpful');
+        }
+    }
+
+    async function flagReport(element) {
+        if (!confirm('Are you sure you want to flag this report as potentially false?')) return;
+
+        const uuid = element.dataset.uuid;
+        try {
+            await fetch(`/api/v1/accountability/report/${uuid}/flag`, {method: 'POST'});
+            alert('Report flagged for review');
+        } catch (error) {
+            console.error('Failed to flag report');
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', updateBehaviors);
+</script>
+
+</body>
+</html>

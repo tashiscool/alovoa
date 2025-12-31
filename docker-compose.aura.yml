@@ -1,0 +1,153 @@
+version: '3.8'
+
+services:
+  # Main Alovoa/AURA Application
+  alovoa:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/alovoa
+      - SPRING_DATASOURCE_USERNAME=alovoa
+      - SPRING_DATASOURCE_PASSWORD=alovoa_password
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - APP_MEDIA_SERVICE_URL=http://media-service:8001
+      - APP_AI_SERVICE_URL=http://ai-service:8002
+      - APP_AURA_DAILY_MATCH_LIMIT=5
+      - APP_AURA_VIDEO_VERIFICATION_ENABLED=true
+      - APP_AURA_REPUTATION_ENABLED=true
+    depends_on:
+      - mariadb
+      - redis
+      - media-service
+      - ai-service
+    networks:
+      - aura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Media Service - Face Verification & Video Processing
+  media-service:
+    build:
+      context: ./services/media-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STORAGE_PATH=/data/media
+      - FACE_MODEL=Facenet512
+      - DETECTOR_BACKEND=retinaface
+      - FACE_MATCH_THRESHOLD=0.70
+      - LIVENESS_THRESHOLD=0.85
+      - DEEPFAKE_THRESHOLD=0.80
+    volumes:
+      - media-storage:/data/media
+    depends_on:
+      - redis
+    networks:
+      - aura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # AI Matching Service - Compatibility & Recommendations
+  ai-service:
+    build:
+      context: ./services/ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - EMBEDDING_DIM=128
+      - PERSONALITY_WEIGHT=0.30
+      - VALUES_WEIGHT=0.25
+      - LIFESTYLE_WEIGHT=0.20
+      - ATTRACTION_WEIGHT=0.15
+      - CIRCUMSTANTIAL_WEIGHT=0.10
+    depends_on:
+      - redis
+    networks:
+      - aura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MariaDB Database
+  mariadb:
+    image: mariadb:11
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=alovoa
+      - MYSQL_USER=alovoa
+      - MYSQL_PASSWORD=alovoa_password
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    networks:
+      - aura-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Caching & Sessions
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - aura-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO for Object Storage (S3-compatible)
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=aura_admin
+      - MINIO_ROOT_PASSWORD=aura_secret_key
+    volumes:
+      - minio-data:/data
+    networks:
+      - aura-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mariadb-data:
+  redis-data:
+  minio-data:
+  media-storage:
+
+networks:
+  aura-network:
+    driver: bridge

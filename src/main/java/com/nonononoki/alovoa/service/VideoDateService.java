@@ -1,0 +1,387 @@
+package com.nonononoki.alovoa.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nonononoki.alovoa.entity.Conversation;
+import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.entity.VideoDate;
+import com.nonononoki.alovoa.entity.VideoDate.DateStatus;
+import com.nonononoki.alovoa.entity.user.UserBehaviorEvent;
+import com.nonononoki.alovoa.repo.ConversationRepository;
+import com.nonononoki.alovoa.repo.VideoDateRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class VideoDateService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VideoDateService.class);
+
+    @Value("${app.aura.video-date.max-duration:3600}")
+    private Integer maxDurationSeconds;
+
+    @Value("${app.aura.video-date.proposal-expiry-hours:48}")
+    private Integer proposalExpiryHours;
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private VideoDateRepository videoDateRepo;
+
+    @Autowired
+    private ConversationRepository conversationRepo;
+
+    @Autowired
+    private ReputationService reputationService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    public Map<String, Object> proposeVideoDate(Long conversationId, Date proposedTime) throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        Conversation conversation = conversationRepo.findById(conversationId)
+                .orElseThrow(() -> new Exception("Conversation not found"));
+
+        // Verify user is part of conversation
+        if (!isUserInConversation(user, conversation)) {
+            throw new Exception("Unauthorized");
+        }
+
+        // Check for existing pending proposal
+        Optional<VideoDate> existingProposal = videoDateRepo
+                .findByConversationAndStatus(conversation, DateStatus.PROPOSED);
+
+        if (existingProposal.isPresent()) {
+            return Map.of(
+                    "success", false,
+                    "error", "There is already a pending video date proposal",
+                    "existingProposal", mapVideoDateToResponse(existingProposal.get())
+            );
+        }
+
+        // Get other user
+        User otherUser = getOtherUser(user, conversation);
+
+        // Create video date proposal
+        VideoDate videoDate = new VideoDate();
+        videoDate.setConversation(conversation);
+        videoDate.setUserA(user);
+        videoDate.setUserB(otherUser);
+        videoDate.setScheduledAt(proposedTime);
+        videoDate.setStatus(DateStatus.PROPOSED);
+
+        videoDateRepo.save(videoDate);
+
+        return Map.of(
+                "success", true,
+                "videoDate", mapVideoDateToResponse(videoDate),
+                "message", "Video date proposed! Waiting for response."
+        );
+    }
+
+    public Map<String, Object> respondToProposal(Long videoDateId, boolean accept, Date counterTime) throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        VideoDate videoDate = videoDateRepo.findById(videoDateId)
+                .orElseThrow(() -> new Exception("Video date not found"));
+
+        // Verify user is userB (the recipient)
+        if (!videoDate.getUserB().getId().equals(user.getId())) {
+            throw new Exception("Unauthorized");
+        }
+
+        if (videoDate.getStatus() != DateStatus.PROPOSED) {
+            throw new Exception("This proposal is no longer active");
+        }
+
+        if (accept) {
+            videoDate.setStatus(DateStatus.ACCEPTED);
+            if (counterTime != null) {
+                videoDate.setScheduledAt(counterTime);
+            }
+
+            // Generate room URL (in production, integrate with video provider)
+            videoDate.setRoomUrl(generateRoomUrl(videoDate));
+
+            videoDateRepo.save(videoDate);
+
+            return Map.of(
+                    "success", true,
+                    "videoDate", mapVideoDateToResponse(videoDate),
+                    "message", "Video date accepted!",
+                    "roomUrl", videoDate.getRoomUrl()
+            );
+        } else {
+            videoDate.setStatus(DateStatus.CANCELLED);
+            videoDateRepo.save(videoDate);
+
+            return Map.of(
+                    "success", true,
+                    "message", "Video date declined"
+            );
+        }
+    }
+
+    public Map<String, Object> startVideoDate(Long videoDateId) throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        VideoDate videoDate = videoDateRepo.findById(videoDateId)
+                .orElseThrow(() -> new Exception("Video date not found"));
+
+        if (!isUserInVideoDate(user, videoDate)) {
+            throw new Exception("Unauthorized");
+        }
+
+        if (videoDate.getStatus() != DateStatus.ACCEPTED && videoDate.getStatus() != DateStatus.SCHEDULED) {
+            throw new Exception("Video date cannot be started");
+        }
+
+        videoDate.setStatus(DateStatus.IN_PROGRESS);
+        videoDate.setStartedAt(new Date());
+        videoDateRepo.save(videoDate);
+
+        return Map.of(
+                "success", true,
+                "roomUrl", videoDate.getRoomUrl(),
+                "maxDuration", maxDurationSeconds
+        );
+    }
+
+    public Map<String, Object> endVideoDate(Long videoDateId) throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        VideoDate videoDate = videoDateRepo.findById(videoDateId)
+                .orElseThrow(() -> new Exception("Video date not found"));
+
+        if (!isUserInVideoDate(user, videoDate)) {
+            throw new Exception("Unauthorized");
+        }
+
+        if (videoDate.getStatus() != DateStatus.IN_PROGRESS) {
+            throw new Exception("Video date is not in progress");
+        }
+
+        videoDate.setStatus(DateStatus.COMPLETED);
+        videoDate.setEndedAt(new Date());
+
+        // Calculate duration
+        if (videoDate.getStartedAt() != null) {
+            long durationMs = videoDate.getEndedAt().getTime() - videoDate.getStartedAt().getTime();
+            videoDate.setDurationSeconds((int) (durationMs / 1000));
+        }
+
+        videoDateRepo.save(videoDate);
+
+        // Record positive behavior for both users
+        reputationService.recordBehavior(videoDate.getUserA(),
+                UserBehaviorEvent.BehaviorType.COMPLETED_DATE,
+                videoDate.getUserB(),
+                Map.of("duration", videoDate.getDurationSeconds()));
+
+        reputationService.recordBehavior(videoDate.getUserB(),
+                UserBehaviorEvent.BehaviorType.COMPLETED_DATE,
+                videoDate.getUserA(),
+                Map.of("duration", videoDate.getDurationSeconds()));
+
+        return Map.of(
+                "success", true,
+                "duration", videoDate.getDurationSeconds(),
+                "message", "Video date completed!"
+        );
+    }
+
+    public Map<String, Object> submitFeedback(Long videoDateId, Map<String, Object> feedback) throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        VideoDate videoDate = videoDateRepo.findById(videoDateId)
+                .orElseThrow(() -> new Exception("Video date not found"));
+
+        if (!isUserInVideoDate(user, videoDate)) {
+            throw new Exception("Unauthorized");
+        }
+
+        if (videoDate.getStatus() != DateStatus.COMPLETED) {
+            throw new Exception("Feedback can only be submitted for completed dates");
+        }
+
+        String feedbackJson = objectMapper.writeValueAsString(feedback);
+
+        if (videoDate.getUserA().getId().equals(user.getId())) {
+            videoDate.setUserAFeedback(feedbackJson);
+        } else {
+            videoDate.setUserBFeedback(feedbackJson);
+        }
+
+        videoDateRepo.save(videoDate);
+
+        // Process feedback for reputation
+        processFeedback(user, videoDate, feedback);
+
+        return Map.of(
+                "success", true,
+                "message", "Thank you for your feedback!"
+        );
+    }
+
+    public Map<String, Object> getUpcomingDates() throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        List<VideoDate> upcoming = videoDateRepo.findByUserAndStatus(user, DateStatus.ACCEPTED);
+        upcoming.addAll(videoDateRepo.findByUserAndStatus(user, DateStatus.SCHEDULED));
+
+        upcoming.sort(Comparator.comparing(VideoDate::getScheduledAt));
+
+        return Map.of(
+                "dates", upcoming.stream()
+                        .map(this::mapVideoDateToResponse)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    public Map<String, Object> getPendingProposals() throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        List<VideoDate> proposals = videoDateRepo.findByUserAndStatus(user, DateStatus.PROPOSED)
+                .stream()
+                .filter(vd -> vd.getUserB().getId().equals(user.getId()))
+                .collect(Collectors.toList());
+
+        return Map.of(
+                "proposals", proposals.stream()
+                        .map(this::mapVideoDateToResponse)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    public Map<String, Object> getDateHistory() throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        List<VideoDate> allDates = videoDateRepo.findByUserAOrUserB(user, user);
+
+        // Filter to completed and cancelled dates
+        List<VideoDate> history = allDates.stream()
+                .filter(vd -> vd.getStatus() == DateStatus.COMPLETED ||
+                        vd.getStatus() == DateStatus.CANCELLED ||
+                        vd.getStatus() == DateStatus.NO_SHOW_A ||
+                        vd.getStatus() == DateStatus.NO_SHOW_B)
+                .sorted(Comparator.comparing(VideoDate::getCreatedAt).reversed())
+                .limit(20)
+                .collect(Collectors.toList());
+
+        return Map.of(
+                "history", history.stream()
+                        .map(this::mapVideoDateToResponse)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    public void handleNoShow(Long videoDateId, User noShowUser) {
+        try {
+            VideoDate videoDate = videoDateRepo.findById(videoDateId).orElse(null);
+            if (videoDate == null) return;
+
+            if (noShowUser.getId().equals(videoDate.getUserA().getId())) {
+                videoDate.setStatus(DateStatus.NO_SHOW_A);
+                reputationService.recordBehavior(videoDate.getUserA(),
+                        UserBehaviorEvent.BehaviorType.NO_SHOW, videoDate.getUserB(), null);
+            } else {
+                videoDate.setStatus(DateStatus.NO_SHOW_B);
+                reputationService.recordBehavior(videoDate.getUserB(),
+                        UserBehaviorEvent.BehaviorType.NO_SHOW, videoDate.getUserA(), null);
+            }
+
+            videoDateRepo.save(videoDate);
+        } catch (Exception e) {
+            LOGGER.error("Failed to handle no-show", e);
+        }
+    }
+
+    private boolean isUserInConversation(User user, Conversation conversation) {
+        return conversation.getUsers().stream()
+                .anyMatch(cu -> cu.getUser().getId().equals(user.getId()));
+    }
+
+    private boolean isUserInVideoDate(User user, VideoDate videoDate) {
+        return videoDate.getUserA().getId().equals(user.getId()) ||
+                videoDate.getUserB().getId().equals(user.getId());
+    }
+
+    private User getOtherUser(User user, Conversation conversation) {
+        return conversation.getUsers().stream()
+                .map(cu -> cu.getUser())
+                .filter(u -> !u.getId().equals(user.getId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String generateRoomUrl(VideoDate videoDate) {
+        // Generate a unique room URL
+        // In production, integrate with Daily.co, Twilio, or similar
+        String roomId = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        return "https://meet.aura.app/" + roomId;
+    }
+
+    private Map<String, Object> mapVideoDateToResponse(VideoDate videoDate) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", videoDate.getId());
+        response.put("status", videoDate.getStatus().name());
+        response.put("scheduledAt", videoDate.getScheduledAt());
+        response.put("createdAt", videoDate.getCreatedAt());
+
+        if (videoDate.getUserA() != null) {
+            response.put("proposedBy", Map.of(
+                    "id", videoDate.getUserA().getId(),
+                    "uuid", videoDate.getUserA().getUuid().toString(),
+                    "name", videoDate.getUserA().getFirstName()
+            ));
+        }
+
+        if (videoDate.getUserB() != null) {
+            response.put("proposedTo", Map.of(
+                    "id", videoDate.getUserB().getId(),
+                    "uuid", videoDate.getUserB().getUuid().toString(),
+                    "name", videoDate.getUserB().getFirstName()
+            ));
+        }
+
+        if (videoDate.getStatus() == DateStatus.COMPLETED) {
+            response.put("duration", videoDate.getDurationSeconds());
+            response.put("startedAt", videoDate.getStartedAt());
+            response.put("endedAt", videoDate.getEndedAt());
+        }
+
+        if (videoDate.getStatus() == DateStatus.IN_PROGRESS ||
+                videoDate.getStatus() == DateStatus.ACCEPTED) {
+            response.put("roomUrl", videoDate.getRoomUrl());
+        }
+
+        return response;
+    }
+
+    private void processFeedback(User fromUser, VideoDate videoDate, Map<String, Object> feedback) {
+        User otherUser = fromUser.getId().equals(videoDate.getUserA().getId())
+                ? videoDate.getUserB() : videoDate.getUserA();
+
+        // Check overall rating
+        Object ratingObj = feedback.get("rating");
+        if (ratingObj instanceof Number) {
+            int rating = ((Number) ratingObj).intValue();
+            if (rating >= 4) {
+                reputationService.recordBehavior(otherUser,
+                        UserBehaviorEvent.BehaviorType.POSITIVE_FEEDBACK, fromUser,
+                        Map.of("rating", rating));
+            } else if (rating <= 2) {
+                reputationService.recordBehavior(otherUser,
+                        UserBehaviorEvent.BehaviorType.NEGATIVE_FEEDBACK, fromUser,
+                        Map.of("rating", rating));
+            }
+        }
+    }
+}

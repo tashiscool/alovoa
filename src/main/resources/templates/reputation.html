@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body>
+<div th:replace="~{fragments :: header}"></div>
+
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-10">
+                <h1 class="title has-text-centered">
+                    <span class="icon has-text-primary"><i class="fas fa-star"></i></span>
+                    <span th:text="#{reputation.title}">Your Reputation</span>
+                </h1>
+
+                <!-- Overall Score -->
+                <div class="box has-text-centered">
+                    <div class="is-flex is-justify-content-center is-align-items-center">
+                        <div class="reputation-score-circle" th:classappend="${overallScore >= 70} ? 'is-success' : (${overallScore >= 50} ? 'is-warning' : 'is-danger')">
+                            <span class="score-value" th:text="${overallScore}">75</span>
+                        </div>
+                    </div>
+                    <h2 class="title is-4 mt-4" th:text="#{reputation.overall}">Overall Score</h2>
+                    <span class="tag is-large" th:classappend="${trustLevel == 'HIGHLY_TRUSTED'} ? 'is-success' :
+                        (${trustLevel == 'TRUSTED'} ? 'is-primary' :
+                        (${trustLevel == 'VERIFIED'} ? 'is-info' :
+                        (${trustLevel == 'NEW_MEMBER'} ? 'is-light' :
+                        (${trustLevel == 'UNDER_REVIEW'} ? 'is-warning' : 'is-danger'))))"
+                          th:text="${trustLevel}">Trusted</span>
+                </div>
+
+                <!-- Badges -->
+                <div class="box" th:if="${not #lists.isEmpty(badges)}">
+                    <h3 class="title is-5" th:text="#{reputation.badges}">Your Badges</h3>
+                    <div class="tags are-medium">
+                        <span th:each="badge : ${badges}" class="tag is-primary is-light">
+                            <span class="icon"><i th:class="${'fas fa-' + badge.icon}"></i></span>
+                            <span th:text="${badge.name}">Badge</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Score Breakdown -->
+                <div class="columns is-multiline">
+                    <div class="column is-6">
+                        <div class="box">
+                            <h3 class="title is-5">
+                                <span class="icon has-text-info"><i class="fas fa-comments"></i></span>
+                                <span th:text="#{reputation.response}">Response Quality</span>
+                            </h3>
+                            <progress class="progress is-info" th:value="${responseQuality}" max="100"></progress>
+                            <p class="has-text-grey" th:text="${responseQuality + '%'}"></p>
+                            <p class="is-size-7" th:text="#{reputation.response.desc}">
+                                Based on message quality and response times.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="column is-6">
+                        <div class="box">
+                            <h3 class="title is-5">
+                                <span class="icon has-text-success"><i class="fas fa-handshake"></i></span>
+                                <span th:text="#{reputation.respect}">Respect Score</span>
+                            </h3>
+                            <progress class="progress is-success" th:value="${respectScore}" max="100"></progress>
+                            <p class="has-text-grey" th:text="${respectScore + '%'}"></p>
+                            <p class="is-size-7" th:text="#{reputation.respect.desc}">
+                                How respectfully you interact with others.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="column is-6">
+                        <div class="box">
+                            <h3 class="title is-5">
+                                <span class="icon has-text-primary"><i class="fas fa-user-check"></i></span>
+                                <span th:text="#{reputation.authenticity}">Authenticity</span>
+                            </h3>
+                            <progress class="progress is-primary" th:value="${authenticityScore}" max="100"></progress>
+                            <p class="has-text-grey" th:text="${authenticityScore + '%'}"></p>
+                            <p class="is-size-7" th:text="#{reputation.authenticity.desc}">
+                                Profile completeness and verification status.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="column is-6">
+                        <div class="box">
+                            <h3 class="title is-5">
+                                <span class="icon has-text-warning"><i class="fas fa-heart"></i></span>
+                                <span th:text="#{reputation.investment}">Investment</span>
+                            </h3>
+                            <progress class="progress is-warning" th:value="${investmentScore}" max="100"></progress>
+                            <p class="has-text-grey" th:text="${investmentScore + '%'}"></p>
+                            <p class="is-size-7" th:text="#{reputation.investment.desc}">
+                                Your commitment to meaningful connections.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="box">
+                    <h3 class="title is-5" th:text="#{reputation.stats}">Statistics</h3>
+                    <div class="columns has-text-centered">
+                        <div class="column">
+                            <p class="title is-3" th:text="${datesCompleted}">5</p>
+                            <p class="subtitle is-6" th:text="#{reputation.dates.completed}">Dates Completed</p>
+                        </div>
+                        <div class="column">
+                            <p class="title is-3" th:text="${positiveFeedback}">12</p>
+                            <p class="subtitle is-6" th:text="#{reputation.positive.feedback}">Positive Feedback</p>
+                        </div>
+                        <div class="column">
+                            <p class="title is-3" th:text="${ghostingCount}">0</p>
+                            <p class="subtitle is-6" th:text="#{reputation.ghosting}">Ghosting Events</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="box" th:if="${not #lists.isEmpty(recentActivity)}">
+                    <h3 class="title is-5" th:text="#{reputation.activity}">Recent Activity</h3>
+                    <div class="timeline">
+                        <div th:each="event : ${recentActivity}" class="timeline-item">
+                            <div class="timeline-marker"
+                                 th:classappend="${event.impact > 0} ? 'is-success' : 'is-danger'"></div>
+                            <div class="timeline-content">
+                                <p class="heading" th:text="${#dates.format(event.date, 'MMM dd, yyyy')}"></p>
+                                <p th:text="${event.description}">Activity description</p>
+                                <span class="tag"
+                                      th:classappend="${event.impact > 0} ? 'is-success' : 'is-danger'"
+                                      th:text="${(event.impact > 0 ? '+' : '') + event.impact}">+2.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips to improve -->
+                <div class="notification is-info is-light" th:if="${overallScore < 70}">
+                    <h3 class="title is-5" th:text="#{reputation.improve.title}">Tips to Improve</h3>
+                    <ul>
+                        <li th:if="${not videoVerified}" th:text="#{reputation.improve.verify}">
+                            Complete video verification to boost your authenticity score
+                        </li>
+                        <li th:if="${responseQuality < 70}" th:text="#{reputation.improve.response}">
+                            Respond to messages more promptly
+                        </li>
+                        <li th:if="${datesCompleted < 3}" th:text="#{reputation.improve.dates}">
+                            Complete more video dates to show investment
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .reputation-score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 8px solid;
+    }
+    .reputation-score-circle.is-success { border-color: #48c774; }
+    .reputation-score-circle.is-warning { border-color: #ffdd57; }
+    .reputation-score-circle.is-danger { border-color: #f14668; }
+    .score-value {
+        font-size: 3rem;
+        font-weight: bold;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 20px;
+        border-left: 2px solid #dbdbdb;
+        padding-left: 20px;
+    }
+    .timeline-marker {
+        position: absolute;
+        left: -8px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #dbdbdb;
+    }
+    .timeline-marker.is-success { background: #48c774; }
+    .timeline-marker.is-danger { background: #f14668; }
+</style>
+
+</body>
+</html>

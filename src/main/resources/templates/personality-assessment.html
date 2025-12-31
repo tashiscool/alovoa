@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body>
+<div th:replace="~{fragments :: header}"></div>
+
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8">
+                <div class="box">
+                    <h1 class="title has-text-centered" th:text="#{personality.assessment.title}">Personality Assessment</h1>
+                    <p class="subtitle has-text-centered" th:text="#{personality.assessment.subtitle}">
+                        Help us find your best matches by answering these questions
+                    </p>
+
+                    <div class="notification is-info is-light">
+                        <p th:text="#{personality.assessment.info}">
+                            This assessment takes about 5-10 minutes. Answer honestly for the best results.
+                        </p>
+                    </div>
+
+                    <form id="personality-form" th:action="@{/personality/assessment/submit}" method="post">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+                        <!-- Progress bar -->
+                        <progress id="assessment-progress" class="progress is-primary" value="0" max="100">0%</progress>
+                        <p class="has-text-centered mb-4">
+                            <span id="question-counter">1</span> / <span th:text="${totalQuestions}">25</span>
+                        </p>
+
+                        <!-- Question container -->
+                        <div id="questions-container">
+                            <div th:each="question, iter : ${questions}"
+                                 th:id="'question-' + ${iter.index}"
+                                 class="question-card"
+                                 th:classappend="${iter.index > 0} ? 'is-hidden' : ''">
+
+                                <div class="card">
+                                    <div class="card-content">
+                                        <p class="title is-5" th:text="${question.text}">Question text</p>
+                                        <p class="subtitle is-6 has-text-grey" th:text="${question.category}">Category</p>
+
+                                        <div class="field">
+                                            <div class="control">
+                                                <!-- Likert scale -->
+                                                <div class="buttons has-addons is-centered likert-scale">
+                                                    <button type="button" class="button likert-btn"
+                                                            th:data-question="${question.id}" data-value="1"
+                                                            th:text="#{personality.strongly.disagree}">Strongly Disagree</button>
+                                                    <button type="button" class="button likert-btn"
+                                                            th:data-question="${question.id}" data-value="2"
+                                                            th:text="#{personality.disagree}">Disagree</button>
+                                                    <button type="button" class="button likert-btn"
+                                                            th:data-question="${question.id}" data-value="3"
+                                                            th:text="#{personality.neutral}">Neutral</button>
+                                                    <button type="button" class="button likert-btn"
+                                                            th:data-question="${question.id}" data-value="4"
+                                                            th:text="#{personality.agree}">Agree</button>
+                                                    <button type="button" class="button likert-btn"
+                                                            th:data-question="${question.id}" data-value="5"
+                                                            th:text="#{personality.strongly.agree}">Strongly Agree</button>
+                                                </div>
+                                                <input type="hidden" th:name="'answer_' + ${question.id}"
+                                                       th:id="'input-' + ${question.id}" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation buttons -->
+                        <div class="buttons is-centered mt-5">
+                            <button type="button" id="prev-btn" class="button is-outlined" disabled
+                                    th:text="#{personality.previous}">Previous</button>
+                            <button type="button" id="next-btn" class="button is-primary"
+                                    th:text="#{personality.next}">Next</button>
+                            <button type="submit" id="submit-btn" class="button is-success is-hidden"
+                                    th:text="#{personality.submit}">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<script th:inline="javascript">
+    const totalQuestions = [[${totalQuestions}]];
+    let currentQuestion = 0;
+    const answers = {};
+
+    document.querySelectorAll('.likert-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const questionId = this.dataset.question;
+            const value = this.dataset.value;
+
+            // Update hidden input
+            document.getElementById('input-' + questionId).value = value;
+            answers[questionId] = value;
+
+            // Update button states
+            this.closest('.likert-scale').querySelectorAll('.likert-btn').forEach(b => {
+                b.classList.remove('is-selected', 'is-primary');
+            });
+            this.classList.add('is-selected', 'is-primary');
+
+            // Auto-advance after short delay
+            setTimeout(() => {
+                if (currentQuestion < totalQuestions - 1) {
+                    nextQuestion();
+                }
+            }, 300);
+        });
+    });
+
+    function nextQuestion() {
+        if (currentQuestion < totalQuestions - 1) {
+            document.getElementById('question-' + currentQuestion).classList.add('is-hidden');
+            currentQuestion++;
+            document.getElementById('question-' + currentQuestion).classList.remove('is-hidden');
+            updateProgress();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestion > 0) {
+            document.getElementById('question-' + currentQuestion).classList.add('is-hidden');
+            currentQuestion--;
+            document.getElementById('question-' + currentQuestion).classList.remove('is-hidden');
+            updateProgress();
+        }
+    }
+
+    function updateProgress() {
+        const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+        document.getElementById('assessment-progress').value = progress;
+        document.getElementById('question-counter').textContent = currentQuestion + 1;
+
+        document.getElementById('prev-btn').disabled = currentQuestion === 0;
+
+        if (currentQuestion === totalQuestions - 1) {
+            document.getElementById('next-btn').classList.add('is-hidden');
+            document.getElementById('submit-btn').classList.remove('is-hidden');
+        } else {
+            document.getElementById('next-btn').classList.remove('is-hidden');
+            document.getElementById('submit-btn').classList.add('is-hidden');
+        }
+    }
+
+    document.getElementById('next-btn').addEventListener('click', nextQuestion);
+    document.getElementById('prev-btn').addEventListener('click', prevQuestion);
+</script>
+
+</body>
+</html>

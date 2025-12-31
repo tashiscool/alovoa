@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body>
+<div th:replace="~{fragments :: header}"></div>
+
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-8">
+                <div class="box">
+                    <h1 class="title has-text-centered">
+                        <span class="icon has-text-primary"><i class="fas fa-video"></i></span>
+                        <span th:text="#{verification.title}">Video Verification</span>
+                    </h1>
+
+                    <!-- Already verified state -->
+                    <div th:if="${verified}" class="notification is-success">
+                        <div class="has-text-centered">
+                            <span class="icon is-large"><i class="fas fa-check-circle fa-3x"></i></span>
+                            <h3 class="title is-4 mt-3" th:text="#{verification.verified}">You're Verified!</h3>
+                            <p th:text="#{verification.verified.desc}">Your profile shows the verified badge.</p>
+                        </div>
+                    </div>
+
+                    <!-- Not verified state -->
+                    <div th:unless="${verified}">
+                        <!-- Introduction -->
+                        <div id="step-intro" class="verification-step">
+                            <div class="content">
+                                <h3 th:text="#{verification.why.title}">Why Verify?</h3>
+                                <ul>
+                                    <li th:text="#{verification.why.1}">Get the verified badge on your profile</li>
+                                    <li th:text="#{verification.why.2}">Increase trust with potential matches</li>
+                                    <li th:text="#{verification.why.3}">Access more daily matches</li>
+                                    <li th:text="#{verification.why.4}">Improve your reputation score</li>
+                                </ul>
+
+                                <h3 th:text="#{verification.how.title}">How It Works</h3>
+                                <ol>
+                                    <li th:text="#{verification.how.1}">We'll show you a series of simple actions</li>
+                                    <li th:text="#{verification.how.2}">Record yourself performing each action</li>
+                                    <li th:text="#{verification.how.3}">Our AI verifies you match your profile photo</li>
+                                </ol>
+
+                                <div class="notification is-info is-light">
+                                    <p><strong th:text="#{verification.privacy}">Privacy Note:</strong>
+                                        <span th:text="#{verification.privacy.desc}">Your video is only used for verification and is deleted after processing.</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="buttons is-centered mt-5">
+                                <button class="button is-primary is-large" onclick="startVerification()"
+                                        th:text="#{verification.start}">Start Verification</button>
+                            </div>
+                        </div>
+
+                        <!-- Camera step -->
+                        <div id="step-camera" class="verification-step is-hidden">
+                            <div class="has-text-centered mb-4">
+                                <p class="title is-5" id="challenge-instruction" th:text="#{verification.prepare}">
+                                    Get ready...
+                                </p>
+                                <p class="subtitle" id="challenge-countdown"></p>
+                            </div>
+
+                            <div class="video-container">
+                                <video id="video-preview" autoplay playsinline muted></video>
+                                <canvas id="video-canvas" class="is-hidden"></canvas>
+                            </div>
+
+                            <div class="buttons is-centered mt-4">
+                                <button id="record-btn" class="button is-danger is-large" onclick="toggleRecording()" disabled>
+                                    <span class="icon"><i class="fas fa-circle"></i></span>
+                                    <span th:text="#{verification.record}">Start Recording</span>
+                                </button>
+                            </div>
+
+                            <progress id="recording-progress" class="progress is-danger is-hidden" value="0" max="100"></progress>
+                        </div>
+
+                        <!-- Processing step -->
+                        <div id="step-processing" class="verification-step is-hidden">
+                            <div class="has-text-centered">
+                                <span class="icon is-large"><i class="fas fa-spinner fa-spin fa-3x"></i></span>
+                                <h3 class="title is-4 mt-4" th:text="#{verification.processing}">Verifying...</h3>
+                                <p th:text="#{verification.processing.desc}">This may take a moment.</p>
+                            </div>
+                        </div>
+
+                        <!-- Result step -->
+                        <div id="step-result" class="verification-step is-hidden">
+                            <div id="result-success" class="notification is-success is-hidden">
+                                <div class="has-text-centered">
+                                    <span class="icon is-large"><i class="fas fa-check-circle fa-3x"></i></span>
+                                    <h3 class="title is-4 mt-3" th:text="#{verification.success}">Verification Successful!</h3>
+                                    <p th:text="#{verification.success.desc}">You're now verified.</p>
+                                </div>
+                            </div>
+
+                            <div id="result-failure" class="notification is-danger is-hidden">
+                                <div class="has-text-centered">
+                                    <span class="icon is-large"><i class="fas fa-times-circle fa-3x"></i></span>
+                                    <h3 class="title is-4 mt-3" th:text="#{verification.failed}">Verification Failed</h3>
+                                    <p id="failure-reason"></p>
+                                    <button class="button is-primary mt-3" onclick="retryVerification()"
+                                            th:text="#{verification.retry}">Try Again</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .video-container {
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #000;
+    }
+    .video-container video {
+        width: 100%;
+        transform: scaleX(-1);
+    }
+    .verification-step.is-hidden {
+        display: none;
+    }
+</style>
+
+<script th:inline="javascript">
+    let mediaRecorder;
+    let recordedChunks = [];
+    let sessionId = null;
+    let challenges = [];
+    let currentChallenge = 0;
+    let isRecording = false;
+
+    async function startVerification() {
+        try {
+            // Get verification session from server
+            const response = await fetch('/video/verification/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            sessionId = data.sessionId;
+            challenges = data.challenges || [];
+
+            // Switch to camera view
+            document.getElementById('step-intro').classList.add('is-hidden');
+            document.getElementById('step-camera').classList.remove('is-hidden');
+
+            // Start camera
+            await startCamera();
+
+            // Show first challenge
+            showChallenge(0);
+
+        } catch (error) {
+            console.error('Failed to start verification:', error);
+            alert('Failed to start verification. Please try again.');
+        }
+    }
+
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: 640, height: 480 },
+                audio: false
+            });
+
+            const video = document.getElementById('video-preview');
+            video.srcObject = stream;
+
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = submitRecording;
+
+            document.getElementById('record-btn').disabled = false;
+
+        } catch (error) {
+            console.error('Failed to access camera:', error);
+            alert('Please allow camera access to continue.');
+        }
+    }
+
+    function showChallenge(index) {
+        if (index >= challenges.length) {
+            // All challenges complete, auto-submit
+            return;
+        }
+
+        currentChallenge = index;
+        const challenge = challenges[index];
+        document.getElementById('challenge-instruction').textContent = challenge.instruction;
+
+        // Countdown before recording
+        let countdown = 3;
+        const countdownEl = document.getElementById('challenge-countdown');
+        countdownEl.textContent = countdown;
+
+        const interval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                countdownEl.textContent = countdown;
+            } else {
+                countdownEl.textContent = '';
+                clearInterval(interval);
+            }
+        }, 1000);
+    }
+
+    function toggleRecording() {
+        const btn = document.getElementById('record-btn');
+
+        if (!isRecording) {
+            // Start recording
+            recordedChunks = [];
+            mediaRecorder.start();
+            isRecording = true;
+            btn.innerHTML = '<span class="icon"><i class="fas fa-stop"></i></span><span>Stop Recording</span>';
+            btn.classList.remove('is-danger');
+            btn.classList.add('is-warning');
+
+            // Show progress
+            const progress = document.getElementById('recording-progress');
+            progress.classList.remove('is-hidden');
+            let elapsed = 0;
+            const maxTime = 10; // 10 seconds max
+
+            const progressInterval = setInterval(() => {
+                elapsed++;
+                progress.value = (elapsed / maxTime) * 100;
+                if (elapsed >= maxTime) {
+                    clearInterval(progressInterval);
+                    if (isRecording) {
+                        toggleRecording(); // Auto-stop
+                    }
+                }
+            }, 1000);
+
+        } else {
+            // Stop recording
+            mediaRecorder.stop();
+            isRecording = false;
+            btn.innerHTML = '<span class="icon"><i class="fas fa-circle"></i></span><span>Start Recording</span>';
+            btn.classList.remove('is-warning');
+            btn.classList.add('is-danger');
+            document.getElementById('recording-progress').classList.add('is-hidden');
+        }
+    }
+
+    async function submitRecording() {
+        document.getElementById('step-camera').classList.add('is-hidden');
+        document.getElementById('step-processing').classList.remove('is-hidden');
+
+        try {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const formData = new FormData();
+            formData.append('video', blob, 'verification.webm');
+            formData.append('sessionId', sessionId);
+
+            const response = await fetch('/video/verification/submit', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            document.getElementById('step-processing').classList.add('is-hidden');
+            document.getElementById('step-result').classList.remove('is-hidden');
+
+            if (result.success) {
+                document.getElementById('result-success').classList.remove('is-hidden');
+            } else {
+                document.getElementById('result-failure').classList.remove('is-hidden');
+                document.getElementById('failure-reason').textContent = result.message || 'Please try again.';
+            }
+
+        } catch (error) {
+            console.error('Failed to submit verification:', error);
+            document.getElementById('step-processing').classList.add('is-hidden');
+            document.getElementById('step-result').classList.remove('is-hidden');
+            document.getElementById('result-failure').classList.remove('is-hidden');
+            document.getElementById('failure-reason').textContent = 'Network error. Please try again.';
+        }
+    }
+
+    function retryVerification() {
+        document.getElementById('step-result').classList.add('is-hidden');
+        document.getElementById('result-success').classList.add('is-hidden');
+        document.getElementById('result-failure').classList.add('is-hidden');
+        document.getElementById('step-intro').classList.remove('is-hidden');
+    }
+</script>
+
+</body>
+</html>
