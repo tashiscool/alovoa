@@ -59,6 +59,9 @@ public class MatchingService {
     private PoliticalAssessmentService politicalAssessmentService;
 
     @Autowired
+    private IntakeService intakeService;
+
+    @Autowired
     private UserAssessmentProfileRepository assessmentProfileRepo;
 
     @Autowired
@@ -72,6 +75,17 @@ public class MatchingService {
 
     public Map<String, Object> getDailyMatches() throws Exception {
         User user = authService.getCurrentUser(true);
+
+        // Check intake completion gate before allowing matching
+        if (!intakeService.isIntakeComplete(user)) {
+            return Map.of(
+                    "matches", Collections.emptyList(),
+                    "gated", true,
+                    "gateMessage", "Complete your profile intake to start matching. Answer the 10 core questions and upload your video introduction.",
+                    "gateStatus", "INTAKE_INCOMPLETE",
+                    "intakeRequired", true
+            );
+        }
 
         // Check political assessment gate before allowing matching
         if (politicalAssessmentRequired && !politicalAssessmentService.canAccessMatching(user)) {

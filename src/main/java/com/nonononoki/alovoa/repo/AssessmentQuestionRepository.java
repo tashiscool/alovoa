@@ -37,4 +37,14 @@ public interface AssessmentQuestionRepository extends JpaRepository<AssessmentQu
     long countByCategoryAndActiveTrue(QuestionCategory category);
 
     boolean existsByExternalId(String externalId);
+
+    // Methods for intake flow with string-based categories (uses subcategory field)
+    List<AssessmentQuestion> findBySubcategory(String subcategory);
+
+    Optional<AssessmentQuestion> findBySubcategoryAndCoreQuestionTrue(String subcategory);
+
+    List<AssessmentQuestion> findByCoreQuestionTrue();
+
+    @Query("SELECT DISTINCT q.subcategory FROM AssessmentQuestion q WHERE q.coreQuestion = true")
+    List<String> findCategoriesWithCoreQuestions();
 }

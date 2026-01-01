@@ -78,11 +78,143 @@ public class AssessmentService {
     public void init() {
         if (autoLoadQuestions) {
             try {
-                loadQuestionsFromJson();
+                loadComprehensiveQuestions();
             } catch (Exception e) {
                 LOGGER.error("Failed to load assessment questions from JSON", e);
             }
         }
+    }
+
+    /**
+     * Load questions from the comprehensive flat-array format.
+     * This is the new AURA question bank with 4,127 questions.
+     */
+    @Transactional
+    public void loadComprehensiveQuestions() throws Exception {
+        ClassPathResource resource = new ClassPathResource(QUESTION_BANK_PATH);
+        if (!resource.exists()) {
+            LOGGER.warn("Comprehensive question bank not found: {}", QUESTION_BANK_PATH);
+            return;
+        }
+
+        try (InputStream is = resource.getInputStream()) {
+            JsonNode root = objectMapper.readTree(is);
+            JsonNode questions = root.get("questions");
+
+            if (questions == null || !questions.isArray()) {
+                LOGGER.warn("No questions array found in question bank");
+                return;
+            }
+
+            int loaded = 0;
+            int skipped = 0;
+
+            for (JsonNode q : questions) {
+                String externalId = q.has("id") ? q.get("id").asText() : null;
+                if (externalId == null) continue;
+
+                if (questionRepo.existsByExternalId(externalId)) {
+                    // Update coreQuestion flag if needed
+                    if (q.has("coreQuestion") && q.get("coreQuestion").asBoolean()) {
+                        questionRepo.findByExternalId(externalId).ifPresent(existing -> {
+                            if (!Boolean.TRUE.equals(existing.getCoreQuestion())) {
+                                existing.setCoreQuestion(true);
+                                questionRepo.save(existing);
+                            }
+                        });
+                    }
+                    skipped++;
+                    continue;
+                }
+
+                AssessmentQuestion question = new AssessmentQuestion();
+                question.setExternalId(externalId);
+                question.setText(q.has("text") ? q.get("text").asText() :
+                               (q.has("question") ? q.get("question").asText() : ""));
+
+                // Set category from string
+                String categoryStr = q.has("category") ? q.get("category").asText() : null;
+                question.setSubcategory(categoryStr); // Store original category as subcategory
+
+                // Map to QuestionCategory enum
+                QuestionCategory category = mapStringToCategory(categoryStr);
+                question.setCategory(category);
+
+                // Set response scale based on question type
+                ResponseScale scale = determineResponseScale(q);
+                question.setResponseScale(scale);
+
+                // Set optional fields
+                if (q.has("subcategory")) {
+                    question.setSubcategory(q.get("subcategory").asText());
+                }
+                if (q.has("domain")) {
+                    question.setDomain(q.get("domain").asText());
+                }
+                if (q.has("facet")) {
+                    question.setFacet(q.get("facet").asInt());
+                }
+                if (q.has("keyed")) {
+                    question.setKeyed(q.get("keyed").asText());
+                }
+                if (q.has("dimension")) {
+                    question.setDimension(q.get("dimension").asText());
+                }
+                if (q.has("coreQuestion")) {
+                    question.setCoreQuestion(q.get("coreQuestion").asBoolean());
+                }
+
+                // Store options as JSON
+                if (q.has("options")) {
+                    question.setOptions(objectMapper.writeValueAsString(q.get("options")));
+                }
+
+                // Get suggested importance from metadata
+                if (q.has("metadata") && q.get("metadata").has("suggested_importance")) {
+                    question.setSuggestedImportance(q.get("metadata").get("suggested_importance").asText());
+                }
+
+                question.setDisplayOrder(loaded);
+                question.setActive(true);
+
+                questionRepo.save(question);
+                loaded++;
+            }
+
+            LOGGER.info("Loaded {} questions, skipped {} existing (total: {})",
+                       loaded, skipped, loaded + skipped);
+        }
+    }
+
+    private QuestionCategory mapStringToCategory(String categoryStr) {
+        if (categoryStr == null) return QuestionCategory.VALUES;
+
+        return switch (categoryStr.toLowerCase()) {
+            case "attachment_emotional" -> QuestionCategory.ATTACHMENT;
+            case "dealbreakers_safety" -> QuestionCategory.DEALBREAKER;
+            case "personality_temperament" -> QuestionCategory.BIG_FIVE;
+            case "values_politics", "relationship_dynamics", "family_future",
+                 "hypotheticals_scenarios", "location_specific" -> QuestionCategory.VALUES;
+            case "lifestyle_compatibility" -> QuestionCategory.LIFESTYLE;
+            case "sex_intimacy" -> QuestionCategory.LIFESTYLE;
+            default -> QuestionCategory.VALUES;
+        };
+    }
+
+    private ResponseScale determineResponseScale(JsonNode q) {
+        if (q.has("type")) {
+            String type = q.get("type").asText();
+            if ("binary".equals(type)) return ResponseScale.BINARY;
+            if ("free_text".equals(type) || "open_ended".equals(type)) return ResponseScale.FREE_TEXT;
+        }
+
+        if (q.has("options") && q.get("options").isArray()) {
+            int optionCount = q.get("options").size();
+            if (optionCount == 2) return ResponseScale.BINARY;
+            if (optionCount >= 5) return ResponseScale.LIKERT_5;
+        }
+
+        return ResponseScale.AGREEMENT_5;
     }
 
     @Transactional

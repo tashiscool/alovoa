@@ -176,17 +176,80 @@ public class AuraScheduleService {
     }
 
     /**
-     * Apply slow decay to response quality for inactive users (runs weekly on Sunday at 2 AM)
+     * Apply slow decay to response quality for inactive users (runs weekly on Sunday at 2 AM).
+     * Users who haven't been active in 30+ days get a small decay to their reputation scores.
+     * This encourages active participation and keeps the platform healthy.
      */
     @Scheduled(cron = "0 0 2 * * SUN")
     public void applyInactivityDecay() {
         LOGGER.info("Applying inactivity decay...");
 
         Date inactivityCutoff = Date.from(Instant.now().minus(30, ChronoUnit.DAYS));
+        int decayedCount = 0;
 
-        // This would need user last active tracking
-        // For now, placeholder
-        LOGGER.info("Inactivity decay completed");
+        try {
+            // Get all reputation scores
+            List<UserReputationScore> allScores = reputationRepo.findAll();
+
+            for (UserReputationScore score : allScores) {
+                User user = score.getUser();
+                if (user == null || user.getDates() == null) {
+                    continue;
+                }
+
+                Date lastActive = user.getDates().getActiveDate();
+                if (lastActive == null || lastActive.after(inactivityCutoff)) {
+                    // User is active, no decay needed
+                    continue;
+                }
+
+                // Calculate days inactive
+                long daysInactive = ChronoUnit.DAYS.between(
+                    lastActive.toInstant(),
+                    Instant.now()
+                );
+
+                // Apply graduated decay based on inactivity duration
+                // 30-60 days: 0.5 point decay per week
+                // 60-90 days: 1.0 point decay per week
+                // 90+ days: 1.5 point decay per week
+                double decayAmount = 0.5;
+                if (daysInactive > 90) {
+                    decayAmount = 1.5;
+                } else if (daysInactive > 60) {
+                    decayAmount = 1.0;
+                }
+
+                // Apply decay to response quality (the metric most affected by inactivity)
+                double currentQuality = score.getResponseQuality();
+                double newQuality = Math.max(25.0, currentQuality - decayAmount); // Floor at 25
+
+                if (newQuality < currentQuality) {
+                    score.setResponseQuality(newQuality);
+
+                    // Also apply smaller decay to investment score
+                    double currentInvestment = score.getInvestmentScore();
+                    double newInvestment = Math.max(25.0, currentInvestment - (decayAmount * 0.5));
+                    score.setInvestmentScore(newInvestment);
+
+                    // Recalculate trust level
+                    UserReputationScore.TrustLevel newLevel = calculateTrustLevel(score, user);
+                    score.setTrustLevel(newLevel);
+
+                    reputationRepo.save(score);
+                    decayedCount++;
+
+                    LOGGER.debug("Applied inactivity decay to user {}: {} days inactive, " +
+                                "response quality {} -> {}", user.getId(), daysInactive,
+                                currentQuality, newQuality);
+                }
+            }
+
+            LOGGER.info("Inactivity decay completed. Applied to {} users.", decayedCount);
+
+        } catch (Exception e) {
+            LOGGER.error("Error during inactivity decay", e);
+        }
     }
 
     private UserReputationScore.TrustLevel calculateTrustLevel(UserReputationScore rep, User user) {

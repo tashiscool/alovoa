@@ -13,7 +13,8 @@ import lombok.AllArgsConstructor;
 @Entity
 @Table(indexes = {
     @Index(name = "idx_question_category", columnList = "category"),
-    @Index(name = "idx_question_external_id", columnList = "externalId")
+    @Index(name = "idx_question_external_id", columnList = "externalId"),
+    @Index(name = "idx_question_core", columnList = "coreQuestion, category")
 })
 public class AssessmentQuestion {
 
@@ -65,6 +66,26 @@ public class AssessmentQuestion {
 
     @Column(nullable = false)
     private Integer displayOrder = 0;
+
+    /**
+     * Whether this is a core question used in the intake flow.
+     * One core question per category is shown during onboarding.
+     */
+    @Column(name = "core_question")
+    private Boolean coreQuestion = false;
+
+    /**
+     * JSON string containing answer options for the question.
+     */
+    @Lob
+    @Column(columnDefinition = "text")
+    private String options;
+
+    /**
+     * Suggested importance level for OKCupid-style matching.
+     */
+    @Column
+    private String suggestedImportance;
 
     public enum QuestionCategory {
         BIG_FIVE,

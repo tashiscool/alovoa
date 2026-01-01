@@ -2,21 +2,24 @@ package com.nonononoki.alovoa.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nonononoki.alovoa.entity.Conversation;
-import com.nonononoki.alovoa.entity.Message;
 import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.entity.user.Conversation;
+import com.nonononoki.alovoa.entity.user.Message;
 import com.nonononoki.alovoa.entity.user.UserBehaviorEvent;
 import com.nonononoki.alovoa.entity.user.UserBehaviorEvent.BehaviorType;
 import com.nonononoki.alovoa.entity.user.UserReputationScore;
 import com.nonononoki.alovoa.entity.user.UserReputationScore.TrustLevel;
 import com.nonononoki.alovoa.repo.ConversationRepository;
+import com.nonononoki.alovoa.repo.MessageRepository;
 import com.nonononoki.alovoa.repo.UserBehaviorEventRepository;
 import com.nonononoki.alovoa.repo.UserReputationScoreRepository;
+import com.nonononoki.alovoa.repo.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -59,7 +62,16 @@ public class ReputationService {
     private ConversationRepository conversationRepo;
 
     @Autowired
+    private MessageRepository messageRepo;
+
+    @Autowired
+    private UserRepository userRepo;
+
+    @Autowired
     private ObjectMapper objectMapper;
+
+    // Track which conversations have already been flagged for ghosting (to avoid duplicate flags)
+    private final Set<String> flaggedGhostingConversations = Collections.synchronizedSet(new HashSet<>());
 
     public void recordBehavior(User user, BehaviorType type, User targetUser, Map<String, Object> data) {
         try {
@@ -189,14 +201,115 @@ public class ReputationService {
         return behaviorRepo.findByUserAndCreatedAtAfter(user, cutoff);
     }
 
-    // Scheduled task to detect ghosting
+    /**
+     * Scheduled task to detect ghosting behavior.
+     * Ghosting is defined as: receiving a message and not responding for 72+ hours
+     * while the user has been active on the platform (logged in, viewed profiles, etc.)
+     */
     @Scheduled(cron = "0 0 * * * *")  // Every hour
+    @Transactional
     public void detectGhostingBehavior() {
         LOGGER.info("Running ghosting detection...");
         Date cutoff = Date.from(Instant.now().minus(72, ChronoUnit.HOURS));
+        int ghostingCount = 0;
 
-        // This would need a custom query in ConversationRepository
-        // For now, placeholder logic
-        LOGGER.info("Ghosting detection completed");
+        try {
+            // Find conversations with no recent activity
+            List<Conversation> inactiveConversations = conversationRepo.findConversationsWithNoRecentActivity(cutoff);
+
+            for (Conversation conversation : inactiveConversations) {
+                if (conversation.getMessages() == null || conversation.getMessages().isEmpty()) {
+                    continue;
+                }
+
+                // Get the last message in the conversation
+                Optional<Message> lastMessageOpt = messageRepo.findLastMessageInConversation(conversation);
+                if (lastMessageOpt.isEmpty()) {
+                    continue;
+                }
+
+                Message lastMessage = lastMessageOpt.get();
+                User recipient = lastMessage.getUserTo();
+                User sender = lastMessage.getUserFrom();
+
+                if (recipient == null || sender == null) {
+                    continue;
+                }
+
+                // Check if this conversation was already flagged
+                String flagKey = conversation.getId() + "_" + recipient.getId() + "_" + lastMessage.getDate().getTime();
+                if (flaggedGhostingConversations.contains(flagKey)) {
+                    continue;
+                }
+
+                // Check if the message was sent before cutoff (72+ hours ago)
+                if (lastMessage.getDate() == null || lastMessage.getDate().after(cutoff)) {
+                    continue;
+                }
+
+                // Check if recipient has responded with at least 2 messages in the conversation
+                // (We only count ghosting if there was an established conversation)
+                long recipientMessageCount = messageRepo.countByConversationAndUserFrom(conversation, recipient);
+                if (recipientMessageCount < 2) {
+                    // Not established enough to be considered ghosting - could be just not interested
+                    continue;
+                }
+
+                // Check if the recipient was active recently (logged in, etc.)
+                // If they haven't logged in, they might just be busy/away
+                if (recipient.getDates() != null && recipient.getDates().getActiveDate() != null) {
+                    Date lastActive = recipient.getDates().getActiveDate();
+                    if (lastActive.before(cutoff)) {
+                        // User hasn't been active, so it's not ghosting - just inactive
+                        continue;
+                    }
+                }
+
+                // This appears to be ghosting - recipient received message, was active, but didn't respond
+                LOGGER.debug("Detected potential ghosting: user {} in conversation {}",
+                        recipient.getId(), conversation.getId());
+
+                // Record the ghosting behavior
+                recordBehavior(recipient, BehaviorType.GHOSTING, sender, Map.of(
+                        "conversationId", conversation.getId(),
+                        "lastMessageDate", lastMessage.getDate().getTime(),
+                        "hoursSinceMessage", ChronoUnit.HOURS.between(
+                                lastMessage.getDate().toInstant(), Instant.now())
+                ));
+
+                // Mark as flagged to avoid duplicate detection
+                flaggedGhostingConversations.add(flagKey);
+                ghostingCount++;
+
+                // Clean up old flags (older than 30 days)
+                cleanupOldGhostingFlags();
+            }
+
+            LOGGER.info("Ghosting detection completed. Detected {} instances.", ghostingCount);
+
+        } catch (Exception e) {
+            LOGGER.error("Error during ghosting detection", e);
+        }
+    }
+
+    /**
+     * Clean up ghosting flags older than 30 days to prevent memory buildup
+     */
+    private void cleanupOldGhostingFlags() {
+        // Since we use a simple Set without timestamps, we'll clear it periodically
+        // A more sophisticated implementation would use a cache with TTL
+        if (flaggedGhostingConversations.size() > 10000) {
+            LOGGER.info("Clearing ghosting flags cache (size: {})", flaggedGhostingConversations.size());
+            flaggedGhostingConversations.clear();
+        }
+    }
+
+    /**
+     * Clear a ghosting flag when a user responds (called from message service)
+     */
+    public void clearGhostingFlag(Conversation conversation, User user) {
+        // Remove any flags for this user in this conversation
+        flaggedGhostingConversations.removeIf(flag ->
+                flag.startsWith(conversation.getId() + "_" + user.getId() + "_"));
     }
 }

@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Encouraging content for the intake flow",
+    "updated": "2025-12-31"
+  },
+  "lifeStatTemplates": [
+    "You've experienced {daysAlive} sunrises. Someone out there would love to share the next ones with you.",
+    "In {yearsAlive} years, you've become uniquely you. That's exactly who someone is looking for.",
+    "{daysAlive} days of experiences, lessons, and growth. Your story is worth sharing.",
+    "You've been on this planet for {monthsAlive} months. Time to find someone to explore it with!",
+    "Your heart has beat approximately {heartbeats} times. One of those beats could be for someone special."
+  ],
+  "hobbyResearch": {
+    "source": "DatePsychology 2024",
+    "topAttractive": [
+      {"hobby": "Reading", "percentage": 98.2, "tip": "What's on your bookshelf?"},
+      {"hobby": "Learning Languages", "percentage": 95.6, "tip": "Bonjour, compatibility!"},
+      {"hobby": "Playing Instrument", "percentage": 95.4, "tip": "Time to dust off that guitar!"},
+      {"hobby": "Cooking", "percentage": 95.1, "tip": "Gordon Ramsay would be proud"},
+      {"hobby": "Woodworking", "percentage": 94.4, "tip": "People love those who create"},
+      {"hobby": "Painting", "percentage": 94.1, "tip": "Express yourself!"},
+      {"hobby": "Writing", "percentage": 93.8, "tip": "Everyone has a story"},
+      {"hobby": "Gardening", "percentage": 93.8, "tip": "Even a single houseplant counts!"},
+      {"hobby": "Swimming", "percentage": 92.8, "tip": "Top athletic hobby"},
+      {"hobby": "Photography", "percentage": 90.5, "tip": "Your Instagram game matters!"},
+      {"hobby": "Hiking", "percentage": 90.0, "tip": "Outdoor lovers rejoice"},
+      {"hobby": "Archery", "percentage": 89.5, "tip": "Channel your inner Katniss"},
+      {"hobby": "Blacksmithing", "percentage": 88.2, "tip": "Forge your own path"},
+      {"hobby": "Traveling", "percentage": 87.9, "tip": "Armchair traveling counts!"}
+    ],
+    "keyInsight": "Women find hobbies that showcase skills, creativity, and intelligence most attractive. Vice-like hobbies and antisocial behaviors are consistently rated lowest."
+  },
+  "relationshipStats": {
+    "source": "Various peer-reviewed studies",
+    "facts": [
+      {"stat": "73%", "fact": "of successful couples say friendship was the foundation of their relationship"},
+      {"stat": "36%", "fact": "higher relationship satisfaction reported by couples who share hobbies"},
+      {"stat": "3x", "fact": "more likely to find a compatible match when being authentically yourself on dates"},
+      {"stat": "12%", "fact": "average difference between what people think others want and what they actually want"},
+      {"stat": "4-6", "fact": "average number of values that need to align for long-term compatibility"},
+      {"stat": "68%", "fact": "of couples met through mutual interests rather than physical attraction alone"}
+    ]
+  },
+  "popCultureReferences": [
+    {
+      "reference": "Game of Thrones",
+      "fact": "73% of people watched it. Almost nobody liked the ending. Your opinions matter here too."
+    },
+    {
+      "reference": "The Office",
+      "fact": "Like Jim and Pam, sometimes the best relationships start as friendships. No rush here."
+    },
+    {
+      "reference": "Friends",
+      "fact": "Ross and Rachel proved that timing matters. You're here at the right time."
+    },
+    {
+      "reference": "Pride and Prejudice",
+      "fact": "First impressions aren't everything. Neither are dating profiles."
+    },
+    {
+      "reference": "When Harry Met Sally",
+      "fact": "Harry and Sally taught us that the journey to love isn't always linear."
+    },
+    {
+      "reference": "Taylor Swift",
+      "fact": "Like her songs, everyone has a story. What's yours?"
+    },
+    {
+      "reference": "Parks and Rec",
+      "fact": "Ben and Leslie showed that two driven people can absolutely work together."
+    },
+    {
+      "reference": "Brooklyn Nine-Nine",
+      "fact": "Jake and Amy proved that opposites can complement each other perfectly."
+    }
+  ],
+  "questionCategoryContext": {
+    "dealbreakers_safety": {
+      "title": "Safety First",
+      "vibe": "supportive",
+      "context": "These help us keep everyone safe. Honest answers protect you and others.",
+      "funFact": "Apps with safety-focused questions see 40% fewer negative experiences reported."
+    },
+    "values_politics": {
+      "title": "What Matters to You",
+      "vibe": "thoughtful",
+      "context": "Values alignment is one of the strongest predictors of long-term compatibility. No judgment here.",
+      "funFact": "Couples with aligned core values report 50% higher satisfaction after 5 years."
+    },
+    "relationship_dynamics": {
+      "title": "How You Connect",
+      "vibe": "curious",
+      "context": "How you communicate matters more than what you communicate about.",
+      "funFact": "The way couples handle conflict predicts relationship success better than how often they agree."
+    },
+    "attachment_emotional": {
+      "title": "Your Emotional World",
+      "vibe": "gentle",
+      "context": "Understanding your attachment style helps find compatible partners. There's no 'wrong' style.",
+      "funFact": "About 50% of people have secure attachment. All styles can have healthy relationships."
+    },
+    "lifestyle_compatibility": {
+      "title": "Daily Life",
+      "vibe": "practical",
+      "context": "Night owl or early bird? Homebody or adventurer? Finding your match starts here.",
+      "funFact": "Couples with compatible daily routines report less day-to-day friction."
+    },
+    "family_future": {
+      "title": "Looking Ahead",
+      "vibe": "hopeful",
+      "context": "Big life goals deserve honest conversations. Better to know now than later.",
+      "funFact": "Alignment on family goals is in the top 3 predictors of relationship longevity."
+    },
+    "sex_intimacy": {
+      "title": "Physical Connection",
+      "vibe": "open",
+      "context": "Physical compatibility matters. These questions help find someone on the same page.",
+      "funFact": "Couples who discuss physical needs openly report higher satisfaction."
+    },
+    "personality_temperament": {
+      "title": "Your Personality",
+      "vibe": "playful",
+      "context": "Introverts and extroverts can absolutely work together. Just helps to know!",
+      "funFact": "Research shows personality differences can complement each other in relationships."
+    },
+    "hypotheticals_scenarios": {
+      "title": "What If...",
+      "vibe": "fun",
+      "context": "How you'd handle situations reveals a lot about compatibility. Have fun with these!",
+      "funFact": "Hypothetical questions often reveal more about values than direct questions."
+    },
+    "location_specific": {
+      "title": "Where You're At",
+      "vibe": "grounded",
+      "context": "City mouse or country mouse? Both are great - just helps find your match.",
+      "funFact": "Geographic compatibility is often overlooked but crucial for long-term success."
+    }
+  },
+  "videoTips": {
+    "dos": [
+      "Find good lighting - natural light from a window works great",
+      "Look at the camera like you're talking to a friend",
+      "Talk about what genuinely excites you",
+      "Keep it to 60-90 seconds",
+      "Smile naturally - forced smiles are obvious",
+      "Show your actual personality",
+      "Mention specific interests, not just 'I like music'",
+      "It's okay to be a little nervous - it's endearing"
+    ],
+    "donts": [
+      "Don't try to be someone you're not",
+      "Don't script every word - natural is better",
+      "Don't worry about being perfect",
+      "Don't use heavy filters",
+      "Don't focus only on what you're looking for"
+    ],
+    "prompts": [
+      "Tell us about something you're passionate about",
+      "What's a story your friends always ask you to tell?",
+      "What does a perfect weekend look like for you?",
+      "What's something you're proud of?",
+      "What makes you laugh?"
+    ]
+  },
+  "completionCelebrations": [
+    "You did it! Your future self (and future partner) will thank you.",
+    "Profile complete! Now the fun begins.",
+    "That wasn't so bad, was it? You're officially ready to meet your people.",
+    "Welcome to the community! Authentic people like you make this place great.",
+    "Done! Remember: the right person will appreciate everything you just shared.",
+    "Profile finished! Time to find someone who gets your weird.",
+    "Congratulations! You've just made it easier for your person to find you.",
+    "All done! The hardest part is over. Now just be yourself."
+  ]
+}

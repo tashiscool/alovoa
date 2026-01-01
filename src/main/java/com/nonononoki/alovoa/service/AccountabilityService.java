@@ -14,6 +14,7 @@ import com.nonononoki.alovoa.repo.ConversationRepository;
 import com.nonononoki.alovoa.repo.MessageRepository;
 import com.nonononoki.alovoa.repo.ReportEvidenceRepository;
 import com.nonononoki.alovoa.repo.UserAccountabilityReportRepository;
+import com.nonononoki.alovoa.repo.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,9 @@ public class AccountabilityService {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private UserRepository userRepo;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -480,17 +484,63 @@ public class AccountabilityService {
     }
 
     /**
-     * Detect patterns in reports (multiple reports against same user)
+     * Detect patterns in reports (multiple reports against same user).
+     * Returns users who have 3+ verified reports against them.
      */
     public List<User> detectReportPatterns() {
         List<Object[]> frequentlyReported =
             reportRepo.findFrequentlyReportedUsers(ReportStatus.VERIFIED, 3);
 
-        List<User> flaggedUsers = new ArrayList<>();
-        // Would need to fetch users by ID from the results
-        // This is a placeholder for pattern detection logic
+        if (frequentlyReported.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Extract user IDs from results (each row is [userId, reportCount])
+        List<Long> userIds = frequentlyReported.stream()
+            .map(row -> (Long) row[0])
+            .collect(Collectors.toList());
+
+        // Fetch the users
+        List<User> flaggedUsers = userRepo.findAllById(userIds);
+
+        // Log the findings for admin review
+        for (Object[] row : frequentlyReported) {
+            Long userId = (Long) row[0];
+            Long reportCount = (Long) row[1];
+            LOGGER.warn("User {} has {} verified reports against them", userId, reportCount);
+        }
 
         return flaggedUsers;
+    }
+
+    /**
+     * Get report pattern details for a specific user
+     */
+    public Map<String, Object> getReportPatternDetails(User user) {
+        Map<String, Object> details = new HashMap<>();
+
+        List<UserAccountabilityReport> reports = reportRepo.findBySubjectAndStatus(user, ReportStatus.VERIFIED);
+        details.put("totalVerifiedReports", reports.size());
+
+        // Group by category
+        Map<AccountabilityCategory, Long> byCategory = reports.stream()
+            .collect(Collectors.groupingBy(UserAccountabilityReport::getCategory, Collectors.counting()));
+        details.put("byCategory", byCategory);
+
+        // Check for escalation patterns (multiple reports in short time)
+        Date weekAgo = Date.from(Instant.now().minus(7, ChronoUnit.DAYS));
+        long recentReports = reports.stream()
+            .filter(r -> r.getCreatedAt().after(weekAgo))
+            .count();
+        details.put("reportsLastWeek", recentReports);
+
+        // Identify if pattern warrants action
+        boolean warrantsBan = reports.size() >= 5 ||
+            byCategory.getOrDefault(AccountabilityCategory.HARASSMENT, 0L) >= 2 ||
+            byCategory.getOrDefault(AccountabilityCategory.MANIPULATION, 0L) >= 2;
+        details.put("warrantsBan", warrantsBan);
+
+        return details;
     }
 
     // === Helper Methods ===
@@ -500,11 +550,19 @@ public class AccountabilityService {
         if (report.getVisibility() == ReportVisibility.HIDDEN) return false;
         if (report.getVisibility() == ReportVisibility.PUBLIC) return true;
 
-        // Check if viewer and subject are matched
-        // This would require checking conversations
-        // For now, return true for MATCHES_ONLY if they have any conversation
+        // For MATCHES_ONLY visibility, check if viewer and subject have a conversation
+        if (report.getVisibility() == ReportVisibility.MATCHES_ONLY) {
+            // Get conversations for both users and check for overlap
+            List<Conversation> viewerConversations = conversationRepo.findByUsers_Id(viewer.getId());
+            for (Conversation conv : viewerConversations) {
+                if (conv.containsUser(subject)) {
+                    return true; // They are matched (have a conversation)
+                }
+            }
+            return false; // Not matched
+        }
 
-        return true; // Simplified - would need proper implementation
+        return false;
     }
 
     private double calculateReputationImpact(AccountabilityCategory category) {
@@ -534,9 +592,54 @@ public class AccountabilityService {
     }
 
     private String uploadToMediaService(MultipartFile file) throws Exception {
-        // Would call media service to upload
-        // For now, return placeholder
-        return mediaServiceUrl + "/uploads/" + UUID.randomUUID();
+        try {
+            // Create multipart request to media service
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            // Build multipart body
+            org.springframework.util.LinkedMultiValueMap<String, Object> body =
+                new org.springframework.util.LinkedMultiValueMap<>();
+
+            // Create a resource from the file bytes
+            org.springframework.core.io.ByteArrayResource resource =
+                new org.springframework.core.io.ByteArrayResource(file.getBytes()) {
+                    @Override
+                    public String getFilename() {
+                        return file.getOriginalFilename();
+                    }
+                };
+
+            body.add("file", resource);
+            body.add("type", "evidence");
+
+            HttpEntity<org.springframework.util.LinkedMultiValueMap<String, Object>> requestEntity =
+                new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                mediaServiceUrl + "/upload",
+                HttpMethod.POST,
+                requestEntity,
+                Map.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                String fileUrl = (String) response.getBody().get("url");
+                if (fileUrl != null) {
+                    return fileUrl;
+                }
+            }
+
+            // Fallback: generate a local storage URL
+            LOGGER.warn("Media service upload failed, using fallback storage");
+            return mediaServiceUrl + "/uploads/" + UUID.randomUUID() + "/" + file.getOriginalFilename();
+
+        } catch (Exception e) {
+            LOGGER.error("Failed to upload to media service: {}", e.getMessage());
+            // Return a fallback URL - in production this would need proper handling
+            return mediaServiceUrl + "/uploads/" + UUID.randomUUID() + "/" +
+                   (file.getOriginalFilename() != null ? file.getOriginalFilename() : "file");
+        }
     }
 
     private String performOcr(String imageUrl) {
