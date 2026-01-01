@@ -43,6 +43,10 @@ public class PoliticalAssessmentController {
             result.put("canAccessMatching", assessmentService.canAccessMatching(user));
             result.put("assessmentComplete", assessment.getAssessmentCompletedAt() != null);
 
+            // Include user gender for UI display logic
+            result.put("isMale", user.getGender() != null &&
+                user.getGender().getId() == com.nonononoki.alovoa.entity.user.Gender.MALE);
+
             // Include partial data if available
             if (assessment.getEconomicClass() != null) {
                 result.put("economicClass", assessment.getEconomicClass().name());
@@ -98,11 +102,17 @@ public class PoliticalAssessmentController {
                 ownsRental, employsOthers, livesOffCapital
             );
 
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "economicClass", assessment.getEconomicClass().name(),
-                "message", "Economic class determined: " + formatEnumName(assessment.getEconomicClass().name())
-            ));
+            // Include user gender for UI display logic
+            boolean isMale = user.getGender() != null &&
+                user.getGender().getId() == com.nonononoki.alovoa.entity.user.Gender.MALE;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("economicClass", assessment.getEconomicClass().name());
+            response.put("message", "Economic class determined: " + formatEnumName(assessment.getEconomicClass().name()));
+            response.put("isMale", isMale);
+
+            return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -159,10 +169,16 @@ public class PoliticalAssessmentController {
 
             UserPoliticalAssessment assessment = assessmentService.submitReproductiveView(user, view);
 
+            // Re-evaluate gate status after reproductive view is set
+            boolean isMale = user.getGender() != null &&
+                user.getGender().getId() == com.nonononoki.alovoa.entity.user.Gender.MALE;
+            assessment.evaluateGateStatus(isMale);
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
+            response.put("gateStatus", assessment.getGateStatus().name());
 
-            if (assessment.getVasectomyStatus() == VasectomyStatus.NOT_VERIFIED) {
+            if (assessment.getGateStatus() == GateStatus.PENDING_VASECTOMY) {
                 response.put("vasectomyRequired", true);
                 response.put("message", "Vasectomy verification required for your stated views");
             }
@@ -336,12 +352,131 @@ public class PoliticalAssessmentController {
             .map(o -> Map.of("value", o.name(), "label", formatEnumName(o.name())))
             .collect(Collectors.toList()));
 
-        // Reproductive rights views
-        options.put("reproductiveViews", Arrays.stream(ReproductiveRightsView.values())
-            .map(v -> Map.of("value", v.name(), "label", formatEnumName(v.name())))
-            .collect(Collectors.toList()));
+        // Reproductive rights views - use detailed options
+        options.put("reproductiveViews", assessmentService.getReproductiveRightsOptions());
+
+        // Wealth contribution question
+        options.put("wealthContributionQuestion", assessmentService.getWealthContributionQuestion());
 
         return ResponseEntity.ok(options);
+    }
+
+    /**
+     * Submit wealth contribution view (key gating question)
+     */
+    @PostMapping("/wealth-contribution")
+    public ResponseEntity<?> submitWealthContribution(@RequestBody Map<String, String> request) {
+        try {
+            User user = authService.getCurrentUser(true);
+
+            WealthContributionView view =
+                WealthContributionView.valueOf(request.get("wealthContributionView"));
+
+            UserPoliticalAssessment assessment =
+                assessmentService.submitWealthContributionView(user, view);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("gateStatus", assessment.getGateStatus().name());
+
+            // Check if redirecting to Raya
+            if (assessment.getGateStatus() == GateStatus.REDIRECT_RAYA) {
+                response.put("redirect", "raya");
+                response.put("message",
+                    "Based on your economic position and views, you may find better matches on platforms " +
+                    "like Raya that cater to higher net worth individuals. AURA is built around economic " +
+                    "justice and serves people experiencing economic pressure.");
+            } else if (assessment.getGateStatus() == GateStatus.PENDING_EXPLANATION) {
+                response.put("needsExplanation", true);
+                response.put("explanationPrompts", assessmentService.getExplanationPrompts(user));
+            }
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Get explanation prompts for current user
+     */
+    @GetMapping("/explanation-prompts")
+    public ResponseEntity<?> getExplanationPrompts() {
+        try {
+            User user = authService.getCurrentUser(true);
+            return ResponseEntity.ok(assessmentService.getExplanationPrompts(user));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Reset assessment to start over
+     */
+    @PostMapping("/reset")
+    public ResponseEntity<?> resetAssessment() {
+        try {
+            User user = authService.getCurrentUser(true);
+            assessmentService.resetAssessment(user);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Assessment reset successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Submit frozen sperm verification (optional for vasectomized users who want kids)
+     */
+    @PostMapping("/frozen-sperm/verify")
+    public ResponseEntity<?> submitFrozenSpermVerification(
+            @RequestParam("document") MultipartFile document,
+            @RequestParam("wantsKids") boolean wantsKids) {
+        try {
+            User user = authService.getCurrentUser(true);
+
+            UserPoliticalAssessment assessment =
+                assessmentService.submitFrozenSpermVerification(user, document, wantsKids);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "frozenSpermStatus", assessment.getFrozenSpermStatus().name(),
+                "message", wantsKids
+                    ? "Frozen sperm verification submitted for review"
+                    : "Noted that you don't want kids"
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Admin: Verify frozen sperm
+     */
+    @PostMapping("/admin/verify-frozen-sperm/{assessmentUuid}")
+    public ResponseEntity<?> verifyFrozenSperm(
+            @PathVariable UUID assessmentUuid,
+            @RequestBody Map<String, Object> request) {
+        try {
+            User user = authService.getCurrentUser(true);
+            if (!user.isAdmin()) {
+                return ResponseEntity.status(403).body(Map.of("error", "Admin access required"));
+            }
+
+            boolean verified = Boolean.TRUE.equals(request.get("verified"));
+            String notes = (String) request.get("notes");
+
+            assessmentService.verifyFrozenSperm(assessmentUuid, verified, notes);
+
+            return ResponseEntity.ok(Map.of("success", true));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // === Admin Endpoints ===

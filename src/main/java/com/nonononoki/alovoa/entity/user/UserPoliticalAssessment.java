@@ -123,6 +123,14 @@ public class UserPoliticalAssessment {
     private Integer meritocracyBeliefView;
 
     /**
+     * KEY GATING QUESTION: Do the wealthy contribute enough to society?
+     * If YES and user's income+wealth > median → redirect to Raya
+     * If NO or user is below median → continue
+     */
+    @Enumerated(EnumType.STRING)
+    private WealthContributionView wealthContributionView;
+
+    /**
      * JSON storage for additional economic values questions
      */
     @Column(columnDefinition = "MEDIUMTEXT")
@@ -165,6 +173,30 @@ public class UserPoliticalAssessment {
      * Whether user has acknowledged the vasectomy requirement
      */
     private Boolean acknowledgedVasectomyRequirement;
+
+    /**
+     * Optional: Frozen sperm verification for users who want kids but have vasectomy
+     */
+    @Enumerated(EnumType.STRING)
+    private FrozenSpermStatus frozenSpermStatus;
+
+    /**
+     * Frozen sperm verification evidence URL (optional)
+     */
+    @Column(length = 500)
+    @JsonIgnore
+    private String frozenSpermVerificationUrl;
+
+    /**
+     * Date frozen sperm was verified
+     */
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date frozenSpermVerifiedAt;
+
+    /**
+     * Whether user wants kids (relevant for vasectomy + frozen sperm)
+     */
+    private Boolean wantsKids;
 
     // === Gate Status ===
 
@@ -312,9 +344,10 @@ public class UserPoliticalAssessment {
     }
 
     public enum ReproductiveRightsView {
-        FULL_BODILY_AUTONOMY,   // Full support for reproductive rights
-        SOME_RESTRICTIONS_OK,   // Supports with some limits
-        FORCED_BIRTH,           // Opposes abortion access
+        FULL_BODILY_AUTONOMY,           // Full support for reproductive rights
+        SENTIENCE_BASED,                // Life begins at sentience - wouldn't be murder to pull the plug on brain dead
+        SOME_RESTRICTIONS_OK,           // Supports with some limits
+        FORCED_BIRTH,                   // Opposes abortion access
         UNDECIDED,
         PREFER_NOT_TO_SAY
     }
@@ -327,20 +360,38 @@ public class UserPoliticalAssessment {
         DECLINED                // Declined to verify (remains gated)
     }
 
+    public enum FrozenSpermStatus {
+        NOT_APPLICABLE,         // Doesn't want kids or not vasectomized
+        NOT_PROVIDED,           // Wants kids but no proof yet
+        VERIFICATION_PENDING,   // Submitted, awaiting review
+        VERIFIED,               // Confirmed frozen sperm
+        NOT_NEEDED              // Has vasectomy but doesn't want kids
+    }
+
+    public enum WealthContributionView {
+        CONTRIBUTE_ENOUGH,      // Wealthy contribute enough → if above median wealth, "go use Raya"
+        CONTRIBUTE_TOO_LITTLE,  // Wealthy don't contribute enough → pass
+        CONTRIBUTE_TOO_MUCH,    // Wealthy are overtaxed → further questioning
+        NOT_SURE,               // Unsure → continue with context
+        SYSTEM_IS_FINE          // Current system works → if above median, redirect to Raya
+    }
+
     public enum GateStatus {
         PENDING_ASSESSMENT,     // Haven't completed assessment
         APPROVED,               // Passed all gates
         PENDING_EXPLANATION,    // Working-class conservative, awaiting explanation
         PENDING_VASECTOMY,      // Pro-forced-birth male, awaiting verification
         REJECTED,               // Failed gates (capital-class conservative)
+        REDIRECT_RAYA,          // Above median wealth + thinks wealthy contribute enough → use Raya
         UNDER_REVIEW            // Manual review needed
     }
 
     public enum GateRejectionReason {
-        CAPITAL_CLASS_CONSERVATIVE, // Auto-reject: rich + conservative
-        UNEXPLAINED_CONSERVATIVE,   // Working-class conservative, no explanation
-        UNVERIFIED_FORCED_BIRTH,    // Pro-forced-birth male, no vasectomy proof
-        POLICY_VIOLATION            // Other policy violation
+        CAPITAL_CLASS_CONSERVATIVE,     // Auto-reject: rich + conservative
+        UNEXPLAINED_CONSERVATIVE,       // Working-class conservative, no explanation
+        UNVERIFIED_FORCED_BIRTH,        // Pro-forced-birth male, no vasectomy proof
+        ABOVE_MEDIAN_WEALTH_DEFENDER,   // Above median wealth + thinks wealthy contribute enough
+        POLICY_VIOLATION                // Other policy violation
     }
 
     @PrePersist
@@ -457,6 +508,29 @@ public class UserPoliticalAssessment {
             return;
         }
 
+        // Gate 0: Wealth contribution check - "Go use Raya" gate
+        // These views require income + wealth checks: CONTRIBUTE_ENOUGH, CONTRIBUTE_TOO_MUCH, SYSTEM_IS_FINE, NOT_SURE
+        // Only CONTRIBUTE_TOO_LITTLE gets a pass without checks
+        if (wealthContributionView != null &&
+            wealthContributionView != WealthContributionView.CONTRIBUTE_TOO_LITTLE) {
+
+            // Check if user is above median wealth (using wealth + income as proxy)
+            boolean isAboveMedianWealth = isAboveMedianWealth();
+
+            if (isAboveMedianWealth) {
+                // Above median AND defends wealthy/system = redirect to Raya
+                this.gateStatus = GateStatus.REDIRECT_RAYA;
+                this.rejectionReason = GateRejectionReason.ABOVE_MEDIAN_WEALTH_DEFENDER;
+                return;
+            }
+
+            // Below median but defends wealthy/is unsure - needs explanation
+            if (conservativeExplanation == null || conservativeExplanation.trim().length() < 100) {
+                this.gateStatus = GateStatus.PENDING_EXPLANATION;
+                return;
+            }
+        }
+
         // Gate 1: Capital class + conservative = auto-reject
         if (economicClass == EconomicClass.CAPITAL_CLASS &&
             (politicalOrientation == PoliticalOrientation.CONSERVATIVE ||
@@ -470,7 +544,7 @@ public class UserPoliticalAssessment {
         if ((economicClass == EconomicClass.WORKING_CLASS ||
              economicClass == EconomicClass.PROFESSIONAL_CLASS) &&
             politicalOrientation == PoliticalOrientation.CONSERVATIVE) {
-            if (conservativeExplanation == null || conservativeExplanation.trim().isEmpty()) {
+            if (conservativeExplanation == null || conservativeExplanation.trim().length() < 100) {
                 this.gateStatus = GateStatus.PENDING_EXPLANATION;
                 return;
             }
@@ -481,8 +555,12 @@ public class UserPoliticalAssessment {
             }
         }
 
-        // Gate 3: Male + forced-birth view = vasectomy requirement
-        if (isMale && reproductiveRightsView == ReproductiveRightsView.FORCED_BIRTH) {
+        // Gate 3: Male + any non-pro-choice view = vasectomy requirement
+        // Vasectomy required for: SOME_RESTRICTIONS_OK, FORCED_BIRTH, UNDECIDED, PREFER_NOT_TO_SAY
+        if (isMale && reproductiveRightsView != null &&
+            reproductiveRightsView != ReproductiveRightsView.FULL_BODILY_AUTONOMY &&
+            reproductiveRightsView != ReproductiveRightsView.SENTIENCE_BASED) {
+
             if (vasectomyStatus == null ||
                 vasectomyStatus == VasectomyStatus.NOT_VERIFIED ||
                 vasectomyStatus == VasectomyStatus.DECLINED) {
@@ -499,5 +577,57 @@ public class UserPoliticalAssessment {
         // Passed all gates
         this.gateStatus = GateStatus.APPROVED;
         this.rejectionReason = null;
+    }
+
+    /**
+     * Check if user's combined income + wealth is above median
+     * US median household net worth ~$192,900 (2022)
+     * US median household income ~$74,580 (2022)
+     */
+    public boolean isAboveMedianWealth() {
+        // Convert brackets to estimated values and compare to median thresholds
+        int incomeValue = getIncomeBracketMidpoint();
+        int wealthValue = getWealthBracketMidpoint();
+
+        // Above median if:
+        // - Wealth > $200k OR
+        // - Income > $100k AND Wealth > $100k OR
+        // - Combined score suggests above median
+        if (wealthValue >= 200000) return true;
+        if (incomeValue >= 100000 && wealthValue >= 100000) return true;
+        if (incomeValue + wealthValue > 275000) return true;
+
+        return false;
+    }
+
+    private int getIncomeBracketMidpoint() {
+        if (incomeBracket == null) return 0;
+        return switch (incomeBracket) {
+            case UNDER_25K -> 15000;
+            case BRACKET_25K_50K -> 37500;
+            case BRACKET_50K_75K -> 62500;
+            case BRACKET_75K_100K -> 87500;
+            case BRACKET_100K_150K -> 125000;
+            case BRACKET_150K_250K -> 200000;
+            case BRACKET_250K_500K -> 375000;
+            case BRACKET_500K_1M -> 750000;
+            case OVER_1M -> 1500000;
+        };
+    }
+
+    private int getWealthBracketMidpoint() {
+        if (wealthBracket == null) return 0;
+        return switch (wealthBracket) {
+            case NEGATIVE -> -10000;
+            case UNDER_10K -> 5000;
+            case BRACKET_10K_50K -> 30000;
+            case BRACKET_50K_100K -> 75000;
+            case BRACKET_100K_250K -> 175000;
+            case BRACKET_250K_500K -> 375000;
+            case BRACKET_500K_1M -> 750000;
+            case BRACKET_1M_5M -> 3000000;
+            case BRACKET_5M_10M -> 7500000;
+            case OVER_10M -> 15000000;
+        };
     }
 }

@@ -28,9 +28,10 @@ public class IntakeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(IntakeService.class);
 
     // 10 categories for core questions
+    // IMPORTANT: values_politics and reproductive_rights are placed LAST
+    // These are gating questions that may require additional steps
     private static final List<String> CORE_CATEGORIES = List.of(
             "dealbreakers_safety",
-            "values_politics",
             "relationship_dynamics",
             "attachment_emotional",
             "lifestyle_compatibility",
@@ -38,7 +39,15 @@ public class IntakeService {
             "sex_intimacy",
             "personality_temperament",
             "hypotheticals_scenarios",
-            "location_specific"
+            "location_specific",
+            "values_politics"  // Must be last - triggers political assessment gating
+    );
+
+    // Political/economic assessment categories (handled separately at the very end)
+    private static final List<String> POLITICAL_ASSESSMENT_CATEGORIES = List.of(
+            "economic_class",           // Income, wealth, employment status
+            "wealth_contribution",      // Do wealthy contribute enough?
+            "reproductive_rights"       // Abortion/bodily autonomy views
     );
 
     @Value("${app.aura.intake.min-pictures:1}")

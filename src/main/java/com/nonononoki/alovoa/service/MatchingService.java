@@ -9,6 +9,7 @@ import com.nonononoki.alovoa.entity.UserAssessmentProfile;
 import com.nonononoki.alovoa.entity.user.UserDailyMatchLimit;
 import com.nonononoki.alovoa.entity.user.UserPersonalityProfile;
 import com.nonononoki.alovoa.model.MatchRecommendationDto;
+import com.nonononoki.alovoa.entity.user.UserLocationPreferences;
 import com.nonononoki.alovoa.repo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +73,15 @@ public class MatchingService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private TravelTimeService travelTimeService;
+
+    @Autowired
+    private LocationAreaService locationAreaService;
+
+    @Autowired
+    private UserLocationPreferencesRepository locationPrefsRepo;
 
     public Map<String, Object> getDailyMatches() throws Exception {
         User user = authService.getCurrentUser(true);
@@ -138,8 +148,10 @@ public class MatchingService {
 
     public Map<String, Object> getCompatibilityExplanation(String matchUuid) throws Exception {
         User user = authService.getCurrentUser(true);
-        User matchUser = userRepo.findByUuid(UUID.fromString(matchUuid))
-                .orElseThrow(() -> new Exception("User not found"));
+        User matchUser = userRepo.findByUuid(UUID.fromString(matchUuid));
+        if (matchUser == null) {
+            throw new Exception("User not found");
+        }
 
         CompatibilityScore compatibility = compatibilityRepo
                 .findByUserAAndUserB(user, matchUser)
@@ -147,13 +159,14 @@ public class MatchingService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("overallScore", compatibility.getOverallScore());
+        result.put("enemyScore", compatibility.getEnemyScore() != null ? compatibility.getEnemyScore() : 0.0);
         result.put("breakdown", Map.of(
-                "values", compatibility.getValuesScore(),
-                "lifestyle", compatibility.getLifestyleScore(),
-                "personality", compatibility.getPersonalityScore(),
-                "attraction", compatibility.getAttractionScore(),
-                "circumstantial", compatibility.getCircumstantialScore(),
-                "growth", compatibility.getGrowthScore()
+                "values", compatibility.getValuesScore() != null ? compatibility.getValuesScore() : 50.0,
+                "lifestyle", compatibility.getLifestyleScore() != null ? compatibility.getLifestyleScore() : 50.0,
+                "personality", compatibility.getPersonalityScore() != null ? compatibility.getPersonalityScore() : 50.0,
+                "attraction", compatibility.getAttractionScore() != null ? compatibility.getAttractionScore() : 50.0,
+                "circumstantial", compatibility.getCircumstantialScore() != null ? compatibility.getCircumstantialScore() : 50.0,
+                "growth", compatibility.getGrowthScore() != null ? compatibility.getGrowthScore() : 50.0
         ));
 
         if (compatibility.getExplanationJson() != null) {
@@ -200,6 +213,13 @@ public class MatchingService {
         // Simple fallback: get random users who match basic criteria
         List<MatchRecommendationDto> matches = new ArrayList<>();
 
+        // Get user's location preferences
+        UserLocationPreferences locationPrefs = locationPrefsRepo.findByUser(user).orElse(null);
+        int maxTravelMinutes = locationPrefs != null ? locationPrefs.getMaxTravelMinutes() : 60;
+        boolean requireOverlap = locationPrefs != null ? locationPrefs.isRequireAreaOverlap() : false;
+        boolean showExceptional = locationPrefs != null ? locationPrefs.isShowExceptionalMatches() : true;
+        double exceptionalThreshold = locationPrefs != null ? locationPrefs.getExceptionalMatchThreshold() : 0.90;
+
         // Use existing compatibility scores if available
         List<CompatibilityScore> cachedScores = compatibilityRepo
                 .findByUserAOrderByOverallScoreDesc(user);
@@ -207,11 +227,43 @@ public class MatchingService {
         for (CompatibilityScore score : cachedScores) {
             if (matches.size() >= limit) break;
             if (score.getOverallScore() >= minimumCompatibility) {
-                MatchRecommendationDto dto = new MatchRecommendationDto();
-                dto.setUserId(score.getUserB().getId());
-                dto.setUserUuid(score.getUserB().getUuid().toString());
-                dto.setCompatibilityScore(score.getOverallScore());
-                matches.add(dto);
+                User matchUser = score.getUserB();
+
+                // Apply location filtering
+                TravelTimeService.TravelTimeInfo travelInfo = travelTimeService.getTravelTimeInfo(user, matchUser);
+
+                // Check if match is within travel time preferences
+                boolean locationMatch = true;
+                if (travelInfo.getMinutes() >= 0 && travelInfo.getMinutes() > maxTravelMinutes) {
+                    // Outside travel preferences
+                    if (showExceptional && score.getOverallScore() >= (exceptionalThreshold * 100)) {
+                        // Exceptional match - include anyway but flag it
+                        locationMatch = true;
+                    } else if (requireOverlap && !travelInfo.isHasOverlappingAreas()) {
+                        // Requires overlap but none found
+                        locationMatch = false;
+                    } else if (requireOverlap) {
+                        // Has overlap even if travel time is high
+                        locationMatch = true;
+                    } else {
+                        locationMatch = false;
+                    }
+                }
+
+                if (locationMatch) {
+                    MatchRecommendationDto dto = new MatchRecommendationDto();
+                    dto.setUserId(matchUser.getId());
+                    dto.setUserUuid(matchUser.getUuid().toString());
+                    dto.setCompatibilityScore(score.getOverallScore());
+
+                    // Add travel time info to match
+                    dto.setTravelTimeMinutes(travelInfo.getMinutes());
+                    dto.setTravelTimeDisplay(travelInfo.getDisplay());
+                    dto.setHasOverlappingAreas(travelInfo.isHasOverlappingAreas());
+                    dto.setOverlappingAreas(travelInfo.getOverlappingAreas());
+
+                    matches.add(dto);
+                }
             }
         }
 
@@ -349,6 +401,170 @@ public class MatchingService {
                 50.0 * 0.1 +  // circumstantial
                 50.0 * 0.05   // growth
         );
+
+        // Calculate Enemy % (incompatibility score)
+        double enemyScore = calculateEnemyScore(userA, userB, score);
+        score.setEnemyScore(enemyScore);
+    }
+
+    /**
+     * Calculate Enemy % - measures fundamental incompatibilities.
+     * High enemy score = more dealbreaker conflicts, opposing values, incompatible lifestyles.
+     * This is similar to OKCupid's "Enemy" percentage.
+     */
+    private double calculateEnemyScore(User userA, User userB, CompatibilityScore compatScore) {
+        double enemyScore = 0.0;
+        int factors = 0;
+
+        // Factor 1: Dealbreaker violations (most impactful)
+        UserAssessmentProfile assessmentA = assessmentProfileRepo.findByUser(userA).orElse(null);
+        UserAssessmentProfile assessmentB = assessmentProfileRepo.findByUser(userB).orElse(null);
+
+        if (assessmentA != null && assessmentB != null) {
+            // Check for dealbreaker flag conflicts
+            double dealbreakerConflict = calculateDealbreakerConflict(assessmentA, assessmentB);
+            enemyScore += dealbreakerConflict * 3.0; // Weight heavily
+            factors += 3;
+        }
+
+        // Factor 2: Value opposition (inverse of values score)
+        if (compatScore.getValuesScore() != null) {
+            // Values below 50% indicate opposition, above indicates alignment
+            double valuesOpposition = Math.max(0, 50 - compatScore.getValuesScore()) * 2;
+            enemyScore += valuesOpposition;
+            factors++;
+        }
+
+        // Factor 3: Political/economic values conflict
+        double politicalConflict = calculatePoliticalConflict(userA, userB);
+        if (politicalConflict > 0) {
+            enemyScore += politicalConflict;
+            factors++;
+        }
+
+        // Factor 4: Attachment style clash penalty
+        if (assessmentA != null && assessmentB != null &&
+            assessmentA.getAttachmentStyle() != null && assessmentB.getAttachmentStyle() != null) {
+            double attachmentClash = calculateAttachmentClash(assessmentA, assessmentB);
+            enemyScore += attachmentClash;
+            factors++;
+        }
+
+        // Factor 5: Lifestyle incompatibility
+        if (compatScore.getLifestyleScore() != null) {
+            double lifestyleConflict = Math.max(0, 50 - compatScore.getLifestyleScore()) * 2;
+            enemyScore += lifestyleConflict;
+            factors++;
+        }
+
+        // Normalize to 0-100 scale
+        if (factors > 0) {
+            enemyScore = Math.min(100, enemyScore / factors);
+        }
+
+        return enemyScore;
+    }
+
+    private double calculateDealbreakerConflict(UserAssessmentProfile a, UserAssessmentProfile b) {
+        if (a.getDealbreakerFlags() == null || b.getDealbreakerFlags() == null) {
+            return 0.0;
+        }
+
+        // Parse dealbreaker flags and check for conflicts
+        try {
+            Map<String, Object> flagsA = objectMapper.readValue(a.getDealbreakerFlags(),
+                    new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> flagsB = objectMapper.readValue(b.getDealbreakerFlags(),
+                    new TypeReference<Map<String, Object>>() {});
+
+            int conflicts = 0;
+            int totalChecks = 0;
+
+            // Check for opposing values on key dealbreakers
+            for (String key : flagsA.keySet()) {
+                if (flagsB.containsKey(key)) {
+                    totalChecks++;
+                    Object valA = flagsA.get(key);
+                    Object valB = flagsB.get(key);
+                    if (valA instanceof Boolean && valB instanceof Boolean) {
+                        // For boolean flags, same value is good, opposite is bad
+                        if (!valA.equals(valB)) {
+                            conflicts++;
+                        }
+                    } else if (valA instanceof Number && valB instanceof Number) {
+                        // For numeric values, large difference is bad
+                        double diff = Math.abs(((Number) valA).doubleValue() - ((Number) valB).doubleValue());
+                        if (diff > 50) { // Assuming 0-100 scale
+                            conflicts++;
+                        }
+                    }
+                }
+            }
+
+            if (totalChecks > 0) {
+                return (conflicts * 100.0) / totalChecks;
+            }
+        } catch (JsonProcessingException e) {
+            LOGGER.debug("Error parsing dealbreaker flags", e);
+        }
+
+        return 0.0;
+    }
+
+    private double calculatePoliticalConflict(User userA, User userB) {
+        var paA = userA.getPoliticalAssessment();
+        var paB = userB.getPoliticalAssessment();
+
+        if (paA == null || paB == null) {
+            return 0.0;
+        }
+
+        double conflict = 0.0;
+
+        // Economic values score difference
+        if (paA.getEconomicValuesScore() != null && paB.getEconomicValuesScore() != null) {
+            double diff = Math.abs(paA.getEconomicValuesScore() - paB.getEconomicValuesScore());
+            conflict += diff; // 0-100 scale
+        }
+
+        // Political orientation opposition
+        if (paA.getPoliticalOrientation() != null && paB.getPoliticalOrientation() != null) {
+            int ordinalA = paA.getPoliticalOrientation().ordinal();
+            int ordinalB = paB.getPoliticalOrientation().ordinal();
+            int maxDiff = 4; // Assuming 5 orientations (0-4)
+            double orientationDiff = Math.abs(ordinalA - ordinalB) * 100.0 / maxDiff;
+            conflict = (conflict + orientationDiff) / 2;
+        }
+
+        return conflict;
+    }
+
+    private double calculateAttachmentClash(UserAssessmentProfile a, UserAssessmentProfile b) {
+        UserAssessmentProfile.AttachmentStyle styleA = a.getAttachmentStyle();
+        UserAssessmentProfile.AttachmentStyle styleB = b.getAttachmentStyle();
+
+        // Anxious-Avoidant combination has highest conflict potential
+        if ((styleA == UserAssessmentProfile.AttachmentStyle.ANXIOUS_PREOCCUPIED &&
+             styleB == UserAssessmentProfile.AttachmentStyle.DISMISSIVE_AVOIDANT) ||
+            (styleA == UserAssessmentProfile.AttachmentStyle.DISMISSIVE_AVOIDANT &&
+             styleB == UserAssessmentProfile.AttachmentStyle.ANXIOUS_PREOCCUPIED)) {
+            return 80.0;
+        }
+
+        // Fearful-Avoidant with anyone has moderate conflict
+        if (styleA == UserAssessmentProfile.AttachmentStyle.FEARFUL_AVOIDANT ||
+            styleB == UserAssessmentProfile.AttachmentStyle.FEARFUL_AVOIDANT) {
+            return 50.0;
+        }
+
+        // Two insecure styles (not anxious-avoidant combo)
+        if (styleA != UserAssessmentProfile.AttachmentStyle.SECURE &&
+            styleB != UserAssessmentProfile.AttachmentStyle.SECURE) {
+            return 30.0;
+        }
+
+        // One secure partner stabilizes
+        return 0.0;
     }
 
     private double calculateBigFiveCompatibility(UserAssessmentProfile a, UserAssessmentProfile b) {

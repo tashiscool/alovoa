@@ -252,6 +252,46 @@
             if (currentQuestion > 0) prevQuestion();
         }
     });
+
+    // Handle form submission as JSON
+    document.getElementById('personality-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Build answers object from collected answers
+        const payload = {
+            answers: answers,
+            version: 1
+        };
+
+        // Validate all questions answered
+        if (Object.keys(answers).length < totalQuestions) {
+            alert('Please answer all questions before submitting.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/personality/assessment/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // Redirect to results page
+                window.location.href = '/personality-results';
+            } else {
+                alert('Error: ' + (result.error || 'Submission failed'));
+            }
+        } catch (error) {
+            console.error('Submission error:', error);
+            alert('Failed to submit assessment. Please try again.');
+        }
+    });
 </script>
 
 <style>

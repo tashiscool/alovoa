@@ -75,6 +75,15 @@ public class UserDto {
     private int lastActiveState = 5;
     private UserSettings userSettings;
 
+    // Activity & Accountability Indicators (OKCupid 2016 parity)
+    private int activeConversationCount;      // Number of active conversations
+    private String responseRate;               // "REPLIES_OFTEN", "REPLIES_SELECTIVELY", etc.
+    private int positiveFeedbackCount;         // Number of positive accountability reports
+    private int negativeFeedbackCount;         // Number of negative accountability reports
+    private String trustLevel;                 // "NEW_MEMBER", "BUILDING_TRUST", "TRUSTED", etc.
+    private Double reputationScore;            // Overall reputation (0-100)
+    private boolean videoVerified;             // Has passed video verification
+
     public static UserDto userToUserDto(DtoBuilder builder)
             throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidAlgorithmParameterException, UnsupportedEncodingException, AlovoaException {
@@ -149,6 +158,31 @@ public class UserDto {
         dto.setHasAudio(user.getAudio() != null);
         dto.setNumberReferred(user.getNumberReferred());
         dto.setPrompts(user.getPrompts());
+
+        // Activity & Accountability Indicators
+        // Active conversation count (conversations with recent activity)
+        if (user.getConversations() != null) {
+            long activeCount = user.getConversations().stream()
+                .filter(c -> c.getMessages() != null && !c.getMessages().isEmpty())
+                .count();
+            dto.setActiveConversationCount((int) activeCount);
+        }
+
+        // Response rate from profile details
+        if (user.getProfileDetails() != null && user.getProfileDetails().getResponseRate() != null) {
+            dto.setResponseRate(user.getProfileDetails().getResponseRate().name());
+        }
+
+        // Accountability feedback counts
+        dto.setPositiveFeedbackCount(user.getPositiveFeedbackCount());
+        dto.setNegativeFeedbackCount(user.getNegativeFeedbackCount());
+
+        // Trust level and reputation
+        dto.setTrustLevel(user.getTrustLevel().name());
+        dto.setReputationScore(user.getReputationOverall());
+
+        // Video verification status
+        dto.setVideoVerified(user.isVideoVerified());
 
         if (!user.isAdmin()) {
             LocalDateTime now = LocalDateTime.now();

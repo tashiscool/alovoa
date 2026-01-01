@@ -6,6 +6,7 @@ import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.Gender;
 import com.nonononoki.alovoa.entity.user.UserPoliticalAssessment;
 import com.nonononoki.alovoa.entity.user.UserPoliticalAssessment.*;
+import static com.nonononoki.alovoa.entity.user.UserPoliticalAssessment.WealthContributionView;
 import com.nonononoki.alovoa.repo.UserPoliticalAssessmentRepository;
 import com.nonononoki.alovoa.repo.UserRepository;
 import org.slf4j.Logger;
@@ -274,6 +275,179 @@ public class PoliticalAssessmentService {
     }
 
     /**
+     * Submit frozen sperm verification (optional for vasectomized users who want kids)
+     */
+    @Transactional
+    public UserPoliticalAssessment submitFrozenSpermVerification(User user, MultipartFile document, boolean wantsKids) throws Exception {
+        UserPoliticalAssessment assessment = getOrCreateAssessment(user);
+
+        // Only applicable if user has vasectomy and wants kids
+        if (assessment.getVasectomyStatus() != VasectomyStatus.VERIFIED) {
+            throw new IllegalStateException("Frozen sperm verification only applies after vasectomy is verified");
+        }
+
+        assessment.setWantsKids(wantsKids);
+
+        if (!wantsKids) {
+            assessment.setFrozenSpermStatus(FrozenSpermStatus.NOT_NEEDED);
+            return assessmentRepo.save(assessment);
+        }
+
+        // Upload document to media service
+        String documentUrl = uploadVerificationDocument(document);
+
+        assessment.setFrozenSpermVerificationUrl(documentUrl);
+        assessment.setFrozenSpermStatus(FrozenSpermStatus.VERIFICATION_PENDING);
+
+        return assessmentRepo.save(assessment);
+    }
+
+    /**
+     * Admin verification of frozen sperm
+     */
+    @Transactional
+    public void verifyFrozenSperm(UUID assessmentUuid, boolean verified, String notes) {
+        UserPoliticalAssessment assessment = assessmentRepo.findByUuid(assessmentUuid)
+            .orElseThrow(() -> new IllegalArgumentException("Assessment not found"));
+
+        assessment.setReviewNotes(notes);
+
+        if (verified) {
+            assessment.setFrozenSpermStatus(FrozenSpermStatus.VERIFIED);
+            assessment.setFrozenSpermVerifiedAt(new Date());
+        } else {
+            assessment.setFrozenSpermStatus(FrozenSpermStatus.NOT_PROVIDED);
+        }
+
+        assessmentRepo.save(assessment);
+    }
+
+    /**
+     * Get reproductive rights options with descriptions.
+     * Only FULL_BODILY_AUTONOMY and SENTIENCE_BASED are exempt from vasectomy requirement for males.
+     * All other options require proof of vasectomy for male users.
+     */
+    public List<Map<String, Object>> getReproductiveRightsOptions() {
+        List<Map<String, Object>> options = new ArrayList<>();
+
+        // These two options do NOT require vasectomy verification
+        options.add(Map.of(
+            "value", "FULL_BODILY_AUTONOMY",
+            "label", "Full Bodily Autonomy",
+            "description", "Complete support for reproductive rights - decisions belong to the pregnant person",
+            "requiresVerification", false
+        ));
+
+        options.add(Map.of(
+            "value", "SENTIENCE_BASED",
+            "label", "Sentience-Based View",
+            "description", "Life begins at sentience (brain activity) - similar to how it wouldn't be murder to withdraw life support from someone who is brain dead. Until sentience develops, the pregnant person's autonomy takes precedence.",
+            "requiresVerification", false
+        ));
+
+        // All remaining options REQUIRE vasectomy verification for males
+        String verificationNote = "Males selecting this option must provide proof of vasectomy. " +
+            "If you want children, you can optionally provide proof of frozen sperm.";
+
+        options.add(Map.of(
+            "value", "SOME_RESTRICTIONS_OK",
+            "label", "Some Restrictions Acceptable",
+            "description", "Support access with some limitations (e.g., gestational limits with health exceptions)",
+            "requiresVerification", true,
+            "verificationNote", verificationNote
+        ));
+
+        options.add(Map.of(
+            "value", "FORCED_BIRTH",
+            "label", "Oppose Abortion Access",
+            "description", "Oppose abortion access",
+            "requiresVerification", true,
+            "verificationNote", verificationNote
+        ));
+
+        options.add(Map.of(
+            "value", "UNDECIDED",
+            "label", "Undecided",
+            "description", "Haven't formed a clear position on this issue",
+            "requiresVerification", true,
+            "verificationNote", verificationNote
+        ));
+
+        options.add(Map.of(
+            "value", "PREFER_NOT_TO_SAY",
+            "label", "Prefer Not to Say",
+            "description", "Would rather not share views on this topic",
+            "requiresVerification", true,
+            "verificationNote", verificationNote
+        ));
+
+        return options;
+    }
+
+    /**
+     * Get wealth contribution question with options.
+     * Only CONTRIBUTE_TOO_LITTLE is exempt from income/wealth checks.
+     * All other options require additional verification based on user's economic status.
+     */
+    public Map<String, Object> getWealthContributionQuestion() {
+        Map<String, Object> question = new HashMap<>();
+
+        question.put("id", "wealth_contribution");
+        question.put("category", "economic_values");
+        question.put("text", "Do you believe the wealthy (top 10% by income/wealth) contribute enough to society through taxes, philanthropy, and job creation?");
+        question.put("context", "This helps us understand your economic worldview and match you with compatible partners.");
+
+        String checkNote = "Your income and wealth will be checked. If above median, you may be redirected to platforms better suited for your economic bracket. If below median, you'll be asked to explain your perspective.";
+
+        List<Map<String, Object>> options = new ArrayList<>();
+
+        options.add(Map.of(
+            "value", "CONTRIBUTE_ENOUGH",
+            "label", "Yes, they contribute enough",
+            "description", "The wealthy already pay their fair share and create value through business and investment",
+            "requiresCheck", true,
+            "checkNote", checkNote
+        ));
+
+        // This is the ONLY option that doesn't require income/wealth check
+        options.add(Map.of(
+            "value", "CONTRIBUTE_TOO_LITTLE",
+            "label", "No, they should contribute more",
+            "description", "The wealthy benefit disproportionately from society and should contribute more",
+            "requiresCheck", false
+        ));
+
+        options.add(Map.of(
+            "value", "CONTRIBUTE_TOO_MUCH",
+            "label", "They're actually overtaxed",
+            "description", "Current taxes on the wealthy are too high and discourage innovation",
+            "requiresCheck", true,
+            "checkNote", checkNote
+        ));
+
+        options.add(Map.of(
+            "value", "SYSTEM_IS_FINE",
+            "label", "The current system works well",
+            "description", "Free market outcomes are generally fair - people earn what they deserve",
+            "requiresCheck", true,
+            "checkNote", checkNote
+        ));
+
+        options.add(Map.of(
+            "value", "NOT_SURE",
+            "label", "I'm not sure",
+            "description", "Haven't thought about this much or have mixed feelings",
+            "requiresCheck", true,
+            "checkNote", checkNote
+        ));
+
+        question.put("options", options);
+        question.put("note", "Your answer combined with your economic situation will determine your next steps. AURA is built around economic justice.");
+
+        return question;
+    }
+
+    /**
      * Admin review of conservative explanation
      */
     @Transactional
@@ -329,6 +503,18 @@ public class PoliticalAssessmentService {
     }
 
     /**
+     * Reset a user's assessment to start over
+     */
+    @Transactional
+    public void resetAssessment(User user) {
+        Optional<UserPoliticalAssessment> existingOpt = assessmentRepo.findByUser(user);
+        if (existingOpt.isPresent()) {
+            assessmentRepo.delete(existingOpt.get());
+        }
+        LOGGER.info("Assessment reset for user {}", user.getId());
+    }
+
+    /**
      * Get gate status message for user
      */
     public String getGateStatusMessage(User user) {
@@ -340,11 +526,95 @@ public class PoliticalAssessmentService {
         return switch (assessment.get().getGateStatus()) {
             case PENDING_ASSESSMENT -> "Please complete the values assessment.";
             case APPROVED -> "Your profile is approved for matching.";
-            case PENDING_EXPLANATION -> "Please explain your conservative values as a working-class person.";
-            case PENDING_VASECTOMY -> "Vasectomy verification required for pro-forced-birth males.";
+            case PENDING_EXPLANATION -> "We need you to explain your perspective.";
+            case PENDING_VASECTOMY -> "Vasectomy verification required for your stated reproductive views.";
             case REJECTED -> "Your profile is not compatible with this platform's values.";
+            case REDIRECT_RAYA -> "Based on your economic position and views, Raya may be a better fit for you.";
             case UNDER_REVIEW -> "Your profile is under review. Please check back later.";
         };
+    }
+
+    /**
+     * Get the explanation prompts for the pending explanation screen.
+     * Returns the user-facing copy based on assessment state.
+     */
+    public Map<String, Object> getExplanationPrompts(User user) {
+        Optional<UserPoliticalAssessment> assessmentOpt = assessmentRepo.findByUser(user);
+        if (assessmentOpt.isEmpty()) {
+            return Map.of("error", "Assessment not found");
+        }
+
+        UserPoliticalAssessment assessment = assessmentOpt.get();
+        Map<String, Object> prompts = new HashMap<>();
+
+        // Determine which explanation screen to show
+        boolean isWealthDefender = assessment.getWealthContributionView() != null &&
+            (assessment.getWealthContributionView() == WealthContributionView.CONTRIBUTE_ENOUGH ||
+             assessment.getWealthContributionView() == WealthContributionView.SYSTEM_IS_FINE);
+
+        if (isWealthDefender && !assessment.isAboveMedianWealth()) {
+            // Working-class person who defends wealthy
+            prompts.put("screenTitle", "One More Thing");
+            prompts.put("bodyText",
+                "You've told us you're experiencing economic pressure—and that you support economic policies " +
+                "that tend to benefit people with significantly more wealth than you.\n\n" +
+                "That's not automatically a problem. But AURA is built around economic justice, and many people " +
+                "here are struggling with rent, healthcare, and debt. Your political choices affect their lives.\n\n" +
+                "Help us understand your perspective:");
+            prompts.put("placeholder",
+                "Why do you hold these values? How would you approach a relationship with someone whose " +
+                "financial security depends on policies you oppose?");
+            prompts.put("helperText",
+                "Minimum 100 words. Be specific and genuine—generic talking points won't pass review.");
+            prompts.put("buttonText", "Submit for Review");
+
+            // Alternative shorter versions for mobile
+            prompts.put("mobileTitle", "Explain Your Perspective");
+            prompts.put("mobileBody",
+                "Your answers suggest you support policies that work against people in your economic " +
+                "position—including potential matches here.\nTell us why, in your own words.");
+            prompts.put("mobilePlaceholder",
+                "What shaped these values? How would you navigate this with a partner who disagrees?");
+            prompts.put("mobileFinePrint", "100 word minimum · Reviewed by humans · No talking points");
+
+        } else {
+            // Standard conservative explanation
+            prompts.put("screenTitle", "We Need to Understand");
+            prompts.put("bodyText",
+                "Your values appear to conflict with your economic interests. That happens for real reasons—" +
+                "family, faith, philosophy, experience.\n\n" +
+                "But on a platform centered on economic justice, we need you to explain yours.");
+            prompts.put("placeholder",
+                "In your own words: why do you believe what you believe, and how would this affect a partner " +
+                "who sees it differently?");
+            prompts.put("helperText", "100+ words. Genuine reflection required.");
+            prompts.put("buttonText", "Submit for Review");
+        }
+
+        prompts.put("minimumWords", 100);
+        prompts.put("currentGateStatus", assessment.getGateStatus().name());
+        prompts.put("existingExplanation", assessment.getConservativeExplanation());
+
+        return prompts;
+    }
+
+    /**
+     * Submit wealth contribution view (key gating question)
+     */
+    @Transactional
+    public UserPoliticalAssessment submitWealthContributionView(
+            User user,
+            WealthContributionView view) {
+
+        UserPoliticalAssessment assessment = getOrCreateAssessment(user);
+        assessment.setWealthContributionView(view);
+
+        // Re-evaluate gates with new information
+        boolean isMale = user.getGender() != null &&
+                        user.getGender().getId() == Gender.MALE;
+        assessment.evaluateGateStatus(isMale);
+
+        return assessmentRepo.save(assessment);
     }
 
     /**

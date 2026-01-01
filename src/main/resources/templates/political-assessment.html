@@ -131,8 +131,8 @@
         </div>
     </div>
 
-    <!-- Step 2: Political Values -->
-    <div id="step-2" class="assessment-step is-hidden">
+    <!-- Step 2: Wealth Contribution (GATING QUESTION) -->
+    <div id="step-wealth" class="assessment-step is-hidden">
         <div class="aura-steps">
             <div class="aura-step completed">
                 <div class="aura-step-marker"><i class="fas fa-check"></i></div>
@@ -140,10 +140,135 @@
             </div>
             <div class="aura-step active">
                 <div class="aura-step-marker">2</div>
-                <div class="aura-step-label" th:text="#{political.step2}">Values</div>
+                <div class="aura-step-label">Wealth Views</div>
             </div>
             <div class="aura-step">
                 <div class="aura-step-marker">3</div>
+                <div class="aura-step-label">Values</div>
+            </div>
+            <div class="aura-step">
+                <div class="aura-step-marker">4</div>
+                <div class="aura-step-label">Rights</div>
+            </div>
+            <div class="aura-step">
+                <div class="aura-step-marker">5</div>
+                <div class="aura-step-label">Awareness</div>
+            </div>
+        </div>
+
+        <div class="aura-card aura-animate-fade-up" style="padding: 2rem; margin-top: 1.5rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">
+                <i class="fas fa-coins mr-2" style="color: var(--aura-primary);"></i>
+                Key Economic Question
+            </h3>
+            <p style="color: var(--aura-gray-500); font-size: 0.875rem; margin-bottom: 1.5rem;">
+                This question helps us understand your economic worldview and match you with compatible partners.
+            </p>
+
+            <div class="aura-form-group">
+                <label class="aura-label" style="font-size: 1rem; line-height: 1.5;">
+                    Do you believe the wealthy (top 10% by income/wealth) contribute enough to society
+                    through taxes, philanthropy, and job creation?
+                </label>
+            </div>
+
+            <div class="wealth-options" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+                <label class="wealth-option-card" data-value="CONTRIBUTE_ENOUGH" data-requires-check="true">
+                    <input type="radio" name="wealthContribution" value="CONTRIBUTE_ENOUGH">
+                    <div class="wealth-option-content">
+                        <div class="wealth-option-header">
+                            <span class="wealth-option-title">Yes, they contribute enough</span>
+                            <span class="wealth-check-badge"><i class="fas fa-exclamation-circle"></i> Income check required</span>
+                        </div>
+                        <p class="wealth-option-desc">The wealthy already pay their fair share and create value through business and investment</p>
+                    </div>
+                </label>
+
+                <label class="wealth-option-card" data-value="CONTRIBUTE_TOO_LITTLE" data-requires-check="false">
+                    <input type="radio" name="wealthContribution" value="CONTRIBUTE_TOO_LITTLE">
+                    <div class="wealth-option-content">
+                        <div class="wealth-option-header">
+                            <span class="wealth-option-title">No, they should contribute more</span>
+                            <span class="wealth-pass-badge"><i class="fas fa-check-circle"></i></span>
+                        </div>
+                        <p class="wealth-option-desc">The wealthy benefit disproportionately from society and should contribute more</p>
+                    </div>
+                </label>
+
+                <label class="wealth-option-card" data-value="CONTRIBUTE_TOO_MUCH" data-requires-check="true">
+                    <input type="radio" name="wealthContribution" value="CONTRIBUTE_TOO_MUCH">
+                    <div class="wealth-option-content">
+                        <div class="wealth-option-header">
+                            <span class="wealth-option-title">They're actually overtaxed</span>
+                            <span class="wealth-check-badge"><i class="fas fa-exclamation-circle"></i> Income check required</span>
+                        </div>
+                        <p class="wealth-option-desc">Current taxes on the wealthy are too high and discourage innovation</p>
+                    </div>
+                </label>
+
+                <label class="wealth-option-card" data-value="SYSTEM_IS_FINE" data-requires-check="true">
+                    <input type="radio" name="wealthContribution" value="SYSTEM_IS_FINE">
+                    <div class="wealth-option-content">
+                        <div class="wealth-option-header">
+                            <span class="wealth-option-title">The current system works well</span>
+                            <span class="wealth-check-badge"><i class="fas fa-exclamation-circle"></i> Income check required</span>
+                        </div>
+                        <p class="wealth-option-desc">Free market outcomes are generally fair - people earn what they deserve</p>
+                    </div>
+                </label>
+
+                <label class="wealth-option-card" data-value="NOT_SURE" data-requires-check="true">
+                    <input type="radio" name="wealthContribution" value="NOT_SURE">
+                    <div class="wealth-option-content">
+                        <div class="wealth-option-header">
+                            <span class="wealth-option-title">I'm not sure</span>
+                            <span class="wealth-check-badge"><i class="fas fa-exclamation-circle"></i> Income check required</span>
+                        </div>
+                        <p class="wealth-option-desc">Haven't thought about this much or have mixed feelings</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="aura-alert aura-alert-info" style="margin-top: 1.5rem;">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Note:</strong> Your answer combined with your economic situation will determine
+                    your next steps. AURA is built around economic justice.
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                <button class="aura-btn aura-btn-secondary" onclick="goToStep(1)">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button class="aura-btn aura-btn-primary" onclick="submitWealthContribution()">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Political Values -->
+    <div id="step-2" class="assessment-step is-hidden">
+        <div class="aura-steps">
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Economic</div>
+            </div>
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Wealth</div>
+            </div>
+            <div class="aura-step active">
+                <div class="aura-step-marker">3</div>
+                <div class="aura-step-label" th:text="#{political.step2}">Values</div>
+            </div>
+            <div class="aura-step">
+                <div class="aura-step-marker">4</div>
+                <div class="aura-step-label">Rights</div>
+            </div>
+            <div class="aura-step">
+                <div class="aura-step-marker">5</div>
                 <div class="aura-step-label" th:text="#{political.step3}">Awareness</div>
             </div>
         </div>
@@ -260,7 +385,7 @@
             </div>
 
             <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
-                <button class="aura-btn aura-btn-secondary" onclick="goToStep(1)">
+                <button class="aura-btn aura-btn-secondary" onclick="goToStep('wealth')">
                     <i class="fas fa-arrow-left"></i> <span th:text="#{button.back}">Back</span>
                 </button>
                 <button class="aura-btn aura-btn-primary" onclick="submitStep2()">
@@ -270,17 +395,178 @@
         </div>
     </div>
 
-    <!-- Step 3: Class Consciousness -->
+    <!-- Step 4: Reproductive Rights -->
+    <div id="step-reproductive" class="assessment-step is-hidden">
+        <div class="aura-steps">
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Economic</div>
+            </div>
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Wealth</div>
+            </div>
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Values</div>
+            </div>
+            <div class="aura-step active">
+                <div class="aura-step-marker">4</div>
+                <div class="aura-step-label">Rights</div>
+            </div>
+            <div class="aura-step">
+                <div class="aura-step-marker">5</div>
+                <div class="aura-step-label">Awareness</div>
+            </div>
+        </div>
+
+        <div class="aura-card aura-animate-fade-up" style="padding: 2rem; margin-top: 1.5rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">
+                <i class="fas fa-heart mr-2" style="color: var(--aura-primary);"></i>
+                Reproductive Rights
+            </h3>
+            <p style="color: var(--aura-gray-500); font-size: 0.875rem; margin-bottom: 1.5rem;">
+                This is an important compatibility factor. Please select the view that best represents your position.
+            </p>
+
+            <!-- Male-specific notice -->
+            <div id="male-vasectomy-notice" class="aura-alert aura-alert-warning" style="display: none; margin-bottom: 1.5rem;">
+                <i class="fas fa-info-circle fa-lg"></i>
+                <div>
+                    <strong>Important for Male Users</strong>
+                    <p style="margin-top: 0.25rem; opacity: 0.9;">
+                        Certain options below require proof of vasectomy. If you want children in the future,
+                        you can optionally provide proof of frozen sperm.
+                    </p>
+                </div>
+            </div>
+
+            <div class="reproductive-options" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- FULL_BODILY_AUTONOMY - No verification required -->
+                <label class="reproductive-option-card" data-value="FULL_BODILY_AUTONOMY" data-requires-verification="false">
+                    <input type="radio" name="reproductiveRights" value="FULL_BODILY_AUTONOMY">
+                    <div class="reproductive-option-content">
+                        <div class="reproductive-option-header">
+                            <span class="reproductive-option-title">Full Bodily Autonomy</span>
+                        </div>
+                        <p class="reproductive-option-desc">
+                            Complete support for reproductive rights - decisions belong to the pregnant person
+                        </p>
+                    </div>
+                </label>
+
+                <!-- SENTIENCE_BASED - No verification required -->
+                <label class="reproductive-option-card" data-value="SENTIENCE_BASED" data-requires-verification="false">
+                    <input type="radio" name="reproductiveRights" value="SENTIENCE_BASED">
+                    <div class="reproductive-option-content">
+                        <div class="reproductive-option-header">
+                            <span class="reproductive-option-title">Sentience-Based View</span>
+                        </div>
+                        <p class="reproductive-option-desc">
+                            Life begins at sentience (brain activity) - similar to how it wouldn't be murder
+                            to withdraw life support from someone who is brain dead. Until sentience develops,
+                            the pregnant person's autonomy takes precedence.
+                        </p>
+                    </div>
+                </label>
+
+                <!-- SOME_RESTRICTIONS_OK - Verification REQUIRED for males -->
+                <label class="reproductive-option-card requires-verification" data-value="SOME_RESTRICTIONS_OK" data-requires-verification="true">
+                    <input type="radio" name="reproductiveRights" value="SOME_RESTRICTIONS_OK">
+                    <div class="reproductive-option-content">
+                        <div class="reproductive-option-header">
+                            <span class="reproductive-option-title">Some Restrictions Acceptable</span>
+                            <span class="verification-badge male-only-badge">
+                                <i class="fas fa-user-md"></i> Vasectomy proof required for males
+                            </span>
+                        </div>
+                        <p class="reproductive-option-desc">
+                            Support access with some limitations (e.g., gestational limits with health exceptions)
+                        </p>
+                    </div>
+                </label>
+
+                <!-- FORCED_BIRTH - Verification REQUIRED for males -->
+                <label class="reproductive-option-card requires-verification" data-value="FORCED_BIRTH" data-requires-verification="true">
+                    <input type="radio" name="reproductiveRights" value="FORCED_BIRTH">
+                    <div class="reproductive-option-content">
+                        <div class="reproductive-option-header">
+                            <span class="reproductive-option-title">Oppose Abortion Access</span>
+                            <span class="verification-badge male-only-badge">
+                                <i class="fas fa-user-md"></i> Vasectomy proof required for males
+                            </span>
+                        </div>
+                        <p class="reproductive-option-desc">
+                            Oppose abortion access
+                        </p>
+                    </div>
+                </label>
+
+                <!-- UNDECIDED - Verification REQUIRED for males -->
+                <label class="reproductive-option-card requires-verification" data-value="UNDECIDED" data-requires-verification="true">
+                    <input type="radio" name="reproductiveRights" value="UNDECIDED">
+                    <div class="reproductive-option-content">
+                        <div class="reproductive-option-header">
+                            <span class="reproductive-option-title">Undecided</span>
+                            <span class="verification-badge male-only-badge">
+                                <i class="fas fa-user-md"></i> Vasectomy proof required for males
+                            </span>
+                        </div>
+                        <p class="reproductive-option-desc">
+                            Haven't formed a clear position on this issue
+                        </p>
+                    </div>
+                </label>
+
+                <!-- PREFER_NOT_TO_SAY - Verification REQUIRED for males -->
+                <label class="reproductive-option-card requires-verification" data-value="PREFER_NOT_TO_SAY" data-requires-verification="true">
+                    <input type="radio" name="reproductiveRights" value="PREFER_NOT_TO_SAY">
+                    <div class="reproductive-option-content">
+                        <div class="reproductive-option-header">
+                            <span class="reproductive-option-title">Prefer Not to Say</span>
+                            <span class="verification-badge male-only-badge">
+                                <i class="fas fa-user-md"></i> Vasectomy proof required for males
+                            </span>
+                        </div>
+                        <p class="reproductive-option-desc">
+                            Would rather not share views on this topic
+                        </p>
+                    </div>
+                </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                <button class="aura-btn aura-btn-secondary" onclick="goToStep(2)">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <button class="aura-btn aura-btn-primary" onclick="submitReproductiveRights()">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 5: Class Consciousness -->
     <div id="step-3" class="assessment-step is-hidden">
         <div class="aura-steps">
             <div class="aura-step completed">
                 <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Economic</div>
             </div>
             <div class="aura-step completed">
                 <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Wealth</div>
+            </div>
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Values</div>
+            </div>
+            <div class="aura-step completed">
+                <div class="aura-step-marker"><i class="fas fa-check"></i></div>
+                <div class="aura-step-label">Rights</div>
             </div>
             <div class="aura-step active">
-                <div class="aura-step-marker">3</div>
+                <div class="aura-step-marker">5</div>
                 <div class="aura-step-label" th:text="#{political.step3}">Awareness</div>
             </div>
         </div>
@@ -300,7 +586,7 @@
             </div>
 
             <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
-                <button class="aura-btn aura-btn-secondary" onclick="goToStep(2)">
+                <button class="aura-btn aura-btn-secondary" onclick="goToStep('reproductive')">
                     <i class="fas fa-arrow-left"></i> <span th:text="#{button.back}">Back</span>
                 </button>
                 <button class="aura-btn aura-btn-success" onclick="submitStep3()">
@@ -311,77 +597,205 @@
     </div>
 
     <!-- Gated States -->
+
+    <!-- Explanation Required (for working-class wealth defenders) -->
     <div id="step-explanation" class="assessment-step is-hidden">
         <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
-            <div class="aura-alert aura-alert-warning" style="margin-bottom: 1.5rem;">
-                <i class="fas fa-question-circle fa-lg"></i>
-                <div>
-                    <strong th:text="#{political.explanation.title}">Explanation Required</strong>
-                    <p th:text="#{political.explanation.desc}" style="margin-top: 0.25rem;">
-                        You've identified as working-class with conservative views. Please explain
-                        how these views serve your economic interests.
-                    </p>
-                </div>
+            <h2 id="explanation-title" style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">
+                <i class="fas fa-hand-paper mr-2" style="color: var(--aura-warning);"></i>
+                One More Thing
+            </h2>
+
+            <div id="explanation-body" style="color: var(--aura-gray-600); line-height: 1.7; margin-bottom: 1.5rem;">
+                <p style="margin-bottom: 1rem;">
+                    You've told us you're experiencing economic pressure—and that you support economic policies
+                    that tend to benefit people with significantly more wealth than you.
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    That's not automatically a problem. But <strong>AURA is built around economic justice</strong>,
+                    and many people here are struggling with rent, healthcare, and debt. Your political choices
+                    affect their lives.
+                </p>
+                <p><strong>Help us understand your perspective:</strong></p>
             </div>
 
             <div class="aura-form-group">
-                <label class="aura-label" th:text="#{political.explanation.label}">Your Explanation</label>
-                <textarea class="aura-textarea" id="conservative-explanation" rows="6"
-                          th:placeholder="#{political.explanation.placeholder}"></textarea>
-                <span class="aura-help" th:text="#{political.explanation.help}">Minimum 100 characters required.</span>
+                <label class="aura-label" for="conservative-explanation">Your Explanation</label>
+                <textarea class="aura-textarea" id="conservative-explanation" rows="8"
+                          placeholder="Why do you hold these values? How would you approach a relationship with someone whose financial security depends on policies you oppose?"></textarea>
+                <div class="explanation-helper" style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                    <span class="aura-help">Minimum 100 words. Be specific and genuine—generic talking points won't pass review.</span>
+                    <span id="word-count" class="word-counter">0 / 100 words</span>
+                </div>
+            </div>
+
+            <!-- Mobile-optimized version (shown on small screens) -->
+            <div id="mobile-explanation-help" class="mobile-only" style="display: none;">
+                <div class="aura-alert aura-alert-info" style="margin-bottom: 1rem;">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <strong>Consider:</strong> What shaped these values? How would you navigate this with a partner who disagrees?
+                    </div>
+                </div>
+                <p class="fine-print" style="font-size: 0.75rem; color: var(--aura-gray-500); text-align: center;">
+                    100 word minimum · Reviewed by humans · No talking points
+                </p>
             </div>
 
             <div style="text-align: right; margin-top: 1.5rem;">
-                <button class="aura-btn aura-btn-primary" onclick="submitExplanation()">
-                    <i class="fas fa-paper-plane"></i> <span th:text="#{button.submit}">Submit</span>
+                <button id="submit-explanation-btn" class="aura-btn aura-btn-primary" onclick="submitExplanation()" disabled>
+                    <i class="fas fa-paper-plane"></i> Submit for Review
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Raya Redirect (for above-median wealth defenders) -->
+    <div id="step-raya" class="assessment-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+            <div class="aura-result-icon" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.2)); margin-bottom: 1.5rem;">
+                <i class="fas fa-gem fa-4x" style="color: #F59E0B;"></i>
+            </div>
+
+            <h3 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">
+                We Think You'd Be Happier Elsewhere
+            </h3>
+
+            <div style="color: var(--aura-gray-600); line-height: 1.7; max-width: 600px; margin: 0 auto 2rem; text-align: left;">
+                <p style="margin-bottom: 1rem;">
+                    Based on your economic position and values, you appear to be doing well in the current system
+                    and believe it's working as intended.
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    <strong>AURA is designed for people who aren't thriving under the current economic arrangement</strong>—
+                    people dealing with housing insecurity, medical debt, stagnant wages, and similar challenges.
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    We think you'd find more compatible matches on platforms designed for people in your economic bracket:
+                </p>
+            </div>
+
+            <div class="raya-alternatives" style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto 2rem;">
+                <a href="https://rfrr.app/raya" target="_blank" rel="noopener" class="aura-btn aura-btn-lg" style="background: linear-gradient(135deg, #0F172A, #1E293B); color: white;">
+                    <i class="fas fa-star"></i> Try Raya
+                </a>
+                <a href="https://theinner.circle/" target="_blank" rel="noopener" class="aura-btn aura-btn-lg aura-btn-secondary">
+                    <i class="fas fa-circle"></i> The Inner Circle
+                </a>
+                <a href="https://www.luxy.co/" target="_blank" rel="noopener" class="aura-btn aura-btn-lg aura-btn-secondary">
+                    <i class="fas fa-crown"></i> Luxy
+                </a>
+            </div>
+
+            <div class="aura-alert aura-alert-info" style="max-width: 600px; margin: 0 auto; text-align: left;">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Changed your mind?</strong>
+                    <p style="margin-top: 0.25rem;">
+                        If you've reconsidered your answers and want to take the assessment again,
+                        you can <a href="#" onclick="resetAssessment(); return false;">start over</a>.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="step-vasectomy" class="assessment-step is-hidden">
         <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
-            <div class="aura-alert aura-alert-error" style="margin-bottom: 1.5rem;">
-                <i class="fas fa-exclamation-triangle fa-lg"></i>
+            <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">
+                <i class="fas fa-user-md mr-2" style="color: var(--aura-primary);"></i>
+                Vasectomy Verification
+            </h2>
+
+            <div class="aura-alert aura-alert-info" style="margin-bottom: 1.5rem;">
+                <i class="fas fa-info-circle fa-lg"></i>
                 <div>
-                    <strong th:text="#{political.vasectomy.title}">Verification Required</strong>
-                    <p th:text="#{political.vasectomy.desc}" style="margin-top: 0.25rem;">
-                        You've indicated support for restricting reproductive rights.
-                        To demonstrate commitment to your stated values, verification of vasectomy is required.
+                    <strong>Why This Requirement?</strong>
+                    <p style="margin-top: 0.25rem; opacity: 0.9;">
+                        You've selected a reproductive rights position that restricts others' bodily autonomy.
+                        To participate on AURA, males with these views must demonstrate they've taken personal
+                        responsibility to prevent unwanted pregnancies through vasectomy.
                     </p>
                 </div>
             </div>
 
-            <div class="aura-card" style="background: var(--aura-gray-50); padding: 1.5rem; margin-bottom: 1.5rem;">
-                <h4 style="font-weight: 600; margin-bottom: 0.5rem;">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <span th:text="#{political.vasectomy.why}">Why This Requirement?</span>
+            <!-- Vasectomy Upload Section -->
+            <div class="verification-section" style="margin-bottom: 2rem;">
+                <h4 style="font-weight: 600; margin-bottom: 1rem;">
+                    <i class="fas fa-file-medical mr-2"></i>
+                    Step 1: Vasectomy Proof (Required)
                 </h4>
-                <p style="color: var(--aura-gray-600); font-size: 0.875rem;" th:text="#{political.vasectomy.reason}">
-                    Those who advocate for policies restricting others' bodily autonomy
-                    should demonstrate they've taken personal responsibility to prevent
-                    unwanted pregnancies.
-                </p>
-            </div>
 
-            <div class="aura-form-group">
-                <label class="aura-label" th:text="#{political.vasectomy.upload}">Upload Verification</label>
-                <div class="aura-file-upload">
-                    <input type="file" id="vasectomy-doc" accept=".pdf,.jpg,.jpeg,.png">
-                    <div class="aura-file-upload-content">
-                        <i class="fas fa-cloud-upload-alt fa-2x" style="color: var(--aura-primary);"></i>
-                        <p>Drag & drop or click to upload</p>
-                        <span id="vasectomy-filename" style="font-size: 0.875rem; color: var(--aura-gray-500);">No file selected</span>
+                <div class="aura-form-group">
+                    <label class="aura-label">Upload Vasectomy Documentation</label>
+                    <p style="font-size: 0.875rem; color: var(--aura-gray-500); margin-bottom: 0.75rem;">
+                        Accepted: Medical records, procedure confirmation, or doctor's letter (PDF, JPG, PNG)
+                    </p>
+                    <div class="aura-file-upload">
+                        <input type="file" id="vasectomy-doc" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="aura-file-upload-content">
+                            <i class="fas fa-cloud-upload-alt fa-2x" style="color: var(--aura-primary);"></i>
+                            <p>Drag & drop or click to upload</p>
+                            <span id="vasectomy-filename" style="font-size: 0.875rem; color: var(--aura-gray-500);">No file selected</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <!-- Frozen Sperm Section (Optional) -->
+            <div class="verification-section" id="frozen-sperm-section" style="border-top: 1px solid var(--aura-gray-200); padding-top: 1.5rem;">
+                <h4 style="font-weight: 600; margin-bottom: 0.5rem;">
+                    <i class="fas fa-snowflake mr-2" style="color: #3B82F6;"></i>
+                    Step 2: Frozen Sperm Verification (Optional)
+                </h4>
+                <p style="font-size: 0.875rem; color: var(--aura-gray-500); margin-bottom: 1rem;">
+                    If you want children in the future, you can provide proof of frozen sperm storage.
+                    This is optional but helps potential matches understand your family planning intentions.
+                </p>
+
+                <div class="aura-checkbox-group" style="margin-bottom: 1rem;">
+                    <label class="aura-checkbox">
+                        <input type="checkbox" id="wants-kids-checkbox">
+                        <span class="aura-checkbox-mark"></span>
+                        <span>I want to have biological children in the future</span>
+                    </label>
+                </div>
+
+                <div id="frozen-sperm-upload" style="display: none;">
+                    <div class="aura-form-group">
+                        <label class="aura-label">Upload Frozen Sperm Storage Proof</label>
+                        <p style="font-size: 0.875rem; color: var(--aura-gray-500); margin-bottom: 0.75rem;">
+                            Cryobank storage confirmation, receipt, or statement (PDF, JPG, PNG)
+                        </p>
+                        <div class="aura-file-upload">
+                            <input type="file" id="frozen-sperm-doc" accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="aura-file-upload-content">
+                                <i class="fas fa-snowflake fa-2x" style="color: #3B82F6;"></i>
+                                <p>Drag & drop or click to upload</p>
+                                <span id="frozen-sperm-filename" style="font-size: 0.875rem; color: var(--aura-gray-500);">No file selected</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="aura-alert aura-alert-warning" style="margin-top: 1.5rem;">
+                <i class="fas fa-lock"></i>
+                <div>
+                    <strong>Privacy Assurance</strong>
+                    <p style="margin-top: 0.25rem;">
+                        Your documents are stored securely and only reviewed by authorized staff.
+                        They are never shared with matches or displayed publicly.
+                    </p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
                 <button class="aura-btn aura-btn-primary" onclick="submitVasectomy()">
-                    <i class="fas fa-upload"></i> <span th:text="#{button.submit}">Submit Verification</span>
+                    <i class="fas fa-upload"></i> Submit Verification
                 </button>
                 <button class="aura-btn aura-btn-secondary" onclick="declineVasectomy()">
-                    <span th:text="#{political.vasectomy.decline}">Decline (Remain Gated)</span>
+                    Decline (Remain Gated)
                 </button>
             </div>
         </div>
@@ -566,6 +980,126 @@
         accent-color: var(--aura-primary);
     }
 
+    /* Wealth Contribution Options */
+    .wealth-option-card,
+    .reproductive-option-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border: 2px solid var(--aura-gray-200);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .wealth-option-card:hover,
+    .reproductive-option-card:hover {
+        border-color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.02);
+    }
+
+    .wealth-option-card.selected,
+    .reproductive-option-card.selected {
+        border-color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.05);
+        box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+    }
+
+    .wealth-option-card input,
+    .reproductive-option-card input {
+        margin-top: 4px;
+        width: 18px;
+        height: 18px;
+        accent-color: var(--aura-primary);
+    }
+
+    .wealth-option-content,
+    .reproductive-option-content {
+        flex: 1;
+    }
+
+    .wealth-option-header,
+    .reproductive-option-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .wealth-option-title,
+    .reproductive-option-title {
+        font-weight: 600;
+        color: var(--aura-gray-800);
+    }
+
+    .wealth-option-desc,
+    .reproductive-option-desc {
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+        margin-top: 0.25rem;
+        line-height: 1.5;
+    }
+
+    .wealth-check-badge,
+    .verification-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        background: rgba(251, 191, 36, 0.15);
+        color: #B45309;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        white-space: nowrap;
+    }
+
+    .wealth-pass-badge {
+        font-size: 0.875rem;
+        color: var(--aura-success);
+    }
+
+    .male-only-badge {
+        background: rgba(239, 68, 68, 0.1);
+        color: #DC2626;
+    }
+
+    /* Word Counter */
+    .word-counter {
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .word-counter.insufficient {
+        color: var(--aura-danger);
+    }
+
+    .word-counter.sufficient {
+        color: var(--aura-success);
+    }
+
+    /* Mobile-only elements */
+    @media (max-width: 600px) {
+        .mobile-only {
+            display: block !important;
+        }
+
+        .wealth-check-badge,
+        .verification-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .wealth-option-header,
+        .reproductive-option-header {
+            flex-direction: column;
+        }
+    }
+
     .aura-file-upload {
         position: relative;
         border: 2px dashed var(--aura-gray-300);
@@ -663,6 +1197,7 @@
 <script th:inline="javascript">
     let currentStep = 0;
     let assessmentData = {};
+    let userIsMale = false; // Will be set from API
 
     function startAssessment() {
         goToStep(1);
@@ -686,6 +1221,12 @@
         if (step === 3) {
             loadConsciousnessQuestions();
         }
+
+        // Show male-specific notice on reproductive rights step
+        if (step === 'reproductive' && userIsMale) {
+            document.getElementById('male-vasectomy-notice').style.display = 'flex';
+            document.querySelectorAll('.male-only-badge').forEach(b => b.style.display = 'inline-flex');
+        }
     }
 
     // Rating button handler
@@ -701,6 +1242,51 @@
             this.classList.add('selected');
             document.getElementById(field).value = value;
         });
+    });
+
+    // Wealth option card selection handler
+    document.querySelectorAll('.wealth-option-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.wealth-option-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            this.querySelector('input[type="radio"]').checked = true;
+        });
+    });
+
+    // Reproductive option card selection handler
+    document.querySelectorAll('.reproductive-option-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.reproductive-option-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            this.querySelector('input[type="radio"]').checked = true;
+        });
+    });
+
+    // Wants kids checkbox - show/hide frozen sperm upload
+    document.getElementById('wants-kids-checkbox')?.addEventListener('change', function() {
+        const uploadSection = document.getElementById('frozen-sperm-upload');
+        if (uploadSection) {
+            uploadSection.style.display = this.checked ? 'block' : 'none';
+        }
+    });
+
+    // Word count for explanation
+    document.getElementById('conservative-explanation')?.addEventListener('input', function() {
+        const wordCount = this.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+        const counter = document.getElementById('word-count');
+        const submitBtn = document.getElementById('submit-explanation-btn');
+
+        counter.textContent = `${wordCount} / 100 words`;
+
+        if (wordCount >= 100) {
+            counter.classList.remove('insufficient');
+            counter.classList.add('sufficient');
+            submitBtn.disabled = false;
+        } else {
+            counter.classList.remove('sufficient');
+            counter.classList.add('insufficient');
+            submitBtn.disabled = true;
+        }
     });
 
     async function submitStep1() {
@@ -727,12 +1313,62 @@
             const result = await response.json();
             if (result.success) {
                 assessmentData.economicClass = result.economicClass;
-                goToStep(2);
+                userIsMale = result.isMale || false;
+                // Go to wealth contribution question next
+                goToStep('wealth');
             } else {
                 alert('Error: ' + result.error);
             }
         } catch (error) {
             alert('Failed to submit');
+        }
+    }
+
+    async function submitWealthContribution() {
+        const selected = document.querySelector('input[name="wealthContribution"]:checked');
+        if (!selected) {
+            alert('Please select an option');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/v1/political-assessment/wealth-contribution', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ wealthContributionView: selected.value })
+            });
+
+            const result = await response.json();
+
+            // Check if gating was triggered
+            if (result.gateStatus === 'REDIRECT_RAYA') {
+                goToStep('raya');
+            } else if (result.gateStatus === 'PENDING_EXPLANATION') {
+                // Load prompts and show explanation screen
+                await loadExplanationPrompts();
+                goToStep('explanation');
+            } else {
+                assessmentData.wealthContributionView = selected.value;
+                goToStep(2); // Continue to political values
+            }
+        } catch (error) {
+            alert('Failed to submit');
+        }
+    }
+
+    async function loadExplanationPrompts() {
+        try {
+            const response = await fetch('/api/v1/political-assessment/explanation-prompts');
+            const prompts = await response.json();
+
+            if (prompts.screenTitle) {
+                document.getElementById('explanation-title').innerHTML =
+                    `<i class="fas fa-hand-paper mr-2" style="color: var(--aura-warning);"></i> ${prompts.screenTitle}`;
+            }
+
+            // Body text is already set in HTML with the user-provided copy
+        } catch (error) {
+            console.error('Failed to load prompts');
         }
     }
 
@@ -762,9 +1398,38 @@
             const result = await response.json();
             if (result.success) {
                 assessmentData.politicalOrientation = data.politicalOrientation;
-                goToStep(3);
+                // Go to reproductive rights next
+                goToStep('reproductive');
             } else {
                 alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('Failed to submit');
+        }
+    }
+
+    async function submitReproductiveRights() {
+        const selected = document.querySelector('input[name="reproductiveRights"]:checked');
+        if (!selected) {
+            alert('Please select an option');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/v1/political-assessment/reproductive-view', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ reproductiveRightsView: selected.value })
+            });
+
+            const result = await response.json();
+
+            // Check if vasectomy verification is required (males with non-pro-choice views)
+            if (result.gateStatus === 'PENDING_VASECTOMY') {
+                goToStep('vasectomy');
+            } else {
+                assessmentData.reproductiveRightsView = selected.value;
+                goToStep(3); // Continue to class consciousness
             }
         } catch (error) {
             alert('Failed to submit');
@@ -847,18 +1512,29 @@
     function handleAssessmentResult(result) {
         document.querySelectorAll('.assessment-step').forEach(el => el.classList.add('is-hidden'));
 
+        // Store user gender for UI display
+        userIsMale = result.isMale || false;
+
         switch (result.gateStatus) {
             case 'APPROVED':
                 document.getElementById('step-approved').classList.remove('is-hidden');
                 break;
             case 'REJECTED':
                 document.getElementById('step-rejected').classList.remove('is-hidden');
+                if (result.rejectionReason === 'ABOVE_MEDIAN_WEALTH_DEFENDER') {
+                    document.getElementById('rejection-message').textContent =
+                        'Your economic position and values are not compatible with this platform.';
+                }
                 break;
             case 'PENDING_EXPLANATION':
+                loadExplanationPrompts();
                 document.getElementById('step-explanation').classList.remove('is-hidden');
                 break;
             case 'PENDING_VASECTOMY':
                 document.getElementById('step-vasectomy').classList.remove('is-hidden');
+                break;
+            case 'REDIRECT_RAYA':
+                document.getElementById('step-raya').classList.remove('is-hidden');
                 break;
             case 'UNDER_REVIEW':
                 document.getElementById('step-pending').classList.remove('is-hidden');
@@ -868,8 +1544,10 @@
 
     async function submitExplanation() {
         const explanation = document.getElementById('conservative-explanation').value;
-        if (explanation.length < 100) {
-            alert('Please provide a more detailed explanation (minimum 100 characters)');
+        const wordCount = explanation.trim().split(/\s+/).filter(w => w.length > 0).length;
+
+        if (wordCount < 100) {
+            alert('Please provide a more detailed explanation (minimum 100 words)');
             return;
         }
 
@@ -892,21 +1570,37 @@
         }
     }
 
-    // File input handler
-    document.getElementById('vasectomy-doc').addEventListener('change', function() {
+    // File input handlers
+    document.getElementById('vasectomy-doc')?.addEventListener('change', function() {
         document.getElementById('vasectomy-filename').textContent =
+            this.files[0]?.name || 'No file selected';
+    });
+
+    document.getElementById('frozen-sperm-doc')?.addEventListener('change', function() {
+        document.getElementById('frozen-sperm-filename').textContent =
             this.files[0]?.name || 'No file selected';
     });
 
     async function submitVasectomy() {
         const fileInput = document.getElementById('vasectomy-doc');
         if (!fileInput.files[0]) {
-            alert('Please select a file');
+            alert('Please select a vasectomy verification document');
             return;
         }
 
         const formData = new FormData();
         formData.append('document', fileInput.files[0]);
+
+        // Include frozen sperm info if applicable
+        const wantsKids = document.getElementById('wants-kids-checkbox')?.checked || false;
+        formData.append('wantsKids', wantsKids);
+
+        if (wantsKids) {
+            const frozenSpermInput = document.getElementById('frozen-sperm-doc');
+            if (frozenSpermInput?.files[0]) {
+                formData.append('frozenSpermDocument', frozenSpermInput.files[0]);
+            }
+        }
 
         try {
             const response = await fetch('/api/v1/political-assessment/vasectomy/verify', {
@@ -948,13 +1642,41 @@
         }
     }
 
+    async function resetAssessment() {
+        if (!confirm('This will reset your assessment and you will need to start over. Continue?')) {
+            return;
+        }
+
+        try {
+            await fetch('/api/v1/political-assessment/reset', {
+                method: 'POST'
+            });
+
+            // Reset local state
+            assessmentData = {};
+            currentStep = 0;
+
+            // Clear form fields
+            document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+            document.querySelectorAll('.wealth-option-card, .reproductive-option-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+            document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+            document.querySelectorAll('textarea').forEach(t => t.value = '');
+
+            // Go back to intro
+            goToStep('intro');
+        } catch (error) {
+            alert('Failed to reset assessment');
+        }
+    }
+
     // Check initial status on load
     document.addEventListener('DOMContentLoaded', async function() {
         try {
             const response = await fetch('/api/v1/political-assessment/status');
             const result = await response.json();
 
-            if (result.gateStatus !== 'PENDING_ASSESSMENT') {
+            if (result.gateStatus && result.gateStatus !== 'PENDING_ASSESSMENT') {
                 handleAssessmentResult(result);
             }
         } catch (error) {

@@ -268,6 +268,88 @@ public class SearchService {
         return country.map(Country::iso);
     }
 
+    /**
+     * Keyword search - searches in user descriptions, interests, and prompts.
+     * Similar to OKCupid's "Search by keyword" feature.
+     */
+    public SearchDto searchByKeyword(String keyword, boolean globalSearch) throws AlovoaException,
+            InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException,
+            NoSuchPaddingException, InvalidAlgorithmParameterException, UnsupportedEncodingException {
+
+        if (keyword == null || keyword.trim().length() < 2) {
+            throw new AlovoaException("keyword_too_short");
+        }
+
+        User user = authService.getCurrentUser(true);
+        if (user.isAdmin()) {
+            return SearchDto.builder().users(searchResultsToUserDto(userRepo.adminSearch(), 0, user)).build();
+        }
+
+        int age = Tools.calcUserAge(user);
+        int ageLegal = Tools.AGE_LEGAL;
+        boolean isLegalAge = age >= ageLegal;
+        int minAge = user.getPreferedMinAge();
+        int maxAge = user.getPreferedMaxAge();
+
+        if (isLegalAge && minAge < ageLegal) {
+            minAge = ageLegal;
+        }
+        if (!isLegalAge && maxAge >= ageLegal) {
+            maxAge = ageLegal - 1;
+        }
+
+        Date minDate = Tools.ageToDate(maxAge);
+        Date maxDate = Tools.ageToDate(minAge);
+
+        Set<Long> preferredGenderIds = user.getPreferedGenders().stream()
+                .map(g -> g.getId()).collect(Collectors.toSet());
+
+        List<User> users;
+
+        if (globalSearch || user.getLocationLatitude() == null) {
+            users = userRepo.usersSearchKeywordGlobal(
+                    age, minDate, maxDate, user.getGender(),
+                    user.getLikes().stream().map(o -> o.getUserTo() != null ? o.getUserTo().getId() : 0).collect(Collectors.toSet()),
+                    user.getHiddenUsers().stream().map(o -> o.getUserTo() != null ? o.getUserTo().getId() : 0).collect(Collectors.toSet()),
+                    user.getBlockedUsers().stream().map(o -> o.getUserTo() != null ? o.getUserTo().getId() : 0).collect(Collectors.toSet()),
+                    user.getBlockedByUsers().stream().map(o -> o.getUserFrom() != null ? o.getUserFrom().getId() : 0).collect(Collectors.toSet()),
+                    preferredGenderIds,
+                    keyword.trim(),
+                    PageRequest.of(0, SEARCH_MAX)
+            );
+        } else {
+            Double latitude = user.getLocationLatitude();
+            Double longitude = user.getLocationLongitude();
+            int distance = maxDistance;
+
+            double deltaLongFactor = LONGITUDE * Math.cos(latitude / 180.0 * Math.PI);
+            double deltaLat = distance / LATITUDE;
+            double deltaLong = distance / deltaLongFactor;
+            double minLat = latitude - deltaLat;
+            double maxLat = latitude + deltaLat;
+            double minLong = longitude - deltaLong;
+            double maxLong = longitude + deltaLong;
+
+            users = userRepo.usersSearchKeyword(
+                    age, minDate, maxDate, user.getGender(),
+                    minLat, maxLat, minLong, maxLong,
+                    user.getLikes().stream().map(o -> o.getUserTo() != null ? o.getUserTo().getId() : 0).collect(Collectors.toSet()),
+                    user.getHiddenUsers().stream().map(o -> o.getUserTo() != null ? o.getUserTo().getId() : 0).collect(Collectors.toSet()),
+                    user.getBlockedUsers().stream().map(o -> o.getUserTo() != null ? o.getUserTo().getId() : 0).collect(Collectors.toSet()),
+                    user.getBlockedByUsers().stream().map(o -> o.getUserFrom() != null ? o.getUserFrom().getId() : 0).collect(Collectors.toSet()),
+                    preferredGenderIds,
+                    keyword.trim(),
+                    PageRequest.of(0, SEARCH_MAX)
+            );
+        }
+
+        return SearchDto.builder()
+                .users(searchResultsToUserDto(users, SORT_DEFAULT, user))
+                .global(globalSearch)
+                .stage(globalSearch ? SearchStage.WORLD : SearchStage.NORMAL)
+                .build();
+    }
+
     @Getter
     @Builder
     public static class SearchParams {
@@ -290,6 +372,8 @@ public class SearchService {
         private Set<Long> intentions = new HashSet<>();
         @Builder.Default
         private Set<String> interests = new HashSet<>();
+        @Builder.Default
+        private String keyword = null;
     }
 
 }

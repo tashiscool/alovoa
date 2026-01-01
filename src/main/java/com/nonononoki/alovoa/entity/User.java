@@ -212,6 +212,31 @@ public class User implements UserDetails {
     @JsonIgnore
     private List<UserAccountabilityReport> accountabilityReportsSubmitted;
 
+    // OKCupid 2016 feature parity
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn
+    private UserProfileDetails profileDetails;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "visitedUser")
+    @JsonIgnore
+    private List<UserProfileVisit> profileVisitors;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "visitor")
+    @JsonIgnore
+    private List<UserProfileVisit> profileVisits;
+
+    // Privacy-safe location system
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    private List<UserLocationArea> locationAreas;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn
+    private UserLocationPreferences locationPreferences;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn
+    private UserTravelingMode travelingMode;
+
     // AURA Helper methods
     public boolean isVideoVerified() {
         return videoVerification != null && videoVerification.isVerified();

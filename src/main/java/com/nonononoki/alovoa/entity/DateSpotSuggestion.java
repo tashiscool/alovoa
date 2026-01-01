@@ -1,0 +1,120 @@
+package com.nonononoki.alovoa.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+/**
+ * Curated safe first date spots for matched users.
+ * All spots are:
+ * - Public and well-lit
+ * - Easy to exit if needed
+ * - Near public transit
+ * - Well-reviewed
+ */
+@Getter
+@Setter
+@Entity
+@NoArgsConstructor
+@Table(indexes = {
+    @Index(name = "idx_datespot_city", columnList = "city, state"),
+    @Index(name = "idx_datespot_neighborhood", columnList = "neighborhood")
+})
+public class DateSpotSuggestion {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Location
+    private String neighborhood;  // e.g., "Downtown DC", "Dupont Circle"
+    private String city;
+    private String state;
+
+    // Venue info
+    private String name;          // e.g., "Compass Coffee"
+    private String address;       // Full address
+    private String description;   // Brief description
+
+    @Enumerated(EnumType.STRING)
+    private VenueType venueType;
+
+    @Enumerated(EnumType.STRING)
+    private PriceRange priceRange;
+
+    // Safety indicators
+    private boolean publicSpace = true;       // Public venue
+    private boolean wellLit = true;           // Well-lit area
+    private boolean nearTransit = true;       // Near public transit
+    private boolean easyExit = true;          // Multiple exits / easy to leave
+    private boolean outdoorOption = false;    // Has outdoor seating
+    private boolean daytimeFriendly = true;   // Good for daytime dates
+    private boolean eveningFriendly = true;   // Good for evening dates
+
+    // Transit info
+    private String nearestTransit;  // e.g., "Metro Center", "Dupont Circle Metro"
+    private int walkMinutesFromTransit = 5;
+
+    // Ratings
+    private Double averageRating;  // 1-5 stars
+    private int totalRatings;
+
+    // For display
+    private String iconEmoji;  // e.g., "☕", "🍷", "🎨", "🌳"
+    private String shortDescription;  // e.g., "Casual · $ · Near Metro"
+
+    // Status
+    private boolean active = true;
+    private boolean verified = false;  // Admin verified
+
+    // === ENUMS ===
+
+    public enum VenueType {
+        COFFEE_SHOP,
+        RESTAURANT,
+        BAR,
+        MUSEUM,
+        PARK,
+        GALLERY,
+        WATERFRONT,
+        MARKET,
+        BOOKSTORE,
+        OTHER
+    }
+
+    public enum PriceRange {
+        FREE,       // Free venues (parks, museums)
+        BUDGET,     // $ - Under $15
+        MODERATE,   // $$ - $15-30
+        UPSCALE,    // $$$ - $30-60
+        EXPENSIVE   // $$$$ - Over $60
+    }
+
+    // Helper for price display
+    public String getPriceDisplay() {
+        return switch (priceRange) {
+            case FREE -> "Free";
+            case BUDGET -> "$";
+            case MODERATE -> "$$";
+            case UPSCALE -> "$$$";
+            case EXPENSIVE -> "$$$$";
+        };
+    }
+
+    // Helper for type display
+    public String getTypeDisplay() {
+        return switch (venueType) {
+            case COFFEE_SHOP -> "Coffee";
+            case RESTAURANT -> "Restaurant";
+            case BAR -> "Bar";
+            case MUSEUM -> "Museum";
+            case PARK -> "Park";
+            case GALLERY -> "Gallery";
+            case WATERFRONT -> "Waterfront";
+            case MARKET -> "Market";
+            case BOOKSTORE -> "Bookstore";
+            case OTHER -> "Venue";
+        };
+    }
+}

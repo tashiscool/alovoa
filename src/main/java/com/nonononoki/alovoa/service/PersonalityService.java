@@ -94,11 +94,11 @@ public class PersonalityService {
         );
     }
 
-    private Map<String, Object> createQuestion(String id, String text, String trait) {
+    private Map<String, Object> createQuestion(String id, String text, String category) {
         return Map.of(
                 "id", id,
                 "text", text,
-                "trait", trait
+                "category", category.toUpperCase()
         );
     }
 

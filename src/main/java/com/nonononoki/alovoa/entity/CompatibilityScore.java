@@ -39,6 +39,10 @@ public class CompatibilityScore {
     private Double growthScore;
     private Double overallScore;
 
+    // Enemy % - measures fundamental incompatibilities
+    // High enemy score = more dealbreaker conflicts, opposing values
+    private Double enemyScore = 0.0;
+
     @Lob
     @Column(columnDefinition = "mediumtext")
     private String explanationJson;

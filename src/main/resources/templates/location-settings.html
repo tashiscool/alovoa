@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-map-marker-alt mr-2"></i> Location Settings</h1>
+    <p>Tell us where you're open to meeting people - your privacy is protected</p>
+</div>
+
+<div class="aura-container">
+    <!-- Privacy Notice -->
+    <div class="aura-alert aura-alert-info aura-animate-fade-up">
+        <i class="fas fa-shield-alt fa-lg"></i>
+        <div>
+            <strong>Privacy-First Location</strong>
+            <p style="margin-top: 0.25rem; opacity: 0.9;">
+                AURA never tracks your GPS. You choose which areas to share, and we use area-based
+                travel times (not precise distances) to protect your location.
+            </p>
+        </div>
+    </div>
+
+    <!-- My Areas Section -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-home"></i></div>
+            <div>
+                <div class="aura-card-title">My Areas</div>
+                <div class="aura-card-subtitle">Where are you open to meeting people? (up to 3 areas)</div>
+            </div>
+        </div>
+
+        <div id="areas-container" class="location-areas">
+            <!-- Areas will be loaded dynamically -->
+        </div>
+
+        <button id="add-area-btn" class="aura-btn aura-btn-outline" style="margin-top: 1rem; width: 100%;">
+            <i class="fas fa-plus"></i> Add Another Area
+        </button>
+    </div>
+
+    <!-- Travel Preferences -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-car"></i></div>
+            <div>
+                <div class="aura-card-title">Travel Preferences</div>
+                <div class="aura-card-subtitle">How far are you willing to travel for dates?</div>
+            </div>
+        </div>
+
+        <div class="preference-section">
+            <label class="preference-label">Maximum travel time from my areas:</label>
+            <div class="travel-time-slider">
+                <input type="range" id="max-travel-time" min="15" max="60" step="5" value="30">
+                <div class="slider-labels">
+                    <span>15 min</span>
+                    <span>30 min</span>
+                    <span>45 min</span>
+                    <span>60 min</span>
+                </div>
+                <div class="slider-value">Currently: <strong id="travel-time-value">30 min</strong></div>
+            </div>
+        </div>
+
+        <div class="preference-section" style="margin-top: 1.5rem;">
+            <div class="preference-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="require-overlap" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Require area overlap</strong>
+                    <p>Only show people who have declared an area that overlaps with yours</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="preference-section" style="margin-top: 1rem;">
+            <div class="preference-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="show-exceptional" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Show exceptional matches outside my areas</strong>
+                    <p>Still see 90%+ matches even if they're outside your travel preferences</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Traveling Mode -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-plane"></i></div>
+            <div>
+                <div class="aura-card-title">Traveling Mode</div>
+                <div class="aura-card-subtitle">Visiting somewhere? Let locals know you're in town</div>
+            </div>
+        </div>
+
+        <div id="traveling-status" class="traveling-section">
+            <!-- Will show current traveling status or setup form -->
+        </div>
+    </div>
+
+    <!-- Moving To -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-truck-moving"></i></div>
+            <div>
+                <div class="aura-card-title">Moving Soon?</div>
+                <div class="aura-card-subtitle">Let people know if you're relocating</div>
+            </div>
+        </div>
+
+        <div id="moving-section" class="moving-section">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Moving to (City)</label>
+                    <input type="text" id="moving-city" placeholder="e.g., New York">
+                </div>
+                <div class="form-group">
+                    <label>State</label>
+                    <select id="moving-state">
+                        <option value="">Select...</option>
+                        <option value="AL">Alabama</option>
+                        <option value="AK">Alaska</option>
+                        <option value="AZ">Arizona</option>
+                        <option value="CA">California</option>
+                        <option value="CO">Colorado</option>
+                        <option value="DC">Washington, DC</option>
+                        <option value="FL">Florida</option>
+                        <option value="GA">Georgia</option>
+                        <option value="IL">Illinois</option>
+                        <option value="MA">Massachusetts</option>
+                        <option value="MD">Maryland</option>
+                        <option value="NY">New York</option>
+                        <option value="TX">Texas</option>
+                        <option value="VA">Virginia</option>
+                        <option value="WA">Washington</option>
+                        <!-- Add more states as needed -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>When?</label>
+                    <input type="date" id="moving-date">
+                </div>
+            </div>
+            <button class="aura-btn aura-btn-outline" onclick="saveMovingTo()">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+        <button class="aura-btn aura-btn-primary aura-btn-lg" onclick="saveAllPreferences()">
+            <i class="fas fa-check"></i> Save All Settings
+        </button>
+    </div>
+</div>
+
+<!-- Add Area Modal -->
+<div id="add-area-modal" class="modal" style="display: none;">
+    <div class="modal-content aura-card">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus"></i> Add Location Area</h3>
+            <button class="modal-close" onclick="closeAreaModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Neighborhood (optional)</label>
+                <input type="text" id="area-neighborhood" placeholder="e.g., Dupont Circle, Clarendon">
+                <small>Leave blank to just use city level</small>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>City *</label>
+                    <input type="text" id="area-city" placeholder="e.g., Washington, Arlington" required>
+                </div>
+                <div class="form-group">
+                    <label>State *</label>
+                    <select id="area-state" required>
+                        <option value="">Select...</option>
+                        <option value="DC">Washington, DC</option>
+                        <option value="VA">Virginia</option>
+                        <option value="MD">Maryland</option>
+                        <!-- Add more states -->
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>What is this area to you?</label>
+                <select id="area-label">
+                    <option value="HOME">Home - I live here</option>
+                    <option value="WORK">Work - I work here</option>
+                    <option value="HANGOUT">Hangout - I spend time here</option>
+                    <option value="FRIENDS_LIVE">Friends - My friends live here</option>
+                    <option value="LOVE_THIS_AREA">Love it - I just love this area</option>
+                    <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Display on profile as:</label>
+                <select id="area-display-level">
+                    <option value="NEIGHBORHOOD">Neighborhood (most specific)</option>
+                    <option value="CITY" selected>City (e.g., "Arlington, VA")</option>
+                    <option value="REGION">Region (e.g., "Northern Virginia")</option>
+                    <option value="METRO">Metro Area (e.g., "DC Metro")</option>
+                    <option value="HIDDEN">Hidden (don't show on profile)</option>
+                </select>
+            </div>
+            <div class="preference-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="area-visible" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Show on my profile</strong>
+                    <p>If off, this area is only used for matching</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="aura-btn aura-btn-outline" onclick="closeAreaModal()">Cancel</button>
+            <button class="aura-btn aura-btn-primary" onclick="saveNewArea()">Add Area</button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .location-areas {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .area-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: var(--aura-gray-50);
+        border-radius: 12px;
+        border-left: 4px solid var(--aura-primary);
+    }
+
+    .area-card.primary {
+        border-left-color: var(--aura-success);
+    }
+
+    .area-card.secondary {
+        border-left-color: var(--aura-info);
+    }
+
+    .area-card.tertiary {
+        border-left-color: var(--aura-warning);
+    }
+
+    .area-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .area-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--aura-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .area-details h4 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--aura-gray-800);
+    }
+
+    .area-details p {
+        margin: 0.25rem 0 0;
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+    }
+
+    .area-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 20px;
+        background: var(--aura-gray-200);
+        color: var(--aura-gray-600);
+        margin-left: 0.5rem;
+    }
+
+    .area-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .area-actions button {
+        padding: 0.5rem;
+        border: none;
+        background: transparent;
+        color: var(--aura-gray-500);
+        cursor: pointer;
+        border-radius: 8px;
+    }
+
+    .area-actions button:hover {
+        background: var(--aura-gray-200);
+        color: var(--aura-gray-700);
+    }
+
+    .area-actions button.delete:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--aura-danger);
+    }
+
+    .preference-section {
+        padding: 1rem 0;
+    }
+
+    .preference-label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        color: var(--aura-gray-700);
+    }
+
+    .travel-time-slider {
+        max-width: 400px;
+    }
+
+    .travel-time-slider input[type="range"] {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: var(--aura-gray-200);
+        outline: none;
+        -webkit-appearance: none;
+    }
+
+    .travel-time-slider input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--aura-primary);
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(124, 58, 237, 0.4);
+    }
+
+    .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--aura-gray-500);
+        margin-top: 0.5rem;
+    }
+
+    .slider-value {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--aura-gray-600);
+    }
+
+    .preference-toggle {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: var(--aura-gray-300);
+        border-radius: 26px;
+        transition: 0.3s;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+
+    input:checked + .toggle-slider {
+        background: var(--aura-primary);
+    }
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(22px);
+    }
+
+    .toggle-label strong {
+        display: block;
+        color: var(--aura-gray-800);
+    }
+
+    .toggle-label p {
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+        margin-top: 0.25rem;
+    }
+
+    .traveling-section,
+    .moving-section {
+        padding: 1rem 0;
+    }
+
+    .traveling-active {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(168, 85, 247, 0.1));
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .traveling-active h4 {
+        color: var(--aura-primary);
+        margin: 0 0 0.5rem;
+    }
+
+    .traveling-dates {
+        font-size: 0.875rem;
+        color: var(--aura-gray-600);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--aura-gray-700);
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.75rem;
+        border: 1px solid var(--aura-gray-300);
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .form-group small {
+        font-size: 0.75rem;
+        color: var(--aura-gray-500);
+    }
+
+    /* Modal styles */
+    .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--aura-gray-200);
+        margin-bottom: 1rem;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--aura-gray-800);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--aura-gray-500);
+        cursor: pointer;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--aura-gray-200);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .area-card {
+            background: var(--aura-gray-800);
+        }
+
+        .area-details h4,
+        .toggle-label strong {
+            color: var(--aura-gray-100);
+        }
+
+        .preference-label {
+            color: var(--aura-gray-300);
+        }
+
+        .form-group label {
+            color: var(--aura-gray-300);
+        }
+
+        .form-group input,
+        .form-group select {
+            background: var(--aura-gray-800);
+            border-color: var(--aura-gray-600);
+            color: var(--aura-gray-100);
+        }
+    }
+</style>
+
+<script th:inline="javascript">
+    let areas = [];
+    let preferences = {};
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadAreas();
+        await loadPreferences();
+        await loadTravelingMode();
+
+        // Travel time slider
+        document.getElementById('max-travel-time').addEventListener('input', function(e) {
+            document.getElementById('travel-time-value').textContent = e.target.value + ' min';
+        });
+
+        // Add area button
+        document.getElementById('add-area-btn').addEventListener('click', function() {
+            if (areas.length >= 3) {
+                alert('Maximum 3 areas allowed');
+                return;
+            }
+            document.getElementById('add-area-modal').style.display = 'flex';
+        });
+    });
+
+    async function loadAreas() {
+        try {
+            const response = await fetch('/location/areas');
+            areas = await response.json();
+            renderAreas();
+        } catch (error) {
+            console.error('Failed to load areas:', error);
+        }
+    }
+
+    function renderAreas() {
+        const container = document.getElementById('areas-container');
+
+        if (areas.length === 0) {
+            container.innerHTML = `
+                <div class="aura-alert aura-alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>No areas set up yet</strong>
+                        <p>Add at least one area where you're open to meeting people.</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = areas.map(area => `
+            <div class="area-card ${area.areaType.toLowerCase()}">
+                <div class="area-info">
+                    <div class="area-icon">
+                        <i class="fas ${getAreaIcon(area.label)}"></i>
+                    </div>
+                    <div class="area-details">
+                        <h4>
+                            ${area.neighborhood ? area.neighborhood + ', ' : ''}${area.city}, ${area.state}
+                            <span class="area-badge">${area.areaType}</span>
+                        </h4>
+                        <p>
+                            <i class="fas fa-eye${area.visibleOnProfile ? '' : '-slash'}"></i>
+                            ${area.visibleOnProfile ? 'Visible on profile as: ' + (area.displayAs || area.city) : 'Hidden from profile'}
+                        </p>
+                    </div>
+                </div>
+                <div class="area-actions">
+                    <button onclick="editArea(${area.id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="delete" onclick="deleteArea(${area.id})" title="Remove">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        // Update add button state
+        document.getElementById('add-area-btn').disabled = areas.length >= 3;
+        document.getElementById('add-area-btn').innerHTML = areas.length >= 3
+            ? '<i class="fas fa-check"></i> Maximum Areas Added'
+            : '<i class="fas fa-plus"></i> Add Another Area';
+    }
+
+    function getAreaIcon(label) {
+        const icons = {
+            'HOME': 'fa-home',
+            'WORK': 'fa-briefcase',
+            'HANGOUT': 'fa-glass-cheers',
+            'FRIENDS_LIVE': 'fa-users',
+            'LOVE_THIS_AREA': 'fa-heart',
+            'PREFER_NOT_TO_SAY': 'fa-map-marker-alt'
+        };
+        return icons[label] || 'fa-map-marker-alt';
+    }
+
+    async function loadPreferences() {
+        try {
+            const response = await fetch('/location/preferences');
+            preferences = await response.json();
+
+            document.getElementById('max-travel-time').value = preferences.maxTravelMinutes || 30;
+            document.getElementById('travel-time-value').textContent = (preferences.maxTravelMinutes || 30) + ' min';
+            document.getElementById('require-overlap').checked = preferences.requireAreaOverlap !== false;
+            document.getElementById('show-exceptional').checked = preferences.showExceptionalMatches !== false;
+
+            // Moving to
+            if (preferences.movingToCity) {
+                document.getElementById('moving-city').value = preferences.movingToCity;
+                document.getElementById('moving-state').value = preferences.movingToState || '';
+                if (preferences.movingDate) {
+                    document.getElementById('moving-date').value = preferences.movingDate.split('T')[0];
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+        }
+    }
+
+    async function loadTravelingMode() {
+        try {
+            const response = await fetch('/location/traveling');
+            const traveling = await response.json();
+
+            const container = document.getElementById('traveling-status');
+
+            if (traveling.active) {
+                container.innerHTML = `
+                    <div class="traveling-active">
+                        <h4><i class="fas fa-plane"></i> Traveling to ${traveling.displayAs}</h4>
+                        <div class="traveling-dates">
+                            ${formatDate(traveling.arrivingDate)} - ${formatDate(traveling.leavingDate)}
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <span class="aura-trait ${traveling.showMeThere ? 'aura-trait-positive' : ''}">
+                                ${traveling.showMeThere ? '✓' : '✗'} Show me to locals
+                            </span>
+                            <span class="aura-trait ${traveling.showLocalsToMe ? 'aura-trait-positive' : ''}">
+                                ${traveling.showLocalsToMe ? '✓' : '✗'} Show locals to me
+                            </span>
+                        </div>
+                        <button class="aura-btn aura-btn-outline" style="margin-top: 1rem;" onclick="disableTraveling()">
+                            <i class="fas fa-times"></i> End Traveling Mode
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Destination City</label>
+                            <input type="text" id="travel-city" placeholder="e.g., New York">
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <select id="travel-state">
+                                <option value="">Select...</option>
+                                <option value="CA">California</option>
+                                <option value="DC">Washington, DC</option>
+                                <option value="FL">Florida</option>
+                                <option value="NY">New York</option>
+                                <option value="TX">Texas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Arriving</label>
+                            <input type="date" id="travel-arrive">
+                        </div>
+                        <div class="form-group">
+                            <label>Leaving</label>
+                            <input type="date" id="travel-leave">
+                        </div>
+                    </div>
+                    <div class="preference-toggle" style="margin-bottom: 1rem;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="travel-show-me" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="toggle-label">
+                            <strong>Show me to locals there</strong>
+                            <p>Let people in your destination see you</p>
+                        </div>
+                    </div>
+                    <div class="preference-toggle" style="margin-bottom: 1rem;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="travel-show-locals" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="toggle-label">
+                            <strong>Show locals to me</strong>
+                            <p>See people in your destination</p>
+                        </div>
+                    </div>
+                    <button class="aura-btn aura-btn-primary" onclick="enableTraveling()">
+                        <i class="fas fa-plane"></i> Enable Traveling Mode
+                    </button>
+                `;
+            }
+        } catch (error) {
+            console.error('Failed to load traveling mode:', error);
+        }
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString();
+    }
+
+    function closeAreaModal() {
+        document.getElementById('add-area-modal').style.display = 'none';
+        // Clear form
+        document.getElementById('area-neighborhood').value = '';
+        document.getElementById('area-city').value = '';
+        document.getElementById('area-state').value = '';
+        document.getElementById('area-label').value = 'HOME';
+        document.getElementById('area-display-level').value = 'CITY';
+        document.getElementById('area-visible').checked = true;
+    }
+
+    async function saveNewArea() {
+        const city = document.getElementById('area-city').value.trim();
+        const state = document.getElementById('area-state').value;
+
+        if (!city || !state) {
+            alert('Please enter city and state');
+            return;
+        }
+
+        const data = {
+            neighborhood: document.getElementById('area-neighborhood').value.trim() || null,
+            city: city,
+            state: state,
+            label: document.getElementById('area-label').value,
+            displayLevel: document.getElementById('area-display-level').value,
+            visibleOnProfile: document.getElementById('area-visible').checked
+        };
+
+        try {
+            const response = await fetch('/location/areas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                closeAreaModal();
+                await loadAreas();
+            } else {
+                const error = await response.json();
+                alert(error.error || 'Failed to add area');
+            }
+        } catch (error) {
+            console.error('Failed to add area:', error);
+            alert('Failed to add area');
+        }
+    }
+
+    async function deleteArea(areaId) {
+        if (!confirm('Remove this area?')) return;
+
+        try {
+            const response = await fetch(`/location/areas/${areaId}`, { method: 'DELETE' });
+            if (response.ok) {
+                await loadAreas();
+            } else {
+                const error = await response.json();
+                alert(error.error || 'Failed to remove area');
+            }
+        } catch (error) {
+            console.error('Failed to delete area:', error);
+        }
+    }
+
+    function editArea(areaId) {
+        // TODO: Open edit modal
+        alert('Edit functionality coming soon');
+    }
+
+    async function enableTraveling() {
+        const city = document.getElementById('travel-city').value.trim();
+        const state = document.getElementById('travel-state').value;
+        const arrive = document.getElementById('travel-arrive').value;
+        const leave = document.getElementById('travel-leave').value;
+
+        if (!city || !state || !arrive || !leave) {
+            alert('Please fill in all travel details');
+            return;
+        }
+
+        const data = {
+            destinationCity: city,
+            destinationState: state,
+            arrivingDate: arrive,
+            leavingDate: leave,
+            showMeThere: document.getElementById('travel-show-me').checked,
+            showLocalsToMe: document.getElementById('travel-show-locals').checked
+        };
+
+        try {
+            const response = await fetch('/location/traveling', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                await loadTravelingMode();
+            } else {
+                const error = await response.json();
+                alert(error.error || 'Failed to enable traveling mode');
+            }
+        } catch (error) {
+            console.error('Failed to enable traveling:', error);
+        }
+    }
+
+    async function disableTraveling() {
+        try {
+            await fetch('/location/traveling', { method: 'DELETE' });
+            await loadTravelingMode();
+        } catch (error) {
+            console.error('Failed to disable traveling:', error);
+        }
+    }
+
+    async function saveMovingTo() {
+        const city = document.getElementById('moving-city').value.trim();
+        const state = document.getElementById('moving-state').value;
+        const date = document.getElementById('moving-date').value;
+
+        if (!city && !state) {
+            // Clear moving to
+            try {
+                await fetch('/location/moving-to', { method: 'DELETE' });
+                alert('Moving info cleared');
+            } catch (error) {
+                console.error('Failed to clear moving info:', error);
+            }
+            return;
+        }
+
+        const data = { city, state, movingDate: date || null };
+
+        try {
+            const response = await fetch('/location/moving-to', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Moving info saved!');
+            }
+        } catch (error) {
+            console.error('Failed to save moving info:', error);
+        }
+    }
+
+    async function saveAllPreferences() {
+        const data = {
+            maxTravelMinutes: parseInt(document.getElementById('max-travel-time').value),
+            requireAreaOverlap: document.getElementById('require-overlap').checked,
+            showExceptionalMatches: document.getElementById('show-exceptional').checked
+        };
+
+        try {
+            const response = await fetch('/location/preferences', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Settings saved successfully!');
+            }
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+            alert('Failed to save settings');
+        }
+    }
+</script>
+
+</body>
+</html>

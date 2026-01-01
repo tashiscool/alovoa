@@ -32,9 +32,17 @@ public class PersonalityResource {
         UserPersonalityProfile profile = user.getPersonalityProfile();
         if (profile != null && profile.isComplete()) {
             mav.addObject("alreadyCompleted", true);
+            mav.addObject("totalQuestions", 0);
         } else {
             mav.addObject("alreadyCompleted", false);
-            mav.addObject("questions", personalityService.getAssessmentQuestions());
+            // Extract questions list from the returned Map
+            @SuppressWarnings("unchecked")
+            var assessmentData = personalityService.getAssessmentQuestions();
+            @SuppressWarnings("unchecked")
+            var questionsList = (java.util.List<java.util.Map<String, Object>>) assessmentData.get("questions");
+            mav.addObject("questions", questionsList);
+            mav.addObject("totalQuestions", questionsList != null ? questionsList.size() : 0);
+            mav.addObject("scaleLabels", assessmentData.get("scaleLabels"));
         }
 
         return mav;

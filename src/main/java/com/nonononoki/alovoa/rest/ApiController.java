@@ -92,6 +92,26 @@ public class ApiController {
         return (SearchDto) map.get("dto");
     }
 
+    /**
+     * Keyword search - searches user profiles by description, interests, and prompts.
+     * Similar to OKCupid's "Search by keyword" feature.
+     *
+     * @param request Contains keyword and optional globalSearch flag
+     * @return SearchDto with matching users
+     */
+    @PostMapping("/search/keyword")
+    public SearchDto searchByKeyword(@RequestBody KeywordSearchRequest request) throws InvalidKeyException,
+            IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidAlgorithmParameterException, UnsupportedEncodingException, AlovoaException {
+        return searchService.searchByKeyword(request.getKeyword(), request.isGlobalSearch());
+    }
+
+    @Data
+    public static class KeywordSearchRequest {
+        private String keyword;
+        private boolean globalSearch = false;
+    }
+
     @Getter
     @Setter
     @Builder

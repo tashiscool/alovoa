@@ -192,6 +192,42 @@ public interface UserRepository extends JpaRepository<User, Long> {
         return findTop100ByDisabledFalseAndAdminFalseAndConfirmedTrueAndIntentionNotNullAndLocationLatitudeNotNullAndProfilePictureNotNullOrderByDatesCreationDateDesc();
     }
 
+    // Keyword search - searches in description, interests, and prompts
+    String SEARCH_KEYWORD_QUERY = "AND (LOWER(u.description) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR EXISTS (SELECT 1 FROM UserInterest i WHERE i.user = u AND LOWER(i.text) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "OR EXISTS (SELECT 1 FROM UserPrompt p WHERE p.user = u AND LOWER(p.text) LIKE LOWER(CONCAT('%', :keyword, '%')))) ";
+
+    @Query(value = SEARCH_SELECT_QUERY + SEARCH_BASE_QUERY + SEARCH_LOCATION_QUERY + SEARCH_KEYWORD_QUERY)
+    List<User> usersSearchKeyword(@Param("age") int age,
+                                  @Param("minDate") Date minDate,
+                                  @Param("maxDate") Date maxDate,
+                                  @Param("preferedGender") Gender preferedGender,
+                                  @Param("latitudeFrom") Double latitudeFrom,
+                                  @Param("latitudeTo") Double latitudeTo,
+                                  @Param("longitudeFrom") Double longitudeFrom,
+                                  @Param("longitudeTo") Double longitudeTo,
+                                  @Param("likeIds") Collection<Long> likeIds,
+                                  @Param("hideIds") Collection<Long> hideIds,
+                                  @Param("blockIds") Collection<Long> blockIds,
+                                  @Param("blockedByIds") Collection<Long> blockedByIds,
+                                  @Param("genderIds") Collection<Long> genderIds,
+                                  @Param("keyword") String keyword,
+                                  Pageable page);
+
+    // Keyword search without location filter (global)
+    @Query(value = SEARCH_SELECT_QUERY + SEARCH_BASE_QUERY + SEARCH_KEYWORD_QUERY)
+    List<User> usersSearchKeywordGlobal(@Param("age") int age,
+                                        @Param("minDate") Date minDate,
+                                        @Param("maxDate") Date maxDate,
+                                        @Param("preferedGender") Gender preferedGender,
+                                        @Param("likeIds") Collection<Long> likeIds,
+                                        @Param("hideIds") Collection<Long> hideIds,
+                                        @Param("blockIds") Collection<Long> blockIds,
+                                        @Param("blockedByIds") Collection<Long> blockedByIds,
+                                        @Param("genderIds") Collection<Long> genderIds,
+                                        @Param("keyword") String keyword,
+                                        Pageable page);
+
     // used for sending mails to all
     List<User> findByDisabledFalseAndAdminFalseAndConfirmedTrue();
 
