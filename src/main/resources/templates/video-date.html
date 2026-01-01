@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-video mr-2"></i> Video Dates</h1>
+    <p>Schedule and manage video dates with your matches</p>
+</div>
+
+<div class="aura-container">
+    <!-- Tabs -->
+    <div class="aura-tabs">
+        <button class="aura-tab active" data-tab="upcoming">
+            <i class="fas fa-calendar-alt"></i> Upcoming
+            <span class="tab-badge" id="upcoming-count">0</span>
+        </button>
+        <button class="aura-tab" data-tab="proposals">
+            <i class="fas fa-inbox"></i> Proposals
+            <span class="tab-badge" id="proposals-count">0</span>
+        </button>
+        <button class="aura-tab" data-tab="history">
+            <i class="fas fa-history"></i> History
+        </button>
+    </div>
+
+    <!-- Upcoming Dates -->
+    <div id="upcoming-tab" class="tab-content active">
+        <div id="upcoming-container" class="dates-list">
+            <!-- Will be populated dynamically -->
+        </div>
+        <div id="no-upcoming" class="empty-state" style="display: none;">
+            <i class="fas fa-calendar-times fa-3x"></i>
+            <h3>No Upcoming Dates</h3>
+            <p>Propose a video date to one of your matches!</p>
+        </div>
+    </div>
+
+    <!-- Proposals -->
+    <div id="proposals-tab" class="tab-content" style="display: none;">
+        <div id="proposals-container" class="dates-list">
+            <!-- Will be populated dynamically -->
+        </div>
+        <div id="no-proposals" class="empty-state" style="display: none;">
+            <i class="fas fa-inbox fa-3x"></i>
+            <h3>No Pending Proposals</h3>
+            <p>You'll see video date requests here when someone proposes a date.</p>
+        </div>
+    </div>
+
+    <!-- History -->
+    <div id="history-tab" class="tab-content" style="display: none;">
+        <div id="history-container" class="dates-list">
+            <!-- Will be populated dynamically -->
+        </div>
+        <div id="no-history" class="empty-state" style="display: none;">
+            <i class="fas fa-history fa-3x"></i>
+            <h3>No Past Dates</h3>
+            <p>Your completed video dates will appear here.</p>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .aura-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--aura-gray-200);
+        padding-bottom: 0.5rem;
+    }
+
+    .aura-tab {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border: none;
+        background: none;
+        color: var(--aura-gray-500);
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 8px 8px 0 0;
+        transition: all 0.2s ease;
+    }
+
+    .aura-tab:hover {
+        color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    .aura-tab.active {
+        color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.1);
+        border-bottom: 2px solid var(--aura-primary);
+        margin-bottom: -2px;
+    }
+
+    .tab-badge {
+        background: var(--aura-gray-200);
+        color: var(--aura-gray-600);
+        padding: 0.125rem 0.5rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+    }
+
+    .aura-tab.active .tab-badge {
+        background: var(--aura-primary);
+        color: white;
+    }
+
+    .tab-content {
+        animation: fadeIn 0.3s ease;
+    }
+
+    .dates-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .date-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+    }
+
+    .date-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .date-info {
+        flex: 1;
+    }
+
+    .date-info h4 {
+        margin: 0;
+        font-size: 1.125rem;
+        color: var(--aura-gray-800);
+    }
+
+    .date-time {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        color: var(--aura-gray-600);
+        font-size: 0.875rem;
+    }
+
+    .date-status {
+        margin-top: 0.5rem;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-badge.scheduled {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .status-badge.pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .status-badge.completed {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .status-badge.declined {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .date-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex-shrink: 0;
+        align-items: flex-end;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .calendar-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .aura-btn-sm {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .calendar-synced-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--aura-gray-400);
+    }
+
+    .empty-state i {
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: var(--aura-gray-600);
+        margin-bottom: 0.5rem;
+    }
+
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .date-card {
+            background: var(--aura-gray-800);
+        }
+
+        .date-info h4 {
+            color: var(--aura-gray-100);
+        }
+    }
+</style>
+
+<script th:inline="javascript">
+    const upcoming = /*[[${upcoming}]]*/ [];
+    const proposals = /*[[${proposals}]]*/ [];
+    const history = /*[[${history}]]*/ [];
+    const currentUserId = /*[[${user.id}]]*/ 0;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        renderUpcoming();
+        renderProposals();
+        renderHistory();
+        setupTabs();
+    });
+
+    function setupTabs() {
+        document.querySelectorAll('.aura-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.aura-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab + '-tab').style.display = 'block';
+            });
+        });
+    }
+
+    function renderUpcoming() {
+        const container = document.getElementById('upcoming-container');
+        document.getElementById('upcoming-count').textContent = upcoming.length;
+
+        if (upcoming.length === 0) {
+            container.style.display = 'none';
+            document.getElementById('no-upcoming').style.display = 'block';
+            return;
+        }
+
+        container.style.display = 'flex';
+        document.getElementById('no-upcoming').style.display = 'none';
+
+        container.innerHTML = upcoming.map(date => {
+            const partner = getPartner(date);
+            const partnerName = partner.name;
+            const partnerUuid = partner.uuid;
+
+            return `
+            <div class="date-card">
+                <a href="/profile/${partnerUuid}">
+                    <img src="/img/${partnerUuid}/0" alt="${partnerName}" class="date-avatar" onerror="this.src='/img/default-avatar.png'">
+                </a>
+                <div class="date-info">
+                    <h4><a href="/profile/${partnerUuid}" style="text-decoration: none; color: inherit;">${partnerName}</a></h4>
+                    <div class="date-time">
+                        <i class="fas fa-calendar"></i>
+                        ${formatDateTime(date.scheduledAt)}
+                    </div>
+                    <div class="date-status">
+                        <span class="status-badge scheduled">
+                            <i class="fas fa-check-circle"></i> Scheduled
+                        </span>
+                    </div>
+                </div>
+                <div class="date-actions">
+                    <div class="action-buttons">
+                        ${isDateStartable(date) ? `
+                            <a href="/video-date/${date.id}/room" class="aura-btn aura-btn-primary">
+                                <i class="fas fa-video"></i> Join Call
+                            </a>
+                        ` : `
+                            <button class="aura-btn aura-btn-outline" onclick="viewCountdown(${date.id}, '${date.scheduledAt}')">
+                                <i class="fas fa-clock"></i> ${getTimeUntil(date.scheduledAt)}
+                            </button>
+                        `}
+                    </div>
+                    <div class="calendar-actions">
+                        <button class="aura-btn aura-btn-outline aura-btn-sm" onclick="downloadICS(${date.id})" title="Download .ics calendar file">
+                            <i class="fas fa-calendar-plus"></i> Add to Calendar
+                        </button>
+                        ${date.calendarSynced ? `
+                            <span class="calendar-synced-badge" title="Synced to your calendar">
+                                <i class="fas fa-check-circle"></i> Synced
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    function renderProposals() {
+        const container = document.getElementById('proposals-container');
+        document.getElementById('proposals-count').textContent = proposals.length;
+
+        if (proposals.length === 0) {
+            container.style.display = 'none';
+            document.getElementById('no-proposals').style.display = 'block';
+            return;
+        }
+
+        container.style.display = 'flex';
+        document.getElementById('no-proposals').style.display = 'none';
+
+        container.innerHTML = proposals.map(proposal => {
+            const partner = proposal.proposedBy;
+            const partnerName = partner.name;
+            const partnerUuid = partner.uuid;
+
+            return `
+            <div class="date-card">
+                <a href="/profile/${partnerUuid}">
+                    <img src="/img/${partnerUuid}/0" alt="${partnerName}" class="date-avatar" onerror="this.src='/img/default-avatar.png'">
+                </a>
+                <div class="date-info">
+                    <h4><a href="/profile/${partnerUuid}" style="text-decoration: none; color: inherit;">${partnerName}</a></h4>
+                    <div class="date-time">
+                        <i class="fas fa-calendar"></i>
+                        Proposed: ${formatDateTime(proposal.scheduledAt)}
+                    </div>
+                    <div class="date-status">
+                        <span class="status-badge pending">
+                            <i class="fas fa-clock"></i> Awaiting Response
+                        </span>
+                    </div>
+                </div>
+                <div class="date-actions">
+                    <button class="aura-btn aura-btn-primary" onclick="acceptProposal(${proposal.id})">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="aura-btn aura-btn-outline" onclick="declineProposal(${proposal.id})">
+                        <i class="fas fa-times"></i> Decline
+                    </button>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-container');
+
+        if (history.length === 0) {
+            container.style.display = 'none';
+            document.getElementById('no-history').style.display = 'block';
+            return;
+        }
+
+        container.style.display = 'flex';
+        document.getElementById('no-history').style.display = 'none';
+
+        container.innerHTML = history.map(date => {
+            const partner = getPartner(date);
+            const partnerName = partner.name;
+            const partnerUuid = partner.uuid;
+            const hasFeedback = hasUserGivenFeedback(date);
+
+            return `
+            <div class="date-card">
+                <a href="/profile/${partnerUuid}">
+                    <img src="/img/${partnerUuid}/0" alt="${partnerName}" class="date-avatar" onerror="this.src='/img/default-avatar.png'">
+                </a>
+                <div class="date-info">
+                    <h4><a href="/profile/${partnerUuid}" style="text-decoration: none; color: inherit;">${partnerName}</a></h4>
+                    <div class="date-time">
+                        <i class="fas fa-calendar"></i>
+                        ${formatDateTime(date.scheduledAt)}
+                        ${date.duration ? ` • ${Math.round(date.duration / 60)} min` : ''}
+                    </div>
+                    <div class="date-status">
+                        <span class="status-badge ${getStatusClass(date.status)}">
+                            ${getStatusIcon(date.status)} ${formatStatus(date.status)}
+                        </span>
+                    </div>
+                </div>
+                <div class="date-actions">
+                    ${date.status === 'COMPLETED' && !hasFeedback ? `
+                        <button class="aura-btn aura-btn-outline" onclick="giveFeedback(${date.id})">
+                            <i class="fas fa-star"></i> Give Feedback
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    function getPartner(date) {
+        // Determine which user is the partner
+        if (date.proposedBy && date.proposedBy.id !== currentUserId) {
+            return date.proposedBy;
+        }
+        if (date.proposedTo && date.proposedTo.id !== currentUserId) {
+            return date.proposedTo;
+        }
+        // Fallback
+        return date.proposedBy || date.proposedTo || { name: 'Unknown', uuid: '' };
+    }
+
+    function hasUserGivenFeedback(date) {
+        // Check if current user already gave feedback
+        return (date.proposedBy && date.proposedBy.id === currentUserId && date.userAFeedback) ||
+               (date.proposedTo && date.proposedTo.id === currentUserId && date.userBFeedback);
+    }
+
+    function formatDateTime(dateStr) {
+        const date = new Date(dateStr);
+        const options = {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        };
+        return date.toLocaleString(undefined, options);
+    }
+
+    function getTimeUntil(dateStr) {
+        const scheduled = new Date(dateStr);
+        const now = new Date();
+        const diffMs = scheduled - now;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffDays > 0) return `in ${diffDays} day${diffDays > 1 ? 's' : ''}`;
+        if (diffHours > 0) return `in ${diffHours} hour${diffHours > 1 ? 's' : ''}`;
+        if (diffMins > 0) return `in ${diffMins} min`;
+        return 'Now';
+    }
+
+    function isDateStartable(date) {
+        const scheduled = new Date(date.scheduledAt);
+        const now = new Date();
+        const diffMinutes = (scheduled - now) / (1000 * 60);
+        // Allow joining 5 minutes early, up to 30 minutes after scheduled time
+        return diffMinutes <= 5 && diffMinutes >= -30;
+    }
+
+    function getStatusIcon(status) {
+        switch(status) {
+            case 'COMPLETED': return '<i class="fas fa-check-circle"></i>';
+            case 'CANCELLED': return '<i class="fas fa-ban"></i>';
+            case 'NO_SHOW_A':
+            case 'NO_SHOW_B': return '<i class="fas fa-user-slash"></i>';
+            case 'EXPIRED': return '<i class="fas fa-clock"></i>';
+            default: return '<i class="fas fa-circle"></i>';
+        }
+    }
+
+    function getStatusClass(status) {
+        switch(status) {
+            case 'COMPLETED': return 'completed';
+            case 'CANCELLED': return 'declined';
+            case 'NO_SHOW_A':
+            case 'NO_SHOW_B': return 'declined';
+            case 'EXPIRED': return 'declined';
+            default: return 'pending';
+        }
+    }
+
+    function formatStatus(status) {
+        return status.replace(/_/g, ' ').toLowerCase()
+            .replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    function viewCountdown(dateId, scheduledAt) {
+        alert('Date scheduled for ' + formatDateTime(scheduledAt) + '\n\nYou can join 5 minutes before the scheduled time.');
+    }
+
+    async function acceptProposal(id) {
+        try {
+            const formData = new URLSearchParams();
+            formData.append('accept', 'true');
+
+            const response = await fetch(`/api/v1/video-date/${id}/respond`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert('Failed to accept: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Failed to accept:', error);
+            alert('Failed to accept proposal. Please try again.');
+        }
+    }
+
+    async function declineProposal(id) {
+        if (!confirm('Decline this video date proposal?')) return;
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('accept', 'false');
+
+            const response = await fetch(`/api/v1/video-date/${id}/respond`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert('Failed to decline: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Failed to decline:', error);
+            alert('Failed to decline proposal. Please try again.');
+        }
+    }
+
+    async function giveFeedback(id) {
+        const rating = prompt('Rate your date from 1-5 stars:');
+        if (!rating) return;
+
+        const ratingNum = parseInt(rating);
+        if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+            alert('Please enter a number between 1 and 5');
+            return;
+        }
+
+        const comments = prompt('Any additional feedback? (optional)');
+
+        try {
+            const response = await fetch(`/api/v1/video-date/${id}/feedback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    rating: ratingNum,
+                    comments: comments || ''
+                })
+            });
+
+            if (response.ok) {
+                alert('Thank you for your feedback!');
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert('Failed to submit feedback: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Failed to submit feedback:', error);
+            alert('Failed to submit feedback. Please try again.');
+        }
+    }
+
+    /**
+     * Download ICS calendar file for a video date
+     */
+    async function downloadICS(dateId) {
+        try {
+            const response = await fetch(`/api/v1/calendar/ics/${dateId}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to generate calendar file');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `aura-video-date-${dateId}.ics`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success message
+            alert('Calendar file downloaded! You can now import it into your calendar app.');
+        } catch (error) {
+            console.error('Failed to download calendar file:', error);
+            alert('Failed to download calendar file. Please try again or connect your calendar in settings.');
+        }
+    }
+
+</script>
+
+</body>
+</html>

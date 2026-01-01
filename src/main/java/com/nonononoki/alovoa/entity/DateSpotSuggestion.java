@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+
 /**
  * Curated safe first date spots for matched users.
  * All spots are:
@@ -48,9 +50,7 @@ public class DateSpotSuggestion {
     private boolean wellLit = true;           // Well-lit area
     private boolean nearTransit = true;       // Near public transit
     private boolean easyExit = true;          // Multiple exits / easy to leave
-    private boolean outdoorOption = false;    // Has outdoor seating
     private boolean daytimeFriendly = true;   // Good for daytime dates
-    private boolean eveningFriendly = true;   // Good for evening dates
 
     // Transit info
     private String nearestTransit;  // e.g., "Metro Center", "Dupont Circle Metro"
@@ -58,15 +58,18 @@ public class DateSpotSuggestion {
 
     // Ratings
     private Double averageRating;  // 1-5 stars
-    private int totalRatings;
 
-    // For display
-    private String iconEmoji;  // e.g., "☕", "🍷", "🎨", "🌳"
-    private String shortDescription;  // e.g., "Casual · $ · Near Metro"
+    @Column(name = "rating_count")
+    private int ratingCount;
 
     // Status
     private boolean active = true;
-    private boolean verified = false;  // Admin verified
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updatedAt;
 
     // === ENUMS ===
 

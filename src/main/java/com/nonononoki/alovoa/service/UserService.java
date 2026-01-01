@@ -83,6 +83,8 @@ public class UserService {
     @Autowired
     private MediaService mediaService;
     @Autowired
+    private S3StorageService s3StorageService;
+    @Autowired
     private UserRepository userRepo;
     @Autowired
     private GenderRepository genderRepo;
@@ -118,6 +120,10 @@ public class UserService {
     private TextEncryptorConverter textEncryptor;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private DonationService donationService;
+    @Autowired
+    private ContentModerationService moderationService;
     @Value("${app.age.min}")
     private int minAge;
     @Value("${app.age.max}")
@@ -334,22 +340,33 @@ public class UserService {
         mailService.sendAccountDeleteConfirm(user);
     }
 
-    @SuppressWarnings("deprecation")
     public void updateProfilePicture(byte[] bytes, String mimeType) throws AlovoaException, IOException {
         User user = authService.getCurrentUser(true);
         user.setVerificationPicture(null);
         AbstractMap.SimpleEntry<byte[], String> adjustedImage = adjustPicture(bytes, mimeType);
+
+        // Delete old S3 object if exists
+        if (user.getProfilePicture() != null && user.getProfilePicture().getS3Key() != null) {
+            s3StorageService.deleteMedia(user.getProfilePicture().getS3Key());
+        }
+
+        // Upload to S3
+        String s3Key = s3StorageService.uploadMedia(
+                adjustedImage.getKey(),
+                adjustedImage.getValue(),
+                S3StorageService.S3MediaType.PROFILE
+        );
+
         if (user.getProfilePicture() == null) {
             UserProfilePicture profilePic = new UserProfilePicture();
-            profilePic.setBin(adjustedImage.getKey());
+            profilePic.setS3Key(s3Key);
             profilePic.setBinMime(adjustedImage.getValue());
             profilePic.setUser(user);
             profilePic.setUuid(UUID.randomUUID());
             user.setProfilePicture(profilePic);
         } else {
-            user.getProfilePicture().setBin(adjustedImage.getKey());
+            user.getProfilePicture().setS3Key(s3Key);
             user.getProfilePicture().setBinMime(adjustedImage.getValue());
-            user.getProfilePicture().setData(null);
             user.getProfilePicture().setUuid(UUID.randomUUID());
         }
 
@@ -366,8 +383,17 @@ public class UserService {
 
         UserProfilePicture profilePic = new UserProfilePicture();
         AbstractMap.SimpleEntry<byte[], String> adjustedImage = adjustPicture(bytes, model.getProfilePictureMime());
-        profilePic.setBin(adjustedImage.getKey());
+
+        // Upload to S3
+        String s3Key = s3StorageService.uploadMedia(
+                adjustedImage.getKey(),
+                adjustedImage.getValue(),
+                S3StorageService.S3MediaType.PROFILE
+        );
+        profilePic.setS3Key(s3Key);
         profilePic.setBinMime(adjustedImage.getValue());
+        profilePic.setUuid(UUID.randomUUID());
+        profilePic.setUser(user);
         user.setProfilePicture(profilePic);
         user.setVerificationPicture(null);
 
@@ -404,6 +430,14 @@ public class UserService {
                 List<Url> urls = parser.detect();
                 if (!urls.isEmpty()) {
                     throw new AlovoaException("url_detected");
+                }
+
+                // Check content moderation BEFORE saving
+                User user = authService.getCurrentUser(true);
+                com.nonononoki.alovoa.model.ModerationResult moderationResult =
+                    moderationService.moderateContent(description, user, "PROFILE");
+                if (!moderationResult.isAllowed()) {
+                    throw new AlovoaException("profile_content_blocked");
                 }
             }
         }
@@ -501,6 +535,11 @@ public class UserService {
         if (activated) {
             UserMiscInfo info = userMiscInfoRepo.findByValue(infoValue);
             list.add(info);
+
+            // Show donation prompt when user updates to "in a relationship"
+            if (infoValue == UserMiscInfo.RELATIONSHIP_TAKEN) {
+                donationService.showRelationshipExitPrompt(user);
+            }
         }
         user.setMiscInfos(list);
         userRepo.saveAndFlush(user);
@@ -586,8 +625,16 @@ public class UserService {
         if (user.getImages() != null && user.getImages().size() < imageMax) {
             UserImage img = new UserImage();
             AbstractMap.SimpleEntry<byte[], String> adjustedImage = adjustPicture(bytes, mimeType);
-            img.setBin(adjustedImage.getKey());
+
+            // Upload to S3
+            String s3Key = s3StorageService.uploadMedia(
+                    adjustedImage.getKey(),
+                    adjustedImage.getValue(),
+                    S3StorageService.S3MediaType.GALLERY
+            );
+            img.setS3Key(s3Key);
             img.setBinMime(adjustedImage.getValue());
+            img.setUuid(UUID.randomUUID());
             img.setDate(new Date());
             img.setUser(user);
             user.getImages().add(img);
@@ -602,6 +649,10 @@ public class UserService {
         User user = authService.getCurrentUser(true);
         UserImage img = userImageRepo.findById(id).orElse(null);
         if (img != null && user.getImages().contains(img)) {
+            // Delete from S3
+            if (img.getS3Key() != null) {
+                s3StorageService.deleteMedia(img.getS3Key());
+            }
             user.getImages().remove(img);
             userRepo.saveAndFlush(user);
         }
@@ -696,6 +747,14 @@ public class UserService {
                 currUser.getNotifications().add(not);
                 user.getDates().setNotificationDate(new Date());
                 currUser.getHiddenUsers().removeIf(hide -> hide.getUserTo().getId().equals(user.getId()));
+
+                // Show donation prompt when user receives their first like
+                long likeCount = userLikeRepo.findByUserTo(user).stream()
+                        .filter(l -> l.getUserFrom() != null && !l.getUserFrom().isDisabled())
+                        .count();
+                if (likeCount == 1) {
+                    donationService.showFirstLikePrompt(user);
+                }
             }
 
             userRepo.saveAndFlush(user);
@@ -719,6 +778,9 @@ public class UserService {
 
                 userRepo.saveAndFlush(currUser);
                 userRepo.saveAndFlush(user);
+
+                // Show donation prompt after successful match
+                donationService.showAfterMatchPrompt(currUser);
 
                 if (user.getUserSettings().isEmailLike()) {
                     mailService.sendMatchNotificationMail(user);
@@ -862,36 +924,54 @@ public class UserService {
         return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
 
-    @SuppressWarnings("deprecation")
-    public String getAudio(UUID uuid)
-            throws NumberFormatException, AlovoaException {
-        User user = findUserByUuid(uuid);
-        if (user.getAudio() == null) {
-            return null;
-        }
-        return user.getAudio().getData();
+    /**
+     * @deprecated Use MediaController /media/audio/{uuid} instead for S3-based audio
+     */
+    @Deprecated
+    public String getAudio(UUID uuid) throws AlovoaException {
+        // Audio is now served via MediaController using S3 storage
+        // This method is deprecated and returns null
+        LOGGER.warn("Deprecated getAudio() called - use /media/audio/{uuid} instead");
+        return null;
     }
 
     public void deleteAudio() throws AlovoaException {
         User user = authService.getCurrentUser(true);
+        // Delete from S3
+        if (user.getAudio() != null && user.getAudio().getS3Key() != null) {
+            s3StorageService.deleteMedia(user.getAudio().getS3Key());
+        }
         user.setAudio(null);
         userRepo.saveAndFlush(user);
     }
 
-    @SuppressWarnings("deprecation")
     public void updateAudio(byte[] bytes, String mimeType)
             throws AlovoaException, UnsupportedAudioFileException, IOException {
         User user = authService.getCurrentUser(true);
-        byte[] newAudioB64 = adjustAudio(bytes, mimeType);
+        byte[] newAudioBytes = adjustAudio(bytes, mimeType);
+
+        // Delete old S3 object if exists
+        if (user.getAudio() != null && user.getAudio().getS3Key() != null) {
+            s3StorageService.deleteMedia(user.getAudio().getS3Key());
+        }
+
+        // Upload to S3
+        String s3Key = s3StorageService.uploadMedia(
+                newAudioBytes,
+                "audio/wav",
+                S3StorageService.S3MediaType.AUDIO
+        );
+
         if (user.getAudio() == null) {
             UserAudio audio = new UserAudio();
-            audio.setBin(newAudioB64);
+            audio.setS3Key(s3Key);
+            audio.setBinMime("audio/wav");
             audio.setUser(user);
             audio.setUuid(UUID.randomUUID());
             user.setAudio(audio);
         } else {
-            user.getAudio().setBin(newAudioB64);
-            user.getAudio().setData(null);
+            user.getAudio().setS3Key(s3Key);
+            user.getAudio().setBinMime("audio/wav");
             user.getAudio().setUuid(UUID.randomUUID());
         }
         userRepo.saveAndFlush(user);
@@ -933,11 +1013,25 @@ public class UserService {
         if (user.getProfilePicture() == null) {
             throw new AlovoaException("need_profile_picture");
         }
+
+        // Delete old S3 object if exists
+        if (user.getVerificationPicture() != null && user.getVerificationPicture().getS3Key() != null) {
+            s3StorageService.deleteMedia(user.getVerificationPicture().getS3Key());
+        }
+
         user.setVerificationPicture(null);
         userRepo.saveAndFlush(user);
         AbstractMap.SimpleEntry<byte[], String> adjustedImage = adjustPicture(bytes, mimeType);
+
+        // Upload to S3
+        String s3Key = s3StorageService.uploadMedia(
+                adjustedImage.getKey(),
+                adjustedImage.getValue(),
+                S3StorageService.S3MediaType.VERIFICATION
+        );
+
         UserVerificationPicture verificationPicture = new UserVerificationPicture();
-        verificationPicture.setBin(adjustedImage.getKey());
+        verificationPicture.setS3Key(s3Key);
         verificationPicture.setBinMime(adjustedImage.getValue());
         verificationPicture.setDate(new Date());
         verificationPicture.setUser(user);
@@ -1076,5 +1170,33 @@ public class UserService {
             }
             throw e;
         }
+    }
+
+    /**
+     * Get sanitized reputation information for a user by UUID.
+     * This method is safe to call for viewing other users' reputation.
+     *
+     * @param uuid The UUID of the user
+     * @return ReputationDisplayDto with sanitized reputation data
+     * @throws AlovoaException if user not found or other errors occur
+     */
+    public ReputationDisplayDto getUserReputation(UUID uuid)
+            throws AlovoaException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,
+            NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
+
+        User currentUser = authService.getCurrentUser(true);
+        User targetUser = userRepo.findByUuid(uuid).orElseThrow(() -> new AlovoaException(AlovoaException.USER_NOT_FOUND));
+
+        // Check if user is blocked
+        if (currentUser.getBlockedUsers() != null) {
+            boolean blocked = currentUser.getBlockedUsers().stream()
+                    .filter(b -> b.getUserTo() != null)
+                    .anyMatch(b -> b.getUserTo().getId().equals(targetUser.getId()));
+            if (blocked) {
+                throw new AlovoaException(AlovoaException.USER_BLOCKED);
+            }
+        }
+
+        return ReputationDisplayDto.fromUser(targetUser);
     }
 }

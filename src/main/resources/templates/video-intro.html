@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<link rel="stylesheet" th:href="@{/css/video-intro.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-video mr-2"></i> <span th:text="#{video.intro.title}">Video Introduction</span></h1>
+    <p>Let your personality shine through</p>
+</div>
+
+<div class="aura-container">
+    <!-- Already has video intro -->
+    <div th:if="${hasVideoIntro}" class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+        <div class="video-intro-success-badge">
+            <div class="video-intro-success-icon">
+                <i class="fas fa-check-circle fa-4x"></i>
+            </div>
+        </div>
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; color: var(--aura-success);"
+            th:text="#{video.intro.complete}">Video Introduction Complete!</h2>
+        <p style="color: var(--aura-gray-500); margin-top: 0.5rem;">
+            Your video introduction is live on your profile.
+        </p>
+
+        <div class="aura-traits" style="justify-content: center; margin-top: 1.5rem;">
+            <span class="aura-trait aura-trait-positive">
+                <i class="fas fa-video"></i> Video Ready
+            </span>
+            <span th:if="${analyzed}" class="aura-trait aura-trait-positive">
+                <i class="fas fa-robot"></i> AI Analyzed
+            </span>
+            <span th:unless="${analyzed}" class="aura-trait aura-trait-neutral">
+                <i class="fas fa-tags"></i> Manually Tagged
+            </span>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+            <a href="/" class="aura-btn aura-btn-primary">
+                <i class="fas fa-heart"></i> Find Matches
+            </a>
+            <button class="aura-btn aura-btn-secondary" onclick="retryIntro()">
+                <i class="fas fa-redo"></i> Re-record
+            </button>
+        </div>
+    </div>
+
+    <!-- New video intro flow -->
+    <div th:unless="${hasVideoIntro}">
+        <!-- Step 1: Introduction -->
+        <div id="step-intro" class="intro-step aura-animate-fade-up">
+            <div class="aura-card" style="padding: 2rem;">
+                <div class="aura-card-header" style="margin-bottom: 1.5rem;">
+                    <div class="aura-card-icon"><i class="fas fa-info-circle"></i></div>
+                    <div>
+                        <div class="aura-card-title" th:text="#{video.intro.why.title}">Why a Video Introduction?</div>
+                        <div class="aura-card-subtitle">Stand out with authenticity</div>
+                    </div>
+                </div>
+
+                <div class="video-intro-benefits">
+                    <div class="video-intro-benefit">
+                        <div class="video-intro-benefit-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+                            <i class="fas fa-sparkles"></i>
+                        </div>
+                        <div>
+                            <strong>Show your true self</strong>
+                            <p>Let your personality, voice, and energy shine through</p>
+                        </div>
+                    </div>
+                    <div class="video-intro-benefit">
+                        <div class="video-intro-benefit-icon" style="background: linear-gradient(135deg, #06b6d4, #3b82f6);">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div>
+                            <strong>AI-powered matching</strong>
+                            <p>Our AI analyzes your video to find better matches</p>
+                        </div>
+                    </div>
+                    <div class="video-intro-benefit">
+                        <div class="video-intro-benefit-icon" style="background: linear-gradient(135deg, #ec4899, #f472b6);">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div>
+                            <strong>3x more connections</strong>
+                            <p>Profiles with video intros get significantly more interest</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="aura-card aura-animate-fade-up" style="padding: 2rem; margin-top: 1rem;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.25rem;">
+                    <i class="fas fa-microphone mr-2" style="color: var(--aura-primary);"></i>
+                    <span th:text="#{video.intro.prompts.title}">What to Talk About</span>
+                </h3>
+
+                <div class="video-intro-prompts">
+                    <div class="video-intro-prompt">
+                        <i class="fas fa-user"></i>
+                        <span>Who you are and what makes you unique</span>
+                    </div>
+                    <div class="video-intro-prompt">
+                        <i class="fas fa-heart"></i>
+                        <span>What you're passionate about</span>
+                    </div>
+                    <div class="video-intro-prompt">
+                        <i class="fas fa-compass"></i>
+                        <span>Your values and what matters to you</span>
+                    </div>
+                    <div class="video-intro-prompt">
+                        <i class="fas fa-mountain"></i>
+                        <span>Your hobbies, interests, or adventures</span>
+                    </div>
+                    <div class="video-intro-prompt">
+                        <i class="fas fa-search"></i>
+                        <span>What you're looking for in a connection</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="aura-alert aura-alert-info" style="margin-top: 1rem;">
+                <i class="fas fa-clock fa-lg"></i>
+                <div>
+                    <strong>Keep it short and sweet</strong>
+                    <p style="margin-top: 0.25rem; opacity: 0.9;">
+                        Aim for 30-90 seconds. Be genuine, be yourself.
+                    </p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="aura-btn aura-btn-primary aura-btn-lg" onclick="startRecording()">
+                    <i class="fas fa-video"></i> <span th:text="#{video.intro.start}">Start Recording</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Recording -->
+        <div id="step-recording" class="intro-step is-hidden">
+            <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
+                <div class="video-intro-recorder-container">
+                    <video id="video-preview" autoplay playsinline muted></video>
+                    <video id="video-playback" playsinline controls class="is-hidden"></video>
+
+                    <div class="video-intro-overlay">
+                        <div class="video-intro-face-guide"></div>
+                    </div>
+
+                    <div id="recording-indicator" class="video-intro-recording-indicator is-hidden">
+                        <span class="video-intro-recording-dot"></span>
+                        <span>REC</span>
+                        <span id="recording-time">0:00</span>
+                    </div>
+                </div>
+
+                <div class="video-intro-progress-container">
+                    <div class="aura-progress-bar">
+                        <div id="recording-progress" class="aura-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="video-intro-time-hint">Maximum: 2:00</div>
+                </div>
+
+                <div class="video-intro-controls">
+                    <button id="record-btn" class="aura-btn-record" onclick="toggleRecording()">
+                        <span class="record-icon"><i class="fas fa-circle"></i></span>
+                        <span id="record-text">Start</span>
+                    </button>
+                    <button id="preview-btn" class="aura-btn aura-btn-secondary is-hidden" onclick="previewRecording()">
+                        <i class="fas fa-play"></i> Preview
+                    </button>
+                    <button id="upload-btn" class="aura-btn aura-btn-primary is-hidden" onclick="uploadVideo()">
+                        <i class="fas fa-upload"></i> Upload Video
+                    </button>
+                    <button class="aura-btn aura-btn-secondary" onclick="cancelRecording()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Processing -->
+        <div id="step-processing" class="intro-step is-hidden">
+            <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+                <div class="video-intro-processing-animation">
+                    <div class="video-intro-processing-ring"></div>
+                    <div class="video-intro-processing-ring delay-1"></div>
+                    <div class="video-intro-processing-ring delay-2"></div>
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 2rem;"
+                    th:text="#{video.intro.processing}">Analyzing Your Video...</h3>
+                <p style="color: var(--aura-gray-500); margin-top: 0.5rem;">
+                    Our AI is understanding your personality and interests
+                </p>
+
+                <div class="video-intro-processing-steps">
+                    <div id="process-step-1" class="video-intro-processing-step active">
+                        <i class="fas fa-check-circle"></i> Video uploaded
+                    </div>
+                    <div id="process-step-2" class="video-intro-processing-step">
+                        <i class="fas fa-spinner fa-spin"></i> Transcribing speech
+                    </div>
+                    <div id="process-step-3" class="video-intro-processing-step">
+                        <i class="fas fa-clock"></i> Analyzing content
+                    </div>
+                    <div id="process-step-4" class="video-intro-processing-step">
+                        <i class="fas fa-clock"></i> Extracting insights
+                    </div>
+                </div>
+
+                <div class="aura-alert aura-alert-info" style="margin-top: 2rem; text-align: left;">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <p>This usually takes 30-60 seconds. You can close this page and we'll notify you when it's ready.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Manual Tagging (Fallback when AI fails) -->
+        <div id="step-manual-tagging" class="intro-step is-hidden">
+            <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
+                <div class="aura-card-header" style="margin-bottom: 1.5rem;">
+                    <div class="aura-card-icon" style="background: linear-gradient(135deg, #ec4899, #f472b6);">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div>
+                        <div class="aura-card-title">Tell Us More About Your Video</div>
+                        <div class="aura-card-subtitle">Help us understand what makes you unique</div>
+                    </div>
+                </div>
+
+                <div class="aura-alert aura-alert-info" style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-sparkles"></i>
+                    <div>
+                        <strong>Almost there!</strong>
+                        <p style="margin-top: 0.25rem;">Add a few tags so potential matches can discover what you talked about in your video.</p>
+                    </div>
+                </div>
+
+                <!-- Tag Categories -->
+                <div class="tag-category">
+                    <h4><i class="fas fa-heart mr-2"></i>Interests & Hobbies</h4>
+                    <div class="tag-selection-grid" id="interests-tags"></div>
+                </div>
+
+                <div class="tag-category">
+                    <h4><i class="fas fa-user mr-2"></i>Personality Traits</h4>
+                    <div class="tag-selection-grid" id="personality-tags"></div>
+                </div>
+
+                <div class="tag-category">
+                    <h4><i class="fas fa-comment mr-2"></i>Topics Discussed</h4>
+                    <div class="tag-selection-grid" id="topics-tags"></div>
+                </div>
+
+                <!-- Custom tag input -->
+                <div class="tag-category">
+                    <h4><i class="fas fa-plus mr-2"></i>Add Your Own</h4>
+                    <div class="custom-tag-input-container">
+                        <input type="text" id="custom-tag-input" class="aura-input"
+                               placeholder="Type and press Enter to add custom tags..."
+                               onkeypress="handleCustomTagInput(event)">
+                        <div id="custom-tags-display" class="custom-tags-display"></div>
+                    </div>
+                </div>
+
+                <div class="aura-alert aura-alert-warning" style="margin-top: 1.5rem;">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <strong>Pro tip:</strong>
+                        <p style="margin-top: 0.25rem;">Select 5-10 tags that best represent what you discussed in your video. This helps with matching!</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: space-between;">
+                    <button class="aura-btn aura-btn-secondary" onclick="retryAnalysis()">
+                        <i class="fas fa-redo"></i> Retry AI Analysis
+                    </button>
+                    <button class="aura-btn aura-btn-primary aura-btn-lg" onclick="submitManualTags()">
+                        <i class="fas fa-check"></i> Complete Setup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Success -->
+        <div id="step-success" class="intro-step is-hidden">
+            <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+                <div class="video-intro-success-badge">
+                    <div class="video-intro-success-icon">
+                        <i class="fas fa-check-circle fa-4x"></i>
+                    </div>
+                    <div class="video-intro-success-ring"></div>
+                </div>
+                <h2 style="font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; color: var(--aura-success);"
+                    th:text="#{video.intro.success}">All Set!</h2>
+                <p style="color: var(--aura-gray-500); margin-top: 0.5rem;">
+                    Your video introduction is now live on your profile.
+                </p>
+
+                <div id="detected-tags-container" class="detected-tags-container">
+                    <h4 style="font-size: 1rem; margin-bottom: 1rem;">We detected these topics:</h4>
+                    <div id="detected-tags" class="aura-traits" style="justify-content: center;"></div>
+                </div>
+
+                <a href="/" class="aura-btn aura-btn-primary aura-btn-lg" style="margin-top: 2rem;">
+                    <i class="fas fa-heart"></i> Start Matching
+                </a>
+            </div>
+        </div>
+
+        <!-- Step 6: Error -->
+        <div id="step-error" class="intro-step is-hidden">
+            <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+                <div class="video-intro-error-icon">
+                    <i class="fas fa-exclamation-circle fa-4x"></i>
+                </div>
+                <h3 style="font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; color: var(--aura-danger);">
+                    Something Went Wrong
+                </h3>
+                <p id="error-message" style="color: var(--aura-gray-500); margin-top: 0.5rem;"></p>
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                    <button class="aura-btn aura-btn-secondary" onclick="retryFromStart()">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                    <a href="/" class="aura-btn aura-btn-primary">
+                        <i class="fas fa-home"></i> Go Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<script th:src="@{/js/video-intro.js}"></script>
+
+</body>
+</html>

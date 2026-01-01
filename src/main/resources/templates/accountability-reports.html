@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-clipboard-list mr-2"></i> <span th:text="#{accountability.reports.title}">My Reports</span></h1>
+    <p>View and manage your accountability reports</p>
+</div>
+
+<div class="aura-container">
+    <!-- Tab Navigation -->
+    <div class="aura-tabs">
+        <button class="aura-tab active" onclick="switchTab('received')">
+            <i class="fas fa-inbox"></i>
+            <span>Reports About Me</span>
+            <span class="aura-tab-count" th:text="${receivedCount}">0</span>
+        </button>
+        <button class="aura-tab" onclick="switchTab('submitted')">
+            <i class="fas fa-paper-plane"></i>
+            <span>Reports I Submitted</span>
+            <span class="aura-tab-count" th:text="${submittedCount}">0</span>
+        </button>
+    </div>
+
+    <!-- Reports About Me Tab -->
+    <div id="received-tab" class="tab-content active">
+        <div th:if="${not #lists.isEmpty(receivedReports)}" class="aura-feedback-list aura-stagger">
+            <div th:each="report : ${receivedReports}" class="aura-card aura-feedback-item aura-animate-fade-up">
+                <div class="aura-feedback-icon"
+                     th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'positive' : 'negative'">
+                    <i th:class="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'fas fa-thumbs-up' : 'fas fa-exclamation-triangle'"></i>
+                </div>
+
+                <div class="aura-feedback-content">
+                    <div class="aura-feedback-header">
+                        <strong th:text="${report.title}">Report Title</strong>
+                        <div class="aura-feedback-badges">
+                            <span class="aura-trait"
+                                  th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'aura-trait-positive' : 'aura-trait-negative'"
+                                  th:text="${#strings.replace(report.category.name(), '_', ' ')}">Category</span>
+                            <span class="aura-trait" th:classappend="${report.status.name() == 'VERIFIED' or report.status.name() == 'PUBLISHED'} ? 'aura-trait-positive' :
+                                (${report.status.name() == 'PENDING_VERIFICATION'} ? '' : 'aura-trait-negative')"
+                                  th:text="${#strings.replace(report.status.name(), '_', ' ')}">Status</span>
+                            <span class="aura-trait aura-trait-positive" th:if="${report.evidenceVerified}">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Evidence Verified</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="aura-feedback-description" th:text="${report.description}">
+                        Description of the feedback...
+                    </p>
+
+                    <div class="aura-feedback-meta">
+                        <span th:if="${!report.anonymous}">
+                            <i class="fas fa-user"></i>
+                            <span>From: </span>
+                            <span th:text="${report.reporter.firstName}">Reporter</span>
+                        </span>
+                        <span th:if="${report.anonymous}">
+                            <i class="fas fa-user-secret"></i>
+                            <span th:text="#{accountability.anonymous}">Anonymous Reporter</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-calendar"></i>
+                            <span th:text="${#dates.format(report.createdAt, 'MMM dd, yyyy')}">Date</span>
+                        </span>
+                        <span th:if="${report.helpfulCount > 0}">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span th:text="${report.helpfulCount} + ' helpful'">5 helpful</span>
+                        </span>
+                    </div>
+
+                    <!-- My Response -->
+                    <div th:if="${report.subjectResponse != null}" class="aura-feedback-response">
+                        <div class="aura-feedback-response-header">
+                            <i class="fas fa-reply"></i>
+                            <strong>My Response</strong>
+                        </div>
+                        <p th:text="${report.subjectResponse}">Your response...</p>
+                    </div>
+
+                    <!-- Respond Button (if no response yet and report is verified) -->
+                    <div class="aura-feedback-actions" th:if="${report.subjectResponse == null and (report.status.name() == 'VERIFIED' or report.status.name() == 'PUBLISHED')}">
+                        <button class="aura-btn aura-btn-primary aura-btn-sm" onclick="openResponseModal(this)"
+                                th:data-uuid="${report.uuid}" th:data-title="${report.title}">
+                            <i class="fas fa-reply"></i>
+                            <span>Respond to Report</span>
+                        </button>
+                    </div>
+
+                    <!-- View Details Link -->
+                    <div class="aura-feedback-actions" style="margin-top: 0.5rem;">
+                        <a th:href="@{/accountability/view/{uuid}(uuid=${report.uuid})}" class="aura-link">
+                            <i class="fas fa-eye"></i>
+                            <span>View Full Details</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(receivedReports)}" class="aura-empty-state aura-animate-fade-up">
+            <div class="aura-empty-icon">
+                <i class="fas fa-inbox fa-3x"></i>
+            </div>
+            <h3>No Reports Received</h3>
+            <p>You haven't received any accountability reports yet.</p>
+        </div>
+    </div>
+
+    <!-- Reports I Submitted Tab -->
+    <div id="submitted-tab" class="tab-content">
+        <div th:if="${not #lists.isEmpty(submittedReports)}" class="aura-feedback-list aura-stagger">
+            <div th:each="report : ${submittedReports}" class="aura-card aura-feedback-item aura-animate-fade-up">
+                <div class="aura-feedback-icon"
+                     th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'positive' : 'negative'">
+                    <i th:class="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'fas fa-thumbs-up' : 'fas fa-exclamation-triangle'"></i>
+                </div>
+
+                <div class="aura-feedback-content">
+                    <div class="aura-feedback-header">
+                        <strong th:text="${report.title}">Report Title</strong>
+                        <div class="aura-feedback-badges">
+                            <span class="aura-trait"
+                                  th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'aura-trait-positive' : 'aura-trait-negative'"
+                                  th:text="${#strings.replace(report.category.name(), '_', ' ')}">Category</span>
+                            <span class="aura-trait" th:classappend="${report.status.name() == 'VERIFIED' or report.status.name() == 'PUBLISHED'} ? 'aura-trait-positive' :
+                                (${report.status.name() == 'PENDING_VERIFICATION'} ? '' : 'aura-trait-negative')"
+                                  th:text="${#strings.replace(report.status.name(), '_', ' ')}">Status</span>
+                            <span class="aura-trait aura-trait-positive" th:if="${report.evidenceVerified}">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Evidence Verified</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="aura-feedback-description" th:text="${report.description}">
+                        Description of the feedback...
+                    </p>
+
+                    <div class="aura-feedback-meta">
+                        <span>
+                            <i class="fas fa-user"></i>
+                            <span>About: </span>
+                            <span th:text="${report.subject.firstName}">Subject</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-calendar"></i>
+                            <span th:text="${#dates.format(report.createdAt, 'MMM dd, yyyy')}">Date</span>
+                        </span>
+                        <span th:if="${report.helpfulCount > 0}">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span th:text="${report.helpfulCount} + ' helpful'">5 helpful</span>
+                        </span>
+                    </div>
+
+                    <!-- Subject's Response -->
+                    <div th:if="${report.subjectResponse != null}" class="aura-feedback-response">
+                        <div class="aura-feedback-response-header">
+                            <i class="fas fa-reply"></i>
+                            <strong>Their Response</strong>
+                        </div>
+                        <p th:text="${report.subjectResponse}">Their response...</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="aura-feedback-actions">
+                        <a th:href="@{/accountability/view/{uuid}(uuid=${report.uuid})}" class="aura-link">
+                            <i class="fas fa-eye"></i>
+                            <span>View Details</span>
+                        </a>
+                        <button class="aura-feedback-action danger" th:if="${report.status.name() == 'PENDING_VERIFICATION'}"
+                                onclick="retractReport(this)" th:data-uuid="${report.uuid}">
+                            <i class="fas fa-undo"></i>
+                            <span>Retract Report</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(submittedReports)}" class="aura-empty-state aura-animate-fade-up">
+            <div class="aura-empty-icon">
+                <i class="fas fa-paper-plane fa-3x"></i>
+            </div>
+            <h3>No Reports Submitted</h3>
+            <p>You haven't submitted any accountability reports yet.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Response Modal -->
+<div id="response-modal" class="aura-modal">
+    <div class="aura-modal-backdrop" onclick="closeResponseModal()"></div>
+    <div class="aura-modal-content aura-animate-scale">
+        <div class="aura-modal-header">
+            <h3>Respond to Report</h3>
+            <button class="aura-modal-close" onclick="closeResponseModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="aura-modal-body">
+            <div id="report-title-display" style="background: var(--aura-gray-50); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <strong>Report: </strong>
+                <span id="report-title-text"></span>
+            </div>
+
+            <form id="response-form">
+                <input type="hidden" id="report-uuid">
+
+                <div class="aura-form-group">
+                    <label class="aura-label">Your Response</label>
+                    <textarea id="response-text" class="aura-textarea" rows="6"
+                              placeholder="Provide your perspective on this report. Your response will be visible to others viewing this feedback."></textarea>
+                </div>
+
+                <div class="aura-alert aura-alert-info" style="margin-top: 1rem;">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <p style="font-size: 0.875rem;">
+                            Be respectful and honest in your response. This will help others understand the full context.
+                        </p>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="aura-modal-footer">
+            <button class="aura-btn aura-btn-secondary" onclick="closeResponseModal()">
+                <span>Cancel</span>
+            </button>
+            <button class="aura-btn aura-btn-primary" onclick="submitResponse()">
+                <i class="fas fa-paper-plane"></i>
+                <span>Submit Response</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .aura-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--aura-gray-200);
+        overflow-x: auto;
+    }
+
+    .aura-tab {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 1.5rem;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--aura-gray-600);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .aura-tab:hover {
+        color: var(--aura-primary);
+        background: var(--aura-gray-50);
+    }
+
+    .aura-tab.active {
+        color: var(--aura-primary);
+        border-bottom-color: var(--aura-primary);
+    }
+
+    .aura-tab-count {
+        background: var(--aura-gray-200);
+        color: var(--aura-gray-700);
+        padding: 0.125rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .aura-tab.active .aura-tab-count {
+        background: var(--aura-primary);
+        color: white;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .aura-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        color: var(--aura-primary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: opacity 0.2s ease;
+    }
+
+    .aura-link:hover {
+        opacity: 0.8;
+    }
+
+    .aura-feedback-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .aura-feedback-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    .aura-feedback-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .aura-feedback-icon.positive {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2));
+        color: var(--aura-success);
+    }
+
+    .aura-feedback-icon.negative {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2));
+        color: var(--aura-danger);
+    }
+
+    .aura-feedback-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .aura-feedback-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .aura-feedback-header strong {
+        font-size: 1rem;
+        color: var(--aura-gray-800);
+    }
+
+    .aura-feedback-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .aura-feedback-description {
+        color: var(--aura-gray-600);
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+
+    .aura-feedback-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8125rem;
+        color: var(--aura-gray-500);
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .aura-feedback-meta i {
+        margin-right: 0.25rem;
+    }
+
+    .aura-feedback-response {
+        background: var(--aura-gray-50);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .aura-feedback-response-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--aura-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .aura-feedback-response p {
+        color: var(--aura-gray-600);
+        font-size: 0.9375rem;
+        margin: 0;
+    }
+
+    .aura-feedback-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .aura-feedback-action {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        background: none;
+        border: none;
+        color: var(--aura-gray-500);
+        font-size: 0.8125rem;
+        cursor: pointer;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .aura-feedback-action:hover {
+        background: var(--aura-gray-100);
+        color: var(--aura-primary);
+    }
+
+    .aura-feedback-action.danger:hover {
+        color: var(--aura-danger);
+    }
+
+    .aura-empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: var(--aura-gray-50);
+        border-radius: 16px;
+    }
+
+    .aura-empty-icon {
+        color: var(--aura-gray-400);
+        margin-bottom: 1rem;
+    }
+
+    .aura-empty-state h3 {
+        font-size: 1.25rem;
+        color: var(--aura-gray-700);
+        margin-bottom: 0.5rem;
+    }
+
+    .aura-empty-state p {
+        color: var(--aura-gray-500);
+    }
+
+    /* Modal Styles */
+    .aura-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .aura-modal.active {
+        display: flex;
+    }
+
+    .aura-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    .aura-modal-content {
+        position: relative;
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    }
+
+    .aura-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--aura-gray-200);
+    }
+
+    .aura-modal-header h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .aura-modal-close {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: var(--aura-gray-100);
+        color: var(--aura-gray-600);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .aura-modal-close:hover {
+        background: var(--aura-gray-200);
+    }
+
+    .aura-modal-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+    }
+
+    .aura-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        border-top: 1px solid var(--aura-gray-200);
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .aura-animate-scale {
+        animation: scaleIn 0.3s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .aura-tabs {
+            border-color: var(--aura-gray-700);
+        }
+
+        .aura-tab {
+            color: var(--aura-gray-400);
+        }
+
+        .aura-tab:hover {
+            background: var(--aura-gray-800);
+        }
+
+        .aura-tab-count {
+            background: var(--aura-gray-700);
+            color: var(--aura-gray-300);
+        }
+
+        .aura-feedback-header strong {
+            color: var(--aura-gray-100);
+        }
+
+        .aura-feedback-response {
+            background: var(--aura-gray-800);
+        }
+
+        .aura-empty-state {
+            background: var(--aura-gray-800);
+        }
+
+        .aura-modal-content {
+            background: var(--aura-gray-900);
+        }
+
+        .aura-modal-header,
+        .aura-modal-footer {
+            border-color: var(--aura-gray-700);
+        }
+
+        #report-title-display {
+            background: var(--aura-gray-800);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .aura-feedback-item {
+            flex-direction: column;
+        }
+
+        .aura-feedback-icon {
+            width: 40px;
+            height: 40px;
+        }
+    }
+</style>
+
+<script th:inline="javascript">
+    function switchTab(tabName) {
+        // Update tab buttons
+        const tabs = document.querySelectorAll('.aura-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        // Update tab content
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => content.classList.remove('active'));
+        document.getElementById(tabName + '-tab').classList.add('active');
+    }
+
+    function openResponseModal(button) {
+        const uuid = button.dataset.uuid;
+        const title = button.dataset.title;
+
+        document.getElementById('report-uuid').value = uuid;
+        document.getElementById('report-title-text').textContent = title;
+        document.getElementById('response-modal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeResponseModal() {
+        document.getElementById('response-modal').classList.remove('active');
+        document.body.style.overflow = '';
+        document.getElementById('response-text').value = '';
+    }
+
+    async function submitResponse() {
+        const uuid = document.getElementById('report-uuid').value;
+        const response = document.getElementById('response-text').value;
+
+        if (!response.trim()) {
+            alert('Please enter a response');
+            return;
+        }
+
+        try {
+            const result = await fetch(`/api/v1/accountability/report/${uuid}/respond`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({response: response})
+            });
+
+            const data = await result.json();
+            if (data.success) {
+                alert('Response submitted successfully!');
+                closeResponseModal();
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Failed to submit response');
+        }
+    }
+
+    async function retractReport(button) {
+        if (!confirm('Are you sure you want to retract this report? This action cannot be undone.')) {
+            return;
+        }
+
+        const uuid = button.dataset.uuid;
+        try {
+            const result = await fetch(`/api/v1/accountability/report/${uuid}/retract`, {
+                method: 'POST'
+            });
+
+            const data = await result.json();
+            if (data.success) {
+                alert('Report retracted successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Failed to retract report');
+        }
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeResponseModal();
+        }
+    });
+</script>
+
+</body>
+</html>

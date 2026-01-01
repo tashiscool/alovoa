@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html th:with="lang=${#locale.language}" th:lang="${lang}" dir="auto" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Alovoa">
+    <meta name="theme-color" content="#0f0f23">
+
+    <link rel="stylesheet" href="/css/lib/bulma.min.css" />
+    <link rel="stylesheet" href="/css/lib/animate.min.css" />
+    <link rel="stylesheet" href="/css/alovoa.css" />
+    <link rel="stylesheet" href="/css/aura.css" />
+    <link rel="stylesheet" href="/css/verification.css" />
+
+    <title th:text="#{app.name} + ' - Video Verification'"></title>
+</head>
+
+<body class="verification-body">
+    <div class="loader-parent" id="preloader-parent" style="display: flex">
+        <div class="loader" id="preloader"></div>
+    </div>
+
+    <div id="main">
+        <header th:insert="~{fragments.html::header}"></header>
+
+        <section class="section verification-section">
+            <div class="container">
+                <div class="verification-container">
+
+                    <!-- Header -->
+                    <div class="verification-header">
+                        <h1 class="title is-3">Video Verification</h1>
+                        <p class="subtitle">Verify your identity to unlock full features</p>
+                    </div>
+
+                    <!-- Progress Steps -->
+                    <div class="progress-steps" id="progress-steps">
+                        <div class="step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Instructions</div>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Capture</div>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Processing</div>
+                        </div>
+                        <div class="step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Result</div>
+                        </div>
+                    </div>
+
+                    <!-- Content Area -->
+                    <div class="verification-content">
+
+                        <!-- Step 1: Instructions -->
+                        <div class="verification-step active" id="step-instructions">
+                            <div class="step-content">
+                                <div class="icon-container">
+                                    <svg class="verification-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                        <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
+                                    </svg>
+                                </div>
+                                <h2 class="step-title">Get Ready for Verification</h2>
+                                <div class="instructions-list">
+                                    <div class="instruction-item">
+                                        <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                        <span>Position your face clearly in the camera frame</span>
+                                    </div>
+                                    <div class="instruction-item">
+                                        <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                        <span>Ensure good lighting on your face</span>
+                                    </div>
+                                    <div class="instruction-item">
+                                        <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                        <span>Remove sunglasses or face coverings</span>
+                                    </div>
+                                    <div class="instruction-item">
+                                        <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                        <span>Follow the liveness check prompts (blink, turn head, smile)</span>
+                                    </div>
+                                </div>
+                                <button class="btn-primary" id="btn-start">Start Verification</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Camera Capture -->
+                        <div class="verification-step" id="step-capture">
+                            <div class="step-content">
+                                <div class="camera-container">
+                                    <video id="camera-preview" autoplay playsinline></video>
+                                    <canvas id="capture-canvas" style="display: none;"></canvas>
+
+                                    <!-- Face Oval Overlay -->
+                                    <div class="face-overlay">
+                                        <svg viewBox="0 0 200 240" class="face-oval">
+                                            <ellipse cx="100" cy="120" rx="80" ry="100"
+                                                fill="none"
+                                                stroke="#a78bfa"
+                                                stroke-width="3"
+                                                stroke-dasharray="8,8"/>
+                                        </svg>
+                                    </div>
+
+                                    <!-- Liveness Prompt -->
+                                    <div class="liveness-prompt" id="liveness-prompt">
+                                        <div class="prompt-text">Position your face in the oval</div>
+                                    </div>
+
+                                    <!-- Countdown Overlay -->
+                                    <div class="countdown-overlay" id="countdown-overlay" style="display: none;">
+                                        <div class="countdown-number" id="countdown-number">3</div>
+                                    </div>
+
+                                    <!-- Camera Error -->
+                                    <div class="camera-error" id="camera-error" style="display: none;">
+                                        <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                        </svg>
+                                        <p>Camera access denied or unavailable</p>
+                                        <p class="error-help">Please enable camera permissions and reload</p>
+                                    </div>
+                                </div>
+
+                                <div class="capture-controls">
+                                    <button class="btn-secondary" id="btn-cancel-capture">Cancel</button>
+                                    <button class="btn-primary" id="btn-capture" disabled>
+                                        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        Capture
+                                    </button>
+                                </div>
+
+                                <!-- Liveness Challenges -->
+                                <div class="challenges-list" id="challenges-list">
+                                    <div class="challenge-item" data-challenge="ready">
+                                        <span class="challenge-status"></span>
+                                        <span class="challenge-text">Ready</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Processing -->
+                        <div class="verification-step" id="step-processing">
+                            <div class="step-content">
+                                <div class="processing-animation">
+                                    <div class="spinner"></div>
+                                </div>
+                                <h2 class="step-title">Processing Your Verification</h2>
+                                <p class="step-description">This may take a few moments...</p>
+                                <div class="processing-steps">
+                                    <div class="processing-item" id="processing-upload">
+                                        <div class="processing-spinner"></div>
+                                        <span>Uploading video...</span>
+                                    </div>
+                                    <div class="processing-item" id="processing-analyze">
+                                        <div class="processing-spinner"></div>
+                                        <span>Analyzing face...</span>
+                                    </div>
+                                    <div class="processing-item" id="processing-verify">
+                                        <div class="processing-spinner"></div>
+                                        <span>Verifying liveness...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Result -->
+                        <div class="verification-step" id="step-result">
+                            <div class="step-content">
+                                <!-- Success State -->
+                                <div class="result-success" id="result-success" style="display: none;">
+                                    <div class="success-animation">
+                                        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                                            <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                                            <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                                        </svg>
+                                    </div>
+                                    <h2 class="step-title success-title">Verification Successful!</h2>
+                                    <p class="step-description">Your identity has been verified</p>
+
+                                    <div class="verification-badge">
+                                        <svg class="badge-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <span>Verified User</span>
+                                    </div>
+
+                                    <div class="scores-container" id="scores-container">
+                                        <div class="score-item">
+                                            <div class="score-label">Face Match</div>
+                                            <div class="score-value" id="score-face">-</div>
+                                        </div>
+                                        <div class="score-item">
+                                            <div class="score-label">Liveness</div>
+                                            <div class="score-value" id="score-liveness">-</div>
+                                        </div>
+                                        <div class="score-item">
+                                            <div class="score-label">Authenticity</div>
+                                            <div class="score-value" id="score-authenticity">-</div>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn-primary" onclick="window.location.href='/'">Continue</button>
+                                </div>
+
+                                <!-- Failure State -->
+                                <div class="result-failure" id="result-failure" style="display: none;">
+                                    <div class="failure-animation">
+                                        <svg class="error-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                                            <circle class="error-circle" cx="26" cy="26" r="25" fill="none"/>
+                                            <path class="error-cross" fill="none" d="M16 16 36 36 M36 16 16 36"/>
+                                        </svg>
+                                    </div>
+                                    <h2 class="step-title failure-title">Verification Failed</h2>
+                                    <p class="step-description" id="failure-reason">Unable to verify your identity</p>
+
+                                    <div class="failure-tips">
+                                        <h3>Tips for successful verification:</h3>
+                                        <ul>
+                                            <li>Ensure your face is well-lit and clearly visible</li>
+                                            <li>Remove sunglasses, hats, or face coverings</li>
+                                            <li>Look directly at the camera</li>
+                                            <li>Follow all liveness check prompts carefully</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="result-actions">
+                                        <button class="btn-secondary" onclick="window.location.href='/'">Cancel</button>
+                                        <button class="btn-primary" id="btn-retry">Try Again</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="/js/lib/jquery-3.4.1.min.js"></script>
+    <script src="/js/lib/bulma-toast.min.js"></script>
+    <script src="/js/alovoa.js"></script>
+    <script src="/js/verification.js"></script>
+</body>
+</html>

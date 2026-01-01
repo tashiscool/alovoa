@@ -77,6 +77,21 @@ public class IntakeProgressDto {
     private String nextStep;
 
     /**
+     * Current step user should be on (QUESTIONS, VIDEO, PHOTOS, or null if complete)
+     */
+    private IntakeStep currentStep;
+
+    /**
+     * Whether user can proceed to the next step
+     */
+    private boolean canProceedToNext;
+
+    /**
+     * Reason why user is blocked from proceeding (null if not blocked)
+     */
+    private String blockedReason;
+
+    /**
      * Calculate completion percentage based on required steps
      */
     public static int calculatePercentage(boolean questions, boolean video, boolean pictures) {

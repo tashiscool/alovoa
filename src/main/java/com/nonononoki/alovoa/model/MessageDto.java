@@ -19,6 +19,11 @@ public class MessageDto {
 	private String content;
 	private boolean from;
 	private boolean allowedFormatting;
+	private Date readAt;
+	private Date deliveredAt;
+	private boolean read;
+	private boolean delivered;
+	private List<MessageReactionDto> reactions;
 	
 	public static MessageDto messageToDto(Message message, User user) {
 		MessageDto dto = new MessageDto();
@@ -27,6 +32,11 @@ public class MessageDto {
 		dto.setDate(message.getDate());
 		dto.setFrom(message.getUserFrom().equals(user));
 		dto.setAllowedFormatting(message.isAllowedFormatting());
+		dto.setReadAt(message.getReadAt());
+		dto.setDeliveredAt(message.getDeliveredAt());
+		dto.setRead(message.isRead());
+		dto.setDelivered(message.isDelivered());
+		dto.setReactions(MessageReactionDto.reactionsToDtos(message.getReactions()));
 		return dto;
 	}
 	

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Verification Badge Examples - AURA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Import AURA CSS Variables */
+        :root {
+            --aura-success: #10b981;
+            --aura-info: #3b82f6;
+            --aura-warning: #f59e0b;
+            --aura-danger: #ef4444;
+            --aura-gray-300: #d1d5db;
+            --aura-gray-600: #4b5563;
+            --aura-gradient-success: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            --aura-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --aura-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --aura-radius-full: 9999px;
+            --aura-transition: 300ms ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding: 2rem;
+            background: #f9fafb;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #374151;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+
+        .example-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #4b5563;
+            min-width: 150px;
+        }
+
+        /* Verification Badge Styles */
+        .aura-verification-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--aura-gradient-success);
+            border-radius: var(--aura-radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            box-shadow: var(--aura-shadow-sm);
+            transition: all var(--aura-transition);
+            vertical-align: middle;
+        }
+
+        .aura-verification-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--aura-shadow);
+        }
+
+        .aura-verification-badge i {
+            font-size: 0.875rem;
+        }
+
+        .aura-trust-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--aura-radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: var(--aura-shadow-sm);
+            transition: all var(--aura-transition);
+            vertical-align: middle;
+        }
+
+        .aura-trust-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--aura-shadow);
+        }
+
+        .aura-trust-badge.new-member {
+            background: rgba(156, 163, 175, 0.1);
+            color: var(--aura-gray-600);
+            border: 1px solid var(--aura-gray-300);
+        }
+
+        .aura-trust-badge.verified {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--aura-info);
+            border: 1px solid var(--aura-info);
+        }
+
+        .aura-trust-badge.trusted {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--aura-success);
+            border: 1px solid var(--aura-success);
+        }
+
+        .aura-trust-badge.highly-trusted {
+            background: var(--aura-gradient-success);
+            color: white;
+            border: none;
+        }
+
+        .aura-trust-badge.under-review {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--aura-warning);
+            border: 1px solid var(--aura-warning);
+        }
+
+        .aura-trust-badge.restricted {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--aura-danger);
+            border: 1px solid var(--aura-danger);
+        }
+
+        .aura-badge-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .profile-example {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+
+        .profile-example img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #e5e7eb;
+        }
+
+        .profile-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+        }
+
+        code {
+            background: #1f2937;
+            color: #10b981;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Verification Badge Examples</h1>
+<p>Visual reference for all verification badge variants in the AURA dating app</p>
+
+<div class="section">
+    <h2>Video Verification Badges</h2>
+
+    <div class="example-row">
+        <span class="label">Standard (checkmark):</span>
+        <span class="aura-verification-badge">
+            <i class="fas fa-check-circle"></i>
+            <span>Verified</span>
+        </span>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Alternative (video):</span>
+        <span class="aura-verification-badge">
+            <i class="fas fa-video"></i>
+            <span>Verified</span>
+        </span>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Compact (icon only):</span>
+        <span class="aura-verification-badge" style="padding: 0.3rem 0.5rem;">
+            <i class="fas fa-video"></i>
+        </span>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Trust Level Badges</h2>
+
+    <div class="example-row">
+        <span class="label">New Member:</span>
+        <span class="aura-trust-badge new-member">
+            <i class="fas fa-shield-alt"></i>
+            <span>New Member</span>
+        </span>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Verified:</span>
+        <span class="aura-trust-badge verified">
+            <i class="fas fa-shield-alt"></i>
+            <span>Verified</span>
+        </span>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Trusted:</span>
+        <span class="aura-trust-badge trusted">
+            <i class="fas fa-shield-alt"></i>
+            <span>Trusted</span>
+        </span>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Highly Trusted:</span>
+        <span class="aura-trust-badge highly-trusted">
+            <i class="fas fa-shield-alt"></i>
+            <span>Highly Trusted</span>
+        </span>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Under Review:</span>
+        <span class="aura-trust-badge under-review">
+            <i class="fas fa-shield-alt"></i>
+            <span>Under Review</span>
+        </span>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Restricted:</span>
+        <span class="aura-trust-badge restricted">
+            <i class="fas fa-shield-alt"></i>
+            <span>Restricted</span>
+        </span>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Combined Badge Groups</h2>
+
+    <div class="example-row">
+        <span class="label">Video + Trusted:</span>
+        <div class="aura-badge-group">
+            <span class="aura-verification-badge">
+                <i class="fas fa-check-circle"></i>
+                <span>Verified</span>
+            </span>
+            <span class="aura-trust-badge trusted">
+                <i class="fas fa-shield-alt"></i>
+                <span>Trusted</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Video + Highly Trusted:</span>
+        <div class="aura-badge-group">
+            <span class="aura-verification-badge">
+                <i class="fas fa-video"></i>
+                <span>Verified</span>
+            </span>
+            <span class="aura-trust-badge highly-trusted">
+                <i class="fas fa-shield-alt"></i>
+                <span>Highly Trusted</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="example-row">
+        <span class="label">Compact Icons:</span>
+        <div class="aura-badge-group">
+            <span class="aura-verification-badge" style="padding: 0.2rem 0.5rem;">
+                <i class="fas fa-video"></i>
+            </span>
+            <span class="aura-trust-badge trusted" style="padding: 0.2rem 0.5rem;">
+                <i class="fas fa-shield-alt"></i>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Real-World Examples</h2>
+
+    <h3 style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Profile Header</h3>
+    <div class="profile-example">
+        <img src="" alt="Profile">
+        <div class="profile-info">
+            <h3>Sarah Johnson, 28</h3>
+            <div class="aura-badge-group">
+                <span class="aura-verification-badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Verified</span>
+                </span>
+                <span class="aura-trust-badge highly-trusted">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Highly Trusted</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Search Card</h3>
+    <div class="profile-example">
+        <img src="" alt="Profile">
+        <div class="profile-info">
+            <h3 style="display: flex; align-items: center; gap: 0.5rem;">
+                Michael Chen, 32
+                <span class="aura-verification-badge" style="padding: 0.2rem 0.5rem;">
+                    <i class="fas fa-video"></i>
+                </span>
+                <span class="aura-trust-badge trusted" style="padding: 0.2rem 0.5rem;">
+                    <i class="fas fa-shield-alt"></i>
+                </span>
+            </h3>
+            <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">Software Engineer in San Francisco</p>
+        </div>
+    </div>
+
+    <h3 style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Visitor Card</h3>
+    <div class="profile-example">
+        <img src="" alt="Profile">
+        <div class="profile-info">
+            <h3 style="font-size: 1rem;">Emma Davis</h3>
+            <div class="aura-badge-group" style="margin-bottom: 0.5rem;">
+                <span class="aura-verification-badge" style="padding: 0.2rem 0.5rem;">
+                    <i class="fas fa-video"></i>
+                </span>
+            </div>
+            <p style="color: #6b7280; margin: 0; font-size: 0.75rem;">
+                <i class="fas fa-clock"></i> Visited 2 hours ago
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>CSS Classes</h2>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f9fafb; text-align: left;">
+                <th style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Class Name</th>
+                <th style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Usage</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.aura-verification-badge</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Video verification badge</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.aura-trust-badge</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Base trust badge class</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.new-member</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Trust modifier: New member</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.verified</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Trust modifier: Verified</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.trusted</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Trust modifier: Trusted</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.highly-trusted</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Trust modifier: Highly trusted</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.under-review</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Trust modifier: Under review</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.restricted</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Trust modifier: Restricted</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;"><code>.aura-badge-group</code></td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Container for multiple badges</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>Dark Mode Preview</h2>
+    <div style="background: #1f2937; padding: 2rem; border-radius: 8px; margin-top: 1rem;">
+        <div class="aura-badge-group" style="margin-bottom: 1rem;">
+            <span class="aura-verification-badge">
+                <i class="fas fa-check-circle"></i>
+                <span>Verified</span>
+            </span>
+            <span class="aura-trust-badge highly-trusted">
+                <i class="fas fa-shield-alt"></i>
+                <span>Highly Trusted</span>
+            </span>
+        </div>
+        <p style="color: #9ca3af; margin: 0;">Badges maintain visibility and contrast in dark mode</p>
+    </div>
+</div>
+
+</body>
+</html>

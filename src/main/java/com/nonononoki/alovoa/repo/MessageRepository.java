@@ -34,5 +34,21 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 	 * Count messages sent by a user in a conversation
 	 */
 	long countByConversationAndUserFrom(Conversation conversation, User userFrom);
+
+	/**
+	 * Find all unread messages in a conversation that were sent to a specific user
+	 */
+	@Query("SELECT m FROM Message m WHERE m.conversation = :conversation " +
+			"AND m.userTo = :userTo AND m.readAt IS NULL")
+	List<Message> findUnreadMessagesInConversation(@Param("conversation") Conversation conversation,
+	                                                @Param("userTo") User userTo);
+
+	/**
+	 * Find all undelivered messages in a conversation that were sent to a specific user
+	 */
+	@Query("SELECT m FROM Message m WHERE m.conversation = :conversation " +
+			"AND m.userTo = :userTo AND m.deliveredAt IS NULL")
+	List<Message> findUndeliveredMessagesInConversation(@Param("conversation") Conversation conversation,
+	                                                     @Param("userTo") User userTo);
 }
 

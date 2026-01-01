@@ -437,6 +437,100 @@
 }
 
 /* ========================================
+   VERIFICATION BADGES
+   ======================================== */
+.aura-verification-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--aura-gradient-success);
+    border-radius: var(--aura-radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    box-shadow: var(--aura-shadow-sm);
+    transition: all var(--aura-transition);
+    vertical-align: middle;
+}
+
+.aura-verification-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--aura-shadow);
+}
+
+.aura-verification-badge i {
+    font-size: 0.875rem;
+}
+
+.aura-trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--aura-radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: var(--aura-shadow-sm);
+    transition: all var(--aura-transition);
+    vertical-align: middle;
+}
+
+.aura-trust-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--aura-shadow);
+}
+
+.aura-trust-badge.new-member {
+    background: rgba(156, 163, 175, 0.1);
+    color: var(--aura-gray-600);
+    border: 1px solid var(--aura-gray-300);
+}
+
+.aura-trust-badge.verified {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--aura-info);
+    border: 1px solid var(--aura-info);
+}
+
+.aura-trust-badge.trusted {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--aura-success);
+    border: 1px solid var(--aura-success);
+}
+
+.aura-trust-badge.highly-trusted {
+    background: var(--aura-gradient-success);
+    color: white;
+    border: none;
+}
+
+.aura-trust-badge.under-review {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--aura-warning);
+    border: 1px solid var(--aura-warning);
+}
+
+.aura-trust-badge.restricted {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--aura-danger);
+    border: 1px solid var(--aura-danger);
+}
+
+.aura-badge-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.aura-badge-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+/* ========================================
    TIMELINE
    ======================================== */
 .aura-timeline {

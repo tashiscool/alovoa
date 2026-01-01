@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+
+<body>
+
+<!-- Donation Modal Fragment -->
+<div th:fragment="donation-modal" id="donation-modal" class="donation-modal-backdrop">
+    <div class="donation-modal-container">
+        <!-- Close button -->
+        <button class="donation-modal-close" onclick="closeDonationModal()" aria-label="Close">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Modal Content -->
+        <div class="donation-modal-content">
+            <!-- Heart animation container -->
+            <div class="donation-hearts" id="donation-hearts"></div>
+
+            <!-- Icon/Emoji based on prompt type -->
+            <div class="donation-modal-icon" id="donation-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+
+            <!-- Headline -->
+            <h2 class="donation-modal-headline" id="donation-headline">
+                AURA is Free Forever
+            </h2>
+
+            <!-- Message based on prompt type -->
+            <p class="donation-modal-message" id="donation-message">
+                Like Wikipedia, AURA is funded entirely by donations from people who believe
+                dating should be a public good—not a profit center. Every feature works without
+                donating. If you'd like to chip in, any amount helps keep the servers running.
+            </p>
+
+            <!-- Donation Amount Options -->
+            <div class="donation-amounts">
+                <button class="donation-amount-btn" data-amount="5" onclick="selectDonationAmount(5)">
+                    <span class="amount">$5</span>
+                    <span class="label">Coffee</span>
+                </button>
+                <button class="donation-amount-btn" data-amount="10" onclick="selectDonationAmount(10)">
+                    <span class="amount">$10</span>
+                    <span class="label">Supporter</span>
+                </button>
+                <button class="donation-amount-btn highlighted" data-amount="25" onclick="selectDonationAmount(25)">
+                    <span class="amount">$25</span>
+                    <span class="label">Believer</span>
+                </button>
+                <button class="donation-amount-btn" data-amount="50" onclick="selectDonationAmount(50)">
+                    <span class="amount">$50</span>
+                    <span class="label">Builder</span>
+                </button>
+            </div>
+
+            <!-- Custom Amount Input -->
+            <div class="donation-custom-amount">
+                <label for="custom-amount-input">Or enter custom amount:</label>
+                <div class="custom-amount-wrapper">
+                    <span class="currency-symbol">$</span>
+                    <input
+                        type="number"
+                        id="custom-amount-input"
+                        class="custom-amount-input"
+                        placeholder="0"
+                        min="1"
+                        step="1"
+                        onchange="selectCustomAmount(this.value)"
+                    />
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="donation-actions">
+                <button class="donation-btn donation-btn-primary" id="donate-btn" onclick="proceedToDonation()">
+                    <i class="fas fa-heart"></i>
+                    <span>Support AURA</span>
+                </button>
+                <button class="donation-btn donation-btn-secondary" onclick="dismissDonationModal()">
+                    Maybe Later
+                </button>
+            </div>
+
+            <!-- Tier Benefits (shown after selecting amount) -->
+            <div class="donation-tier-info" id="tier-info" style="display: none;">
+                <div class="tier-benefit">
+                    <i class="fas fa-check"></i>
+                    <span id="tier-benefit-text">Thank you for supporting AURA!</span>
+                </div>
+            </div>
+
+            <!-- Footer note -->
+            <p class="donation-footer-note">
+                <i class="fas fa-lock"></i>
+                Donations are processed securely via Stripe. All features remain free regardless of donation.
+            </p>
+        </div>
+    </div>
+
+    <!-- Confetti canvas for celebrations -->
+    <canvas id="donation-confetti" class="donation-confetti"></canvas>
+</div>
+
+<!-- Prompt Type Messages (used by JavaScript) -->
+<script th:inline="javascript">
+    window.DONATION_PROMPT_MESSAGES = {
+        AFTER_MATCH: {
+            icon: 'fa-heart',
+            headline: 'You Just Matched!',
+            message: 'Congrats on the match! AURA is free forever—no paywalls, no premium features. If you want to help keep it that way, consider donating. Every bit helps us stay ad-free and open to everyone.',
+            celebration: true
+        },
+        AFTER_DATE: {
+            icon: 'fa-video',
+            headline: 'Great Video Date!',
+            message: 'Hope the video date went well! AURA is funded entirely by donations from people like you who've had good experiences. If you'd like to chip in so others can too, any amount helps.',
+            celebration: true
+        },
+        FIRST_LIKE: {
+            icon: 'fa-star',
+            headline: 'Someone Likes You!',
+            message: 'Exciting! Someone just liked your profile. AURA is free and always will be. If you're enjoying the experience, consider donating to help keep it running for everyone.',
+            celebration: true
+        },
+        MILESTONE: {
+            icon: 'fa-trophy',
+            headline: 'Milestone Reached!',
+            message: 'You've hit a milestone! AURA's donation model means you never pay to use features—but if you want to support the platform, we'd be grateful. Think of it like Wikipedia: free for all, funded by those who can.',
+            celebration: true
+        },
+        RELATIONSHIP_EXIT: {
+            icon: 'fa-heart-circle-check',
+            headline: 'Looks Like AURA Worked!',
+            message: 'You just marked your relationship status as "in a relationship." That means we did our job. If you're about to delete the app (totally fine—that's literally the goal), we have one ask: Would you consider donating so someone else can have the same experience? AURA is funded entirely by donations from people who found someone and want to pay it forward.',
+            celebration: true
+        },
+        MONTHLY: {
+            icon: 'fa-calendar',
+            headline: 'Still Free, Still Ad-Free',
+            message: 'AURA remains completely free with no ads or paywalls. We're sustained by donations from users who value what we're building. If you'd like to contribute, any amount helps cover server costs and keep the lights on.',
+            celebration: false
+        },
+        DEFAULT: {
+            icon: 'fa-heart',
+            headline: 'AURA is Free Forever',
+            message: 'Like Wikipedia, AURA is funded entirely by donations from people who believe dating should be a public good—not a profit center. Every feature works without donating. If you'd like to chip in, any amount helps keep the servers running.',
+            celebration: false
+        }
+    };
+</script>
+
+</body>
+</html>

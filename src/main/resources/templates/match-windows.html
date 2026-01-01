@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-clock mr-2"></i> 24-Hour Match Windows</h1>
+    <p>You have 24 hours to decide on each match</p>
+</div>
+
+<div class="aura-container">
+    <!-- Dashboard Summary -->
+    <div class="match-window-dashboard">
+        <div class="dashboard-card pending-card">
+            <div class="dashboard-icon">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div class="dashboard-content">
+                <div class="dashboard-count" th:text="${pendingCount}">0</div>
+                <div class="dashboard-label">Pending Decisions</div>
+                <div class="dashboard-sublabel">Waiting for your response</div>
+            </div>
+        </div>
+
+        <div class="dashboard-card waiting-card">
+            <div class="dashboard-icon">
+                <i class="fas fa-user-clock"></i>
+            </div>
+            <div class="dashboard-content">
+                <div class="dashboard-count" th:text="${waitingCount}">0</div>
+                <div class="dashboard-label">Waiting</div>
+                <div class="dashboard-sublabel">You confirmed, awaiting them</div>
+            </div>
+        </div>
+
+        <div class="dashboard-card confirmed-card">
+            <div class="dashboard-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <div class="dashboard-content">
+                <div class="dashboard-count" th:text="${confirmedCount}">0</div>
+                <div class="dashboard-label">Confirmed</div>
+                <div class="dashboard-sublabel">Ready to connect</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Decisions Section -->
+    <div th:if="${pendingCount > 0}" class="match-section">
+        <h2 class="section-title">
+            <i class="fas fa-exclamation-circle"></i>
+            Action Required
+            <span class="badge badge-danger" th:text="${pendingCount}">0</span>
+        </h2>
+
+        <div th:each="window : ${pendingWindows}" class="match-window-card aura-animate-fade-up">
+            <div class="match-card-header">
+                <div class="match-profile-image">
+                    <img th:src="${window.getOtherUser(currentUser).profilePicture}"
+                         alt="Profile picture"
+                         th:onclick="'viewProfile(\'' + ${window.getOtherUser(currentUser).uuid} + '\')'"/>
+
+                    <!-- Verification badges -->
+                    <div class="profile-badges">
+                        <span th:if="${window.getOtherUser(currentUser).videoVerified}"
+                              class="badge badge-verified" title="Video Verified">
+                            <i class="fas fa-video"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="match-info">
+                    <h3 class="match-name" th:text="${window.getOtherUser(currentUser).firstName}">Sarah</h3>
+                    <div class="compatibility-score">
+                        <i class="fas fa-heart"></i>
+                        <span th:text="${#numbers.formatDecimal(window.compatibilityScore * 100, 0, 0)}">85</span>% Compatible
+                    </div>
+                    <div class="match-description" th:text="${window.getOtherUser(currentUser).description}">
+                        Looking for meaningful connections
+                    </div>
+                </div>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="countdown-timer"
+                 th:classappend="${window.getHoursRemaining() <= 4} ? 'urgent' : ''"
+                 th:attr="data-expires=${window.expiresAt.time}">
+                <div class="timer-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="timer-content">
+                    <div class="timer-display">
+                        <span class="timer-value" th:text="${window.getHoursRemaining()}">12</span>h
+                        <span class="timer-value" th:text="${window.getMinutesRemaining() % 60}">30</span>m
+                        <span class="timer-label">remaining</span>
+                    </div>
+                    <div th:if="${window.extensionUsed}" class="extension-notice">
+                        <i class="fas fa-info-circle"></i> Extended
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="match-actions">
+                <button class="aura-btn aura-btn-success"
+                        th:onclick="'confirmMatch(\'' + ${window.uuid} + '\')'">
+                    <i class="fas fa-heart"></i>
+                    Confirm Interest
+                </button>
+
+                <button class="aura-btn aura-btn-secondary"
+                        th:onclick="'declineMatch(\'' + ${window.uuid} + '\')'">
+                    <i class="fas fa-times"></i>
+                    Decline
+                </button>
+
+                <button th:if="${window.canExtend()}"
+                        class="aura-btn aura-btn-outline"
+                        th:onclick="'requestExtension(\'' + ${window.uuid} + '\')'">
+                    <i class="fas fa-plus-circle"></i>
+                    Request +12h
+                </button>
+            </div>
+
+            <!-- View Full Profile Link -->
+            <div class="match-footer">
+                <a th:href="@{/match-windows/{uuid}(uuid=${window.uuid})}" class="view-profile-link">
+                    <i class="fas fa-user"></i> View Full Profile
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state for pending -->
+    <div th:if="${pendingCount == 0}" class="aura-card empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>No Pending Decisions</h3>
+        <p>You're all caught up! Check back later for new matches.</p>
+    </div>
+
+    <!-- Waiting Matches Section -->
+    <div th:if="${waitingCount > 0}" class="match-section">
+        <h2 class="section-title">
+            <i class="fas fa-user-clock"></i>
+            Waiting on Response
+            <span class="badge badge-info" th:text="${waitingCount}">0</span>
+        </h2>
+
+        <div th:each="window : ${waitingWindows}" class="match-window-card waiting-state aura-animate-fade-up">
+            <div class="match-card-header">
+                <div class="match-profile-image">
+                    <img th:src="${window.getOtherUser(currentUser).profilePicture}"
+                         alt="Profile picture"
+                         th:onclick="'viewProfile(\'' + ${window.getOtherUser(currentUser).uuid} + '\')'"/>
+                </div>
+
+                <div class="match-info">
+                    <h3 class="match-name" th:text="${window.getOtherUser(currentUser).firstName}">Alex</h3>
+                    <div class="compatibility-score">
+                        <i class="fas fa-heart"></i>
+                        <span th:text="${#numbers.formatDecimal(window.compatibilityScore * 100, 0, 0)}">92</span>% Compatible
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-message waiting">
+                <i class="fas fa-check-circle"></i>
+                You confirmed on <span th:text="${#dates.format(window.userAConfirmedAt != null ? window.userAConfirmedAt : window.userBConfirmedAt, 'MMM dd, HH:mm')}">Dec 15, 14:30</span>
+            </div>
+
+            <div class="countdown-timer" th:attr="data-expires=${window.expiresAt.time}">
+                <div class="timer-icon">
+                    <i class="fas fa-hourglass-end"></i>
+                </div>
+                <div class="timer-content">
+                    <div class="timer-display">
+                        <span class="timer-value" th:text="${window.getHoursRemaining()}">8</span>h
+                        <span class="timer-value" th:text="${window.getMinutesRemaining() % 60}">45</span>m
+                        <span class="timer-label">for their response</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmed Matches Section -->
+    <div th:if="${confirmedCount > 0}" class="match-section">
+        <h2 class="section-title">
+            <i class="fas fa-heart"></i>
+            Confirmed Matches
+            <span class="badge badge-success" th:text="${confirmedCount}">0</span>
+        </h2>
+
+        <div th:each="window : ${confirmedWindows}" class="match-window-card confirmed-state aura-animate-fade-up">
+            <div class="match-card-header">
+                <div class="match-profile-image">
+                    <img th:src="${window.getOtherUser(currentUser).profilePicture}"
+                         alt="Profile picture"
+                         th:onclick="'viewProfile(\'' + ${window.getOtherUser(currentUser).uuid} + '\')'"/>
+                </div>
+
+                <div class="match-info">
+                    <h3 class="match-name" th:text="${window.getOtherUser(currentUser).firstName}">Jordan</h3>
+                    <div class="compatibility-score">
+                        <i class="fas fa-heart"></i>
+                        <span th:text="${#numbers.formatDecimal(window.compatibilityScore * 100, 0, 0)}">88</span>% Compatible
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-message confirmed">
+                <i class="fas fa-check-double"></i>
+                Both confirmed! Ready to connect
+            </div>
+
+            <div class="match-actions">
+                <a th:if="${window.conversation != null}"
+                   th:href="@{/conversations/{id}(id=${window.conversation.id})}"
+                   class="aura-btn aura-btn-primary">
+                    <i class="fas fa-comments"></i>
+                    Start Conversation
+                </a>
+
+                <a th:href="@{/video-date/schedule}" class="aura-btn aura-btn-outline">
+                    <i class="fas fa-video"></i>
+                    Schedule Video Date
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+/* Match Window Dashboard */
+.match-window-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: var(--aura-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--aura-shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all var(--aura-transition);
+    border: 2px solid transparent;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--aura-shadow-md);
+}
+
+.pending-card {
+    border-color: var(--aura-danger);
+}
+
+.pending-card .dashboard-icon {
+    background: linear-gradient(135deg, var(--aura-danger), #dc2626);
+}
+
+.waiting-card {
+    border-color: var(--aura-info);
+}
+
+.waiting-card .dashboard-icon {
+    background: linear-gradient(135deg, var(--aura-info), #2563eb);
+}
+
+.confirmed-card {
+    border-color: var(--aura-success);
+}
+
+.confirmed-card .dashboard-icon {
+    background: linear-gradient(135deg, var(--aura-success), #059669);
+}
+
+.dashboard-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--aura-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.dashboard-content {
+    flex: 1;
+}
+
+.dashboard-count {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--aura-gray-800);
+    line-height: 1;
+}
+
+.dashboard-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--aura-gray-700);
+    margin-top: 0.25rem;
+}
+
+.dashboard-sublabel {
+    font-size: 0.75rem;
+    color: var(--aura-gray-500);
+    margin-top: 0.125rem;
+}
+
+/* Section Titles */
+.match-section {
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--aura-gray-800);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-title i {
+    color: var(--aura-primary);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--aura-radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-danger {
+    background: var(--aura-danger);
+    color: white;
+}
+
+.badge-info {
+    background: var(--aura-info);
+    color: white;
+}
+
+.badge-success {
+    background: var(--aura-success);
+    color: white;
+}
+
+.badge-verified {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--aura-radius);
+    font-size: 0.75rem;
+}
+
+/* Match Window Cards */
+.match-window-card {
+    background: white;
+    border-radius: var(--aura-radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--aura-shadow);
+    border: 2px solid var(--aura-gray-100);
+    transition: all var(--aura-transition);
+}
+
+.match-window-card:hover {
+    border-color: var(--aura-primary);
+    box-shadow: var(--aura-shadow-md);
+}
+
+.match-window-card.waiting-state {
+    border-color: var(--aura-info);
+    background: linear-gradient(to bottom, white, rgba(59, 130, 246, 0.02));
+}
+
+.match-window-card.confirmed-state {
+    border-color: var(--aura-success);
+    background: linear-gradient(to bottom, white, rgba(16, 185, 129, 0.02));
+}
+
+.match-card-header {
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--aura-gray-100);
+}
+
+.match-profile-image {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+}
+
+.match-profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--aura-radius-lg);
+    cursor: pointer;
+    transition: transform var(--aura-transition);
+}
+
+.match-profile-image img:hover {
+    transform: scale(1.05);
+}
+
+.profile-badges {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    display: flex;
+    gap: 4px;
+}
+
+.match-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.match-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--aura-gray-800);
+    margin-bottom: 0.5rem;
+}
+
+.compatibility-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--aura-gradient-primary);
+    color: white;
+    border-radius: var(--aura-radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    width: fit-content;
+    margin-bottom: 0.75rem;
+}
+
+.match-description {
+    color: var(--aura-gray-600);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+/* Countdown Timer */
+.countdown-timer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--aura-gray-50);
+    border-radius: var(--aura-radius);
+    margin-bottom: 1.25rem;
+}
+
+.countdown-timer.urgent {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.15));
+    border: 2px solid var(--aura-danger);
+    animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+    0%, 100% { border-color: var(--aura-danger); }
+    50% { border-color: rgba(239, 68, 68, 0.5); }
+}
+
+.timer-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--aura-gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.countdown-timer.urgent .timer-icon {
+    background: linear-gradient(135deg, var(--aura-danger), #dc2626);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.timer-content {
+    flex: 1;
+}
+
+.timer-display {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--aura-gray-800);
+}
+
+.countdown-timer.urgent .timer-display {
+    color: var(--aura-danger);
+}
+
+.timer-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.timer-label {
+    font-size: 0.875rem;
+    color: var(--aura-gray-500);
+    margin-left: 0.5rem;
+}
+
+.extension-notice {
+    font-size: 0.8125rem;
+    color: var(--aura-info);
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Status Messages */
+.status-message {
+    padding: 1rem;
+    border-radius: var(--aura-radius);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+}
+
+.status-message.waiting {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--aura-info);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.status-message.confirmed {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--aura-success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-message i {
+    font-size: 1.25rem;
+}
+
+/* Action Buttons */
+.match-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.aura-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--aura-radius);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--aura-transition);
+    border: none;
+    text-decoration: none;
+}
+
+.aura-btn-success {
+    background: var(--aura-gradient-success);
+    color: white;
+}
+
+.aura-btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.aura-btn-secondary {
+    background: var(--aura-gray-200);
+    color: var(--aura-gray-700);
+}
+
+.aura-btn-secondary:hover {
+    background: var(--aura-gray-300);
+}
+
+.aura-btn-primary {
+    background: var(--aura-gradient-primary);
+    color: white;
+}
+
+.aura-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+}
+
+.aura-btn-outline {
+    background: transparent;
+    color: var(--aura-primary);
+    border: 2px solid var(--aura-primary);
+}
+
+.aura-btn-outline:hover {
+    background: var(--aura-primary);
+    color: white;
+}
+
+/* Match Footer */
+.match-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--aura-gray-100);
+    text-align: center;
+}
+
+.view-profile-link {
+    color: var(--aura-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all var(--aura-transition);
+}
+
+.view-profile-link:hover {
+    gap: 0.75rem;
+    color: var(--aura-primary-dark);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--aura-success);
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--aura-gray-800);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--aura-gray-500);
+    font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .match-window-dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .match-card-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .match-profile-image {
+        margin: 0 auto;
+    }
+
+    .match-actions {
+        flex-direction: column;
+    }
+
+    .aura-btn {
+        width: 100%;
+    }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+    .aura-page {
+        background: linear-gradient(180deg, var(--aura-gray-900) 0%, var(--aura-gray-800) 100%);
+    }
+
+    .match-window-card,
+    .dashboard-card,
+    .aura-card {
+        background: var(--aura-gray-800);
+        border-color: var(--aura-gray-700);
+    }
+
+    .match-name,
+    .section-title,
+    .dashboard-count,
+    .dashboard-label,
+    .timer-display {
+        color: var(--aura-gray-100);
+    }
+
+    .match-description,
+    .dashboard-sublabel,
+    .timer-label {
+        color: var(--aura-gray-400);
+    }
+
+    .countdown-timer {
+        background: var(--aura-gray-700);
+    }
+
+    .aura-btn-secondary {
+        background: var(--aura-gray-700);
+        color: var(--aura-gray-200);
+    }
+
+    .aura-btn-secondary:hover {
+        background: var(--aura-gray-600);
+    }
+}
+
+/* Animations */
+.aura-animate-fade-up {
+    animation: fadeUp 0.5s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script th:inline="javascript">
+// Update countdown timers every minute
+function updateCountdowns() {
+    document.querySelectorAll('[data-expires]').forEach(el => {
+        const expires = new Date(parseInt(el.dataset.expires));
+        const now = new Date();
+        const remaining = expires - now;
+
+        if (remaining > 0) {
+            const hours = Math.floor(remaining / 3600000);
+            const mins = Math.floor((remaining % 3600000) / 60000);
+
+            const valueElements = el.querySelectorAll('.timer-value');
+            if (valueElements.length >= 2) {
+                valueElements[0].textContent = hours;
+                valueElements[1].textContent = mins;
+            }
+
+            // Add urgent class if less than 4 hours
+            if (hours < 4 && !el.classList.contains('urgent')) {
+                el.classList.add('urgent');
+            }
+        } else {
+            // Expired - reload page to update status
+            location.reload();
+        }
+    });
+}
+
+// Update timers immediately and then every minute
+updateCountdowns();
+setInterval(updateCountdowns, 60000);
+
+// Confirm match interest
+async function confirmMatch(windowUuid) {
+    if (!confirm('Confirm your interest in this match?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/v1/match-windows/${windowUuid}/confirm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            showNotification('Match confirmed! Waiting for their response.', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            const data = await response.json();
+            showNotification(data.error || 'Failed to confirm match', 'error');
+        }
+    } catch (error) {
+        console.error('Error confirming match:', error);
+        showNotification('Network error. Please try again.', 'error');
+    }
+}
+
+// Decline match
+async function declineMatch(windowUuid) {
+    if (!confirm('Are you sure you want to decline this match? This cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/v1/match-windows/${windowUuid}/decline`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            showNotification('Match declined gracefully.', 'info');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            const data = await response.json();
+            showNotification(data.error || 'Failed to decline match', 'error');
+        }
+    } catch (error) {
+        console.error('Error declining match:', error);
+        showNotification('Network error. Please try again.', 'error');
+    }
+}
+
+// Request extension
+async function requestExtension(windowUuid) {
+    if (!confirm('Request a 12-hour extension on this match window? (Can only extend once)')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/v1/match-windows/${windowUuid}/extend`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            showNotification('Extension granted! +12 hours added.', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            const data = await response.json();
+            showNotification(data.error || 'Failed to extend window', 'error');
+        }
+    } catch (error) {
+        console.error('Error requesting extension:', error);
+        showNotification('Network error. Please try again.', 'error');
+    }
+}
+
+// View profile (assumes this function exists globally)
+function viewProfile(userUuid) {
+    window.location.href = `/profile/${userUuid}`;
+}
+
+// Simple notification function
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        background: ${type === 'success' ? 'var(--aura-success)' : type === 'error' ? 'var(--aura-danger)' : 'var(--aura-info)'};
+        color: white;
+        border-radius: var(--aura-radius);
+        box-shadow: var(--aura-shadow-lg);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        max-width: 350px;
+    `;
+    notification.textContent = message;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Add notification animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>

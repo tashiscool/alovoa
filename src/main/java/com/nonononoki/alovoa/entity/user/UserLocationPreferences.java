@@ -28,7 +28,7 @@ public class UserLocationPreferences {
 
     // Maximum travel time for a first date (in minutes)
     // Options: 10, 15, 20, 30, 45, 60
-    private int maxTravelMinutes = 20;
+    private int maxTravelMinutes = 30;
 
     // Matching preferences
     private boolean requireAreaOverlap = true;      // Only match with overlapping areas

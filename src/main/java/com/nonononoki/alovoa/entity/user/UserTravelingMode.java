@@ -47,7 +47,9 @@ public class UserTravelingMode {
 
     // Visibility controls
     private boolean showMeThere = true;       // Let destination users see me
-    private boolean showLocalsTome = true;    // Show me destination users
+
+    @Column(name = "show_locals_to_me")
+    private boolean showLocalsToMe = true;    // Show me destination users
 
     // Auto-disable after trip
     private boolean autoDisable = true;

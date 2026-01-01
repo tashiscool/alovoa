@@ -27,13 +27,8 @@ public class UserImage {
 	@ManyToOne
 	private User user;
 
-	@Deprecated
-	@Column(columnDefinition="mediumtext")
-	private String content;
-
-	@Lob
-	@Column(length=5000000)
-	private byte[] bin;
+	@Column(name = "s3_key")
+	private String s3Key;
 
 	private String binMime;
 

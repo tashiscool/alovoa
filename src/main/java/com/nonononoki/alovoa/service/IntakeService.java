@@ -8,8 +8,10 @@ import com.nonononoki.alovoa.entity.user.UserAudio;
 import com.nonononoki.alovoa.entity.user.UserImage;
 import com.nonononoki.alovoa.entity.user.UserIntakeProgress;
 import com.nonononoki.alovoa.entity.user.UserVideoIntroduction;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.model.AssessmentResponseDto;
 import com.nonononoki.alovoa.model.IntakeProgressDto;
+import com.nonononoki.alovoa.model.IntakeStep;
 import com.nonononoki.alovoa.repo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +88,107 @@ public class IntakeService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private S3StorageService s3StorageService;
+
+    /**
+     * Validate that a user can start a specific intake step.
+     * Enforces sequential completion: QUESTIONS -> VIDEO -> PHOTOS
+     *
+     * @param user The user attempting to start the step
+     * @param step The step they want to start
+     * @throws AlovoaException if the user hasn't completed prerequisite steps
+     */
+    public void validateCanStartStep(User user, IntakeStep step) throws AlovoaException {
+        UserIntakeProgress progress = getOrCreateProgress(user);
+
+        switch (step) {
+            case QUESTIONS:
+                // Always allowed - this is the first step
+                break;
+            case VIDEO:
+                if (!Boolean.TRUE.equals(progress.getQuestionsComplete())) {
+                    throw new AlovoaException("complete_questions_first");
+                }
+                break;
+            case PHOTOS:
+                if (!Boolean.TRUE.equals(progress.getVideoIntroComplete())) {
+                    throw new AlovoaException("complete_video_first");
+                }
+                break;
+            case POLITICAL_ASSESSMENT:
+                // Optional step, no prerequisites
+                break;
+        }
+    }
+
+    /**
+     * Determine the current step the user should be on based on their progress.
+     *
+     * @param progress The user's intake progress
+     * @return The current step they should complete next
+     */
+    public IntakeStep getCurrentStep(UserIntakeProgress progress) {
+        if (!Boolean.TRUE.equals(progress.getQuestionsComplete())) {
+            return IntakeStep.QUESTIONS;
+        }
+        if (!Boolean.TRUE.equals(progress.getVideoIntroComplete())) {
+            return IntakeStep.VIDEO;
+        }
+        if (!Boolean.TRUE.equals(progress.getPicturesComplete())) {
+            return IntakeStep.PHOTOS;
+        }
+        return null; // All required steps complete
+    }
+
+    /**
+     * Check if user can proceed to the next step.
+     *
+     * @param progress The user's intake progress
+     * @return true if they can proceed, false otherwise
+     */
+    public boolean canProceedToNext(UserIntakeProgress progress) {
+        IntakeStep currentStep = getCurrentStep(progress);
+        if (currentStep == null) {
+            return true; // Already complete
+        }
+
+        switch (currentStep) {
+            case QUESTIONS:
+                return Boolean.TRUE.equals(progress.getQuestionsComplete());
+            case VIDEO:
+                return Boolean.TRUE.equals(progress.getVideoIntroComplete());
+            case PHOTOS:
+                return Boolean.TRUE.equals(progress.getPicturesComplete());
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Get the reason why a user is blocked from proceeding.
+     *
+     * @param progress The user's intake progress
+     * @return A user-friendly message explaining what needs to be completed, or null if not blocked
+     */
+    public String getBlockedReason(UserIntakeProgress progress) {
+        IntakeStep currentStep = getCurrentStep(progress);
+        if (currentStep == null) {
+            return null; // Not blocked
+        }
+
+        switch (currentStep) {
+            case QUESTIONS:
+                return "Please complete all 10 core questions to continue";
+            case VIDEO:
+                return "Please upload your video introduction to continue";
+            case PHOTOS:
+                return "Please upload at least one photo to continue";
+            default:
+                return null;
+        }
+    }
+
     /**
      * Get the current user's intake progress
      */
@@ -118,6 +221,11 @@ public class IntakeService {
         progress.updateIntakeComplete();
         intakeProgressRepo.save(progress);
 
+        // Determine current step and blocking info
+        IntakeStep currentStep = getCurrentStep(progress);
+        boolean canProceed = canProceedToNext(progress);
+        String blockedReason = getBlockedReason(progress);
+
         return IntakeProgressDto.builder()
                 .questionsComplete(questionsComplete)
                 .questionsAnswered(questionsAnswered)
@@ -131,6 +239,9 @@ public class IntakeService {
                 .startedAt(progress.getStartedAt())
                 .completedAt(progress.getCompletedAt())
                 .nextStep(IntakeProgressDto.determineNextStep(questionsComplete, videoComplete, picturesComplete))
+                .currentStep(currentStep)
+                .canProceedToNext(canProceed)
+                .blockedReason(blockedReason)
                 .build();
     }
 
@@ -254,8 +365,20 @@ public class IntakeService {
         UserVideoIntroduction videoIntro = videoIntroRepo.findByUser(user)
                 .orElse(new UserVideoIntroduction());
 
+        // Delete old S3 object if exists
+        if (videoIntro.getS3Key() != null) {
+            s3StorageService.deleteMedia(videoIntro.getS3Key());
+        }
+
+        // Upload to S3
+        String s3Key = s3StorageService.uploadMedia(
+                video.getBytes(),
+                contentType,
+                S3StorageService.S3MediaType.VIDEO
+        );
+
         videoIntro.setUser(user);
-        videoIntro.setVideoData(video.getBytes());
+        videoIntro.setS3Key(s3Key);
         videoIntro.setMimeType(contentType);
         videoIntro.setUploadedAt(new Date());
         videoIntro.setManualEntry(skipAiAnalysis);

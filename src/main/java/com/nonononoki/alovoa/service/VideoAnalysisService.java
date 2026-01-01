@@ -32,6 +32,9 @@ public class VideoAnalysisService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private S3StorageService s3StorageService;
+
     /**
      * Analyze a video introduction asynchronously.
      * This method runs in a separate thread to avoid blocking the upload request.
@@ -46,8 +49,14 @@ public class VideoAnalysisService {
             video.setStatus(UserVideoIntroduction.AnalysisStatus.TRANSCRIBING);
             videoIntroRepo.save(video);
 
+            // Download video from S3
+            byte[] videoData = s3StorageService.downloadMedia(video.getS3Key());
+            if (videoData == null) {
+                throw new IllegalStateException("Failed to download video from S3: " + video.getS3Key());
+            }
+
             // Step 1: Transcribe the video
-            String transcript = aiProvider.transcribeVideo(video.getVideoData(), video.getMimeType());
+            String transcript = aiProvider.transcribeVideo(videoData, video.getMimeType());
             video.setTranscript(transcript);
 
             // Update status to analyzing

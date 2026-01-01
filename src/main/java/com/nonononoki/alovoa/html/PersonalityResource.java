@@ -69,6 +69,7 @@ public class PersonalityResource {
         mav.addObject("communicationDirectness", profile.getCommunicationDirectness());
         mav.addObject("communicationEmotional", profile.getCommunicationEmotional());
         mav.addObject("completedAt", profile.getAssessmentCompletedAt());
+        mav.addObject("matchingInsights", personalityService.getMatchingInsights(profile));
 
         return mav;
     }

@@ -3,9 +3,13 @@ package com.nonononoki.alovoa.rest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nonononoki.alovoa.Tools;
+import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserImage;
 import com.nonononoki.alovoa.entity.user.UserMiscInfo;
 import com.nonononoki.alovoa.model.*;
+import com.nonononoki.alovoa.service.AuthService;
+import com.nonononoki.alovoa.service.IntakeService;
+import com.nonononoki.alovoa.service.ProfileCompletenessService;
 import com.nonononoki.alovoa.service.UserService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +40,12 @@ public class UserController {
     private ObjectMapper objectMapper;
     @Autowired
     private UserService userService;
+    @Autowired
+    private AuthService authService;
+    @Autowired
+    private IntakeService intakeService;
+    @Autowired
+    private ProfileCompletenessService profileCompletenessService;
     @Value("${app.audio.max-size}")
     private int audioMaxSize;
     @Value("${app.image.max-size}")
@@ -77,6 +87,10 @@ public class UserController {
     @PostMapping(value = "/update/profile-picture", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public void updateProfilePicture(@RequestParam("file") MultipartFile file, @RequestParam("mime") String mimeType)
             throws AlovoaException, IOException {
+        // Validate that user has completed video before uploading photos
+        User user = authService.getCurrentUser(true);
+        intakeService.validateCanStartStep(user, IntakeStep.PHOTOS);
+
         byte[] bytes = file.getBytes();
         if (bytes.length > mediaMaxSize) {
             throw new AlovoaException(AlovoaException.MAX_MEDIA_SIZE_EXCEEDED);
@@ -184,6 +198,10 @@ public class UserController {
     @PostMapping(value = "/image/add", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public List<UserImageDto> addImage(@RequestParam("file") MultipartFile file, @RequestParam("mime") String mimeType)
             throws AlovoaException, IOException {
+        // Validate that user has completed video before uploading photos
+        User user = authService.getCurrentUser(true);
+        intakeService.validateCanStartStep(user, IntakeStep.PHOTOS);
+
         byte[] bytes = file.getBytes();
         if (bytes.length > mediaMaxSize) {
             throw new AlovoaException(AlovoaException.MAX_MEDIA_SIZE_EXCEEDED);
@@ -245,6 +263,20 @@ public class UserController {
     @GetMapping(value = "/status/new-message")
     public boolean newMessage() throws AlovoaException {
         return userService.hasNewMessage();
+    }
+
+    @GetMapping(value = "/reputation/{uuid}")
+    public ResponseEntity<ReputationDisplayDto> getUserReputation(@PathVariable UUID uuid)
+            throws AlovoaException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,
+            NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
+        return ResponseEntity.ok(userService.getUserReputation(uuid));
+    }
+
+    @GetMapping("/profile/completeness")
+    public ResponseEntity<ProfileCompletenessDto> getProfileCompleteness() throws AlovoaException {
+        User user = authService.getCurrentUser(true);
+        ProfileCompletenessDto completeness = profileCompletenessService.calculateCompleteness(user);
+        return ResponseEntity.ok(completeness);
     }
 
 }

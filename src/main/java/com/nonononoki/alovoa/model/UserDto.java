@@ -327,7 +327,7 @@ public class UserDto {
             UserDtoVerificationPicture verificationPicture = new UserDtoVerificationPicture();
             verificationPicture.setText(userService.getVerificationCode(user));
             UserVerificationPicture pic = user.getVerificationPicture();
-            verificationPicture.setHasPicture(pic != null && pic.getBin() != null);
+            verificationPicture.setHasPicture(pic != null && pic.getS3Key() != null);
 
             if (pic == null) {
                 return verificationPicture;

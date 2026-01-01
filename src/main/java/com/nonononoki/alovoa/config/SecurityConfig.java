@@ -124,6 +124,7 @@ public class SecurityConfig {
                         .requestMatchers("/user/delete-account-confirm").permitAll()
                         .requestMatchers("/delete-account/*").permitAll()
                         .requestMatchers("/media/*").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)

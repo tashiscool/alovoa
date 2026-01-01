@@ -237,6 +237,30 @@ public class User implements UserDetails {
     @JoinColumn
     private UserTravelingMode travelingMode;
 
+    // Donation tracking (donation-only model)
+    @Column(name = "donation_tier")
+    @Enumerated(EnumType.STRING)
+    private DonationTier donationTier = DonationTier.NONE;
+
+    @Column(name = "last_donation_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastDonationDate;
+
+    @Column(name = "donation_streak_months")
+    private int donationStreakMonths = 0;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    @JsonIgnore
+    private List<DonationPrompt> donationPrompts;
+
+    public enum DonationTier {
+        NONE,           // Never donated
+        SUPPORTER,      // $5-20 - Thank you email
+        BELIEVER,       // $21-50 - Name in supporters page (optional)
+        BUILDER,        // $51-100 - Early access, founder badge on profile
+        FOUNDING_MEMBER // $100+ - All above + quarterly updates, feature input
+    }
+
     // AURA Helper methods
     public boolean isVideoVerified() {
         return videoVerification != null && videoVerification.isVerified();

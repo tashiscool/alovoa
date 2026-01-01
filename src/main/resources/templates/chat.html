@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html th:with="lang=${#locale.language}" th:lang="${lang}" dir="auto" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AURA Chat">
+    <meta name="theme-color" content="#7c3aed">
+
+    <link rel="stylesheet" href="/css/lib/bulma.min.css"/>
+    <link rel="stylesheet" href="/css/lib/modal-fx.min.css"/>
+    <link rel="stylesheet" href="/css/alovoa.css"/>
+    <link rel="stylesheet" href="/css/aura.css"/>
+    <link rel="stylesheet" href="/css/chat.css"/>
+
+    <title>AURA - Chat</title>
+</head>
+
+<body class="preload">
+<div class="loader-parent" id="preloader-parent" style="display: flex">
+    <div class="loader" id="preloader"></div>
+</div>
+
+<div id="main">
+    <div class="chat-container">
+        <!-- Sidebar: Conversations List -->
+        <div class="chat-sidebar" id="chat-sidebar">
+            <div class="chat-sidebar-header">
+                <h2 class="chat-sidebar-title">Messages</h2>
+                <button class="button is-small is-ghost" onclick="window.location.href='/profile'">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+
+            <div class="chat-conversations-list" id="conversations-list">
+                <div th:if="${#lists.isEmpty(conversations)}" class="chat-empty-state">
+                    <i class="fas fa-comments fa-3x"></i>
+                    <p>No conversations yet</p>
+                    <p class="is-size-7">Start matching to chat!</p>
+                </div>
+
+                <div th:each="conv : ${conversations}"
+                     th:id="'conversation-' + ${conv.id}"
+                     th:classappend="${selectedConversationId != null && selectedConversationId == conv.id} ? 'active' : ''"
+                     class="chat-conversation-item"
+                     th:onclick="'openConversation(' + ${conv.id} + ')'">
+
+                    <div class="chat-conversation-avatar">
+                        <img th:src="${conv.userProfilePicture}" alt="Profile" th:if="${conv.userProfilePicture != null}">
+                        <i class="fas fa-user" th:unless="${conv.userProfilePicture != null}"></i>
+                    </div>
+
+                    <div class="chat-conversation-content">
+                        <div class="chat-conversation-header">
+                            <span class="chat-conversation-name" th:text="${conv.userName}">Partner Name</span>
+                            <span class="chat-conversation-time" th:text="${#temporals.format(conv.lastUpdated, 'HH:mm')}">12:30</span>
+                        </div>
+                        <div class="chat-conversation-preview">
+                            <span th:if="${conv.lastMessage != null}" th:text="${conv.lastMessage.content}">Last message preview...</span>
+                            <span th:unless="${conv.lastMessage != null}" class="is-italic">No messages yet</span>
+                        </div>
+                    </div>
+
+                    <!-- Unread badge (will be updated by JavaScript) -->
+                    <span class="chat-unread-badge" th:id="'unread-badge-' + ${conv.id}" style="display: none;">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-main" id="chat-main">
+            <div th:if="${selectedConversationId == null}" class="chat-empty-state" style="height: 100%;">
+                <i class="fas fa-comment-dots fa-4x"></i>
+                <p class="is-size-4">Select a conversation to start chatting</p>
+            </div>
+
+            <div th:if="${selectedConversationId != null}" class="chat-active">
+                <!-- Chat Header -->
+                <div class="chat-header" id="chat-header">
+                    <button class="button is-small is-ghost chat-back-button" onclick="closeChatOnMobile()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="chat-header-info" id="chat-header-info">
+                        <div class="chat-header-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="chat-header-name" id="chat-partner-name">Loading...</div>
+                            <div class="chat-header-status" id="chat-partner-status">
+                                <span class="typing-indicator" id="typing-indicator" style="display: none;">
+                                    <span></span><span></span><span></span>
+                                    typing...
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages Area -->
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be dynamically loaded here -->
+                </div>
+
+                <!-- Message Input -->
+                <div class="chat-input-container">
+                    <button class="button is-ghost chat-emoji-button" onclick="toggleEmojiPicker()">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                    <input type="text"
+                           id="message-input"
+                           class="input chat-input"
+                           placeholder="Type a message..."
+                           onkeypress="handleMessageKeyPress(event)"
+                           oninput="handleTyping()">
+                    <button class="button is-primary chat-send-button" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emoji Picker Modal (Simple Implementation) -->
+    <div id="emoji-picker-modal" class="modal">
+        <div class="modal-background" onclick="closeEmojiPicker()"></div>
+        <div class="modal-content">
+            <div class="box" style="max-width: 400px;">
+                <h3 class="title is-5">Quick Reactions</h3>
+                <div class="emoji-grid">
+                    <span class="emoji-item" onclick="insertEmoji('❤️')">❤️</span>
+                    <span class="emoji-item" onclick="insertEmoji('😊')">😊</span>
+                    <span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
+                    <span class="emoji-item" onclick="insertEmoji('😍')">😍</span>
+                    <span class="emoji-item" onclick="insertEmoji('🥰')">🥰</span>
+                    <span class="emoji-item" onclick="insertEmoji('😘')">😘</span>
+                    <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
+                    <span class="emoji-item" onclick="insertEmoji('👌')">👌</span>
+                    <span class="emoji-item" onclick="insertEmoji('🙏')">🙏</span>
+                    <span class="emoji-item" onclick="insertEmoji('🎉')">🎉</span>
+                    <span class="emoji-item" onclick="insertEmoji('😢')">😢</span>
+                    <span class="emoji-item" onclick="insertEmoji('🔥')">🔥</span>
+                    <span class="emoji-item" onclick="insertEmoji('💯')">💯</span>
+                    <span class="emoji-item" onclick="insertEmoji('✨')">✨</span>
+                    <span class="emoji-item" onclick="insertEmoji('🌟')">🌟</span>
+                    <span class="emoji-item" onclick="insertEmoji('💪')">💪</span>
+                </div>
+            </div>
+        </div>
+        <button class="modal-close is-large" onclick="closeEmojiPicker()"></button>
+    </div>
+
+    <!-- Message Reaction Picker Modal -->
+    <div id="reaction-picker-modal" class="modal">
+        <div class="modal-background" onclick="closeReactionPicker()"></div>
+        <div class="modal-content">
+            <div class="box" style="max-width: 400px;">
+                <h3 class="title is-5">React to Message</h3>
+                <div class="emoji-grid">
+                    <span class="emoji-item" onclick="addReactionToMessage('❤️')">❤️</span>
+                    <span class="emoji-item" onclick="addReactionToMessage('😊')">😊</span>
+                    <span class="emoji-item" onclick="addReactionToMessage('😂')">😂</span>
+                    <span class="emoji-item" onclick="addReactionToMessage('😍')">😍</span>
+                    <span class="emoji-item" onclick="addReactionToMessage('🥰')">🥰</span>
+                    <span class="emoji-item" onclick="addReactionToMessage('👍')">👍</span>
+                    <span class="emoji-item" onclick="addReactionToMessage('👌')">👌</span>
+                    <span class="emoji-item" onclick="addReactionToMessage('🔥')">🔥</span>
+                </div>
+            </div>
+        </div>
+        <button class="modal-close is-large" onclick="closeReactionPicker()"></button>
+    </div>
+</div>
+
+<!-- Font Awesome -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+<!-- SockJS and STOMP libraries -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+
+<!-- Chat JavaScript -->
+<script th:inline="javascript">
+    // Configuration from server
+    const currentUserId = [[${user.id}]];
+    const currentUserUuid = [[${user.uuid}]];
+    const selectedConversationId = [[${selectedConversationId}]];
+    const conversationsData = [[${conversations}]];
+</script>
+<script src="/js/chat.js"></script>
+
+<script>
+    // Remove preloader when page loads
+    window.addEventListener('load', function () {
+        document.getElementById('preloader-parent').style.display = 'none';
+        document.body.classList.remove('preload');
+    });
+</script>
+</body>
+</html>

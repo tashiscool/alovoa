@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html th:with="lang=${#locale.language}" th:lang="${lang}" dir="auto" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AURA">
+    <meta name="theme-color" content="#0f0f1a">
+    <meta property="og:title" content="AURA - The dating app that wants you to delete it">
+    <meta property="og:description" content="No ads. No premium tier. No selling your data. Just better dates.">
+    <meta property="og:image" content="/img/share.png">
+
+    <title>AURA - The dating app that wants you to delete it</title>
+    <meta name="description" content="AURA is donation-funded, like Wikipedia. Free for everyone. No ads. No premium tier. Everyone gets the same features.">
+
+    <link rel="stylesheet" href="/css/lib/bulma.min.css" />
+    <link rel="stylesheet" href="/css/alovoa.css" />
+
+    <style>
+        :root {
+            --aura-purple: #a78bfa;
+            --aura-purple-dark: #8b5cf6;
+            --aura-green: #22c55e;
+            --aura-red: #ef4444;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+        }
+
+        .waitlist-hero {
+            padding: 4rem 1.5rem;
+            text-align: center;
+        }
+
+        .waitlist-logo {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            color: var(--aura-purple);
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        .waitlist-title {
+            font-size: clamp(2rem, 8vw, 3rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, var(--aura-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .waitlist-subtitle {
+            font-size: 1.125rem;
+            line-height: 1.6;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .model-callout {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .model-callout h3 {
+            color: var(--aura-green);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .model-callout p {
+            color: #94a3b8;
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        .model-callout strong {
+            color: #ffffff;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 2rem auto;
+        }
+
+        @media (max-width: 480px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            padding: 1.25rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .comparison-card.bad {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .comparison-card.good {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .comparison-card h4 {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+        }
+
+        .comparison-card.bad h4 {
+            color: var(--aura-red);
+        }
+
+        .comparison-card.good h4 {
+            color: var(--aura-green);
+        }
+
+        .comparison-card ul {
+            list-style: none;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            padding: 0;
+            margin: 0;
+        }
+
+        .comparison-card li {
+            padding: 0.375rem 0;
+            padding-left: 1.25rem;
+            position: relative;
+        }
+
+        .comparison-card.bad li::before {
+            content: "\2715";
+            position: absolute;
+            left: 0;
+            color: var(--aura-red);
+        }
+
+        .comparison-card.good li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aura-green);
+        }
+
+        .waitlist-form {
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .waitlist-form .field {
+            margin-bottom: 1rem;
+        }
+
+        .waitlist-form .input,
+        .waitlist-form .select select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            padding: 1rem;
+            font-size: 1rem;
+        }
+
+        .waitlist-form .input::placeholder {
+            color: #64748b;
+        }
+
+        .waitlist-form .input:focus,
+        .waitlist-form .select select:focus {
+            border-color: var(--aura-purple);
+            background: rgba(167, 139, 250, 0.1);
+            box-shadow: none;
+        }
+
+        .waitlist-form .select {
+            width: 100%;
+        }
+
+        .waitlist-form .select select {
+            width: 100%;
+            height: auto;
+        }
+
+        .waitlist-form .select::after {
+            border-color: var(--aura-purple);
+        }
+
+        .waitlist-form .button.is-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--aura-purple) 0%, var(--aura-purple-dark) 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .waitlist-form .button.is-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(167, 139, 250, 0.4);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-row > .field {
+            flex: 1;
+        }
+
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+
+        .trust-line {
+            font-size: 0.8125rem;
+            color: #64748b;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .success-message {
+            display: none;
+            padding: 1.5rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+
+        .success-message h3 {
+            color: var(--aura-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .success-message p {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .success-message .invite-code {
+            background: rgba(167, 139, 250, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 1.25rem;
+            color: var(--aura-purple);
+        }
+
+        .market-progress {
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background: rgba(167, 139, 250, 0.08);
+            border: 1px solid rgba(167, 139, 250, 0.15);
+            border-radius: 16px;
+        }
+
+        .market-progress h4 {
+            color: #ffffff;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            height: 24px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--aura-purple) 0%, var(--aura-green) 100%);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        .features-section {
+            max-width: 600px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+        }
+
+        .feature-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(167, 139, 250, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(167, 139, 250, 0.15);
+            margin-bottom: 1rem;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            color: var(--aura-purple);
+        }
+
+        .feature-text {
+            font-size: 0.9375rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .feature-text strong {
+            color: #ffffff;
+        }
+
+        .faq-section {
+            max-width: 600px;
+            margin: 3rem auto;
+            padding: 2rem 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .faq-section h2 {
+            color: #ffffff;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .faq-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .faq-item h4 {
+            color: #e2e8f0;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .faq-item p {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .waitlist-footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 3rem;
+        }
+
+        .waitlist-footer p {
+            color: #64748b;
+            font-size: 0.8125rem;
+        }
+
+        .waitlist-footer a {
+            color: var(--aura-purple);
+        }
+    </style>
+</head>
+
+<body>
+    <section class="waitlist-hero">
+        <div class="waitlist-logo">AURA</div>
+
+        <h1 class="waitlist-title">The dating app that wants you to delete it.</h1>
+
+        <p class="waitlist-subtitle">
+            No ads. No premium tiers. No selling your data.
+            Just better dates &mdash; funded by people who believe dating should be a public good.
+        </p>
+
+        <div class="model-callout">
+            <h3>Why we're donation-supported</h3>
+            <p>
+                Every dating app makes money when you <strong>stay single</strong>.
+                Subscriptions need you paying. Ads need you scrolling. Premium features need you frustrated.
+                <br><br>
+                We're funded by donations &mdash; like Wikipedia. If AURA works, you'll delete it. That's the goal.
+                <strong>And if it worked for you, maybe you'll donate so it can work for someone else.</strong>
+            </p>
+        </div>
+
+        <div class="comparison-grid">
+            <div class="comparison-card bad">
+                <h4>Other Apps</h4>
+                <ul>
+                    <li>Make money when you stay single</li>
+                    <li>Best features behind paywalls</li>
+                    <li>Sell your data to advertisers</li>
+                    <li>Optimize for time-in-app</li>
+                </ul>
+            </div>
+            <div class="comparison-card good">
+                <h4>AURA</h4>
+                <ul>
+                    <li>Succeed when you find someone</li>
+                    <li>Everyone gets the same features</li>
+                    <li>Never sell your data</li>
+                    <li>Optimize for great dates</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Progress -->
+    <div class="market-progress" th:if="${marketStats}">
+        <h4>DC/NOVA Launch Progress</h4>
+        <div class="progress-bar-container">
+            <div class="progress-bar" th:style="'width: ' + ${marketStats.leadingPercent != null ? marketStats.leadingPercent : 0} + '%'"></div>
+        </div>
+        <div class="progress-label">
+            <span th:text="${totalSignups} + ' people on the waitlist'"></span>
+            <span th:text="${marketStats.leadingPercent != null ? #numbers.formatDecimal(marketStats.leadingPercent, 1, 0) : '0'} + '% to launch'"></span>
+        </div>
+    </div>
+
+    <!-- Signup Form -->
+    <form class="waitlist-form" id="waitlistForm" th:action="@{/api/v1/waitlist/signup}" method="post">
+        <input type="hidden" name="referralCode" th:value="${referralCode}">
+        <input type="hidden" name="source" value="landing_page">
+
+        <div class="field">
+            <input class="input" type="email" name="email" placeholder="Your email" required>
+        </div>
+
+        <div class="form-row">
+            <div class="field">
+                <div class="select">
+                    <select name="gender" required>
+                        <option value="" disabled selected>I am a...</option>
+                        <option value="woman">Woman</option>
+                        <option value="man">Man</option>
+                        <option value="nonbinary">Non-binary</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <div class="select">
+                    <select name="seeking" required>
+                        <option value="" disabled selected>Looking for...</option>
+                        <option value="men">Men</option>
+                        <option value="women">Women</option>
+                        <option value="everyone">Everyone</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="select">
+                <select name="location" required>
+                    <option value="" disabled selected>Where are you?</option>
+                    <option value="dc">Washington, DC</option>
+                    <option value="arlington">Arlington, VA</option>
+                    <option value="alexandria">Alexandria, VA</option>
+                    <option value="nova-other">Other NOVA</option>
+                    <option value="maryland">Maryland suburbs</option>
+                    <option value="other">Other / Willing to relocate</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
+            <button type="submit" class="button is-primary">Join the Waitlist &mdash; It's Free</button>
+        </div>
+
+        <p class="trust-line">
+            No spam. No selling your email. Launching in DC/NOVA when we reach critical mass.
+        </p>
+    </form>
+
+    <div class="success-message" id="successMessage">
+        <h3>You're on the list!</h3>
+        <p>We'll email you when it's your turn. Women get priority access.</p>
+        <div class="invite-code" id="inviteCodeDisplay"></div>
+        <p style="margin-top: 1rem;">Share your code with friends to move up the list!</p>
+    </div>
+
+    <!-- Features -->
+    <div class="features-section">
+        <div class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            <p class="feature-text">
+                <strong>Video verification required.</strong> Every profile is a real person.
+                No catfish. No bots. This is a safety feature, so everyone gets it &mdash; not just premium users.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="feature-text">
+                <strong>Accountability follows bad actors.</strong> Ghost someone? Lie about who you are?
+                Your reputation follows you. Good people have nothing to worry about.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            <p class="feature-text">
+                <strong>Values-first matching.</strong> Politics. Life goals. Dealbreakers.
+                We match on what actually matters &mdash; the stuff you're afraid to ask on a first date.
+            </p>
+        </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section">
+        <h2>Questions</h2>
+
+        <div class="faq-item">
+            <h4>Wait, it's really free?</h4>
+            <p>Yes. No subscription. No premium tier. No ads. We're funded by donations from people who
+               found someone and want to pay it forward. Everyone gets the same features.</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>How do you actually make money?</h4>
+            <p>Like Wikipedia. If AURA helps you find someone, you'll probably delete the app (that's the goal).
+               Before you go, we'll ask if you'd like to donate so others can have the same experience.
+               No pressure. No guilt. Just an option.</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>Why DC/NOVA only?</h4>
+            <p>Dating apps need density to work. We're starting in one metro area and doing it right before expanding.
+               DC has the right demographics: educated, values-driven, tired of the current options.</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>When will my market open?</h4>
+            <p>We need a gender-balanced pool of at least 500 people in your area before launching.
+               Women get priority access when your market opens. Share your invite code to speed things up!</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>What's video verification?</h4>
+            <p>Before you can match with anyone, you record a short video (face + name).
+               AI checks it matches your photos. This proves you're real and eliminates catfishing.</p>
+        </div>
+    </div>
+
+    <footer class="waitlist-footer">
+        <p>
+            Built in DC by someone who thinks dating should be better.<br>
+            Questions? <a href="mailto:hello@dateaura.com">hello@dateaura.com</a>
+        </p>
+        <p style="margin-top: 1rem;">
+            <a th:href="@{/waitlist/status}">Check your waitlist status</a> |
+            <a th:href="@{/privacy}">Privacy</a> |
+            <a th:href="@{/tos}">Terms</a>
+        </p>
+    </footer>
+
+    <script th:inline="javascript">
+        document.getElementById('waitlistForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Joining...';
+
+            const formData = new FormData(form);
+            const data = {
+                email: formData.get('email'),
+                gender: formData.get('gender'),
+                seeking: formData.get('seeking'),
+                location: formData.get('location'),
+                referralCode: formData.get('referralCode') || null,
+                source: formData.get('source'),
+                utmSource: new URLSearchParams(window.location.search).get('utm_source'),
+                utmMedium: new URLSearchParams(window.location.search).get('utm_medium'),
+                utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign')
+            };
+
+            try {
+                const response = await fetch('/api/v1/waitlist/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    form.style.display = 'none';
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.style.display = 'block';
+
+                    if (result.inviteCode) {
+                        document.getElementById('inviteCodeDisplay').textContent = result.inviteCode;
+                    }
+
+                    // Redirect to success page
+                    if (result.inviteCode) {
+                        window.location.href = '/waitlist/success?code=' + result.inviteCode;
+                    }
+                } else {
+                    alert(result.message || 'Something went wrong. Please try again.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                alert('Something went wrong. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    </script>
+</body>
+</html>

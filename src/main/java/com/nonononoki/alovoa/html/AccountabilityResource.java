@@ -21,6 +21,9 @@ public class AccountabilityResource {
 
     public static final String URL = "/accountability";
     public static final String URL_USER = "/accountability/{userUuid}";
+    public static final String URL_MY_REPORTS = "/accountability/my-reports";
+    public static final String URL_REPORT_FORM = "/accountability/report/{userUuid}";
+    public static final String URL_VIEW_REPORT = "/accountability/view/{reportUuid}";
 
     @Autowired
     private AuthService authService;
@@ -44,6 +47,60 @@ public class AccountabilityResource {
             .orElseThrow(() -> new AlovoaException("User not found"));
 
         return buildAccountabilityView(subject, viewer, true);
+    }
+
+    /**
+     * View reports received by me and submitted by me
+     */
+    @GetMapping(URL_MY_REPORTS)
+    public ModelAndView myReports() throws AlovoaException {
+        User user = authService.getCurrentUser(true);
+        ModelAndView mav = new ModelAndView("accountability-reports");
+
+        // Get reports about me (received)
+        List<UserAccountabilityReport> receivedReports = user.getAccountabilityReportsReceived();
+        mav.addObject("receivedReports", receivedReports);
+        mav.addObject("receivedCount", receivedReports.size());
+
+        // Get reports I submitted
+        List<UserAccountabilityReport> submittedReports = user.getAccountabilityReportsSubmitted();
+        mav.addObject("submittedReports", submittedReports);
+        mav.addObject("submittedCount", submittedReports.size());
+
+        return mav;
+    }
+
+    /**
+     * Form to submit a report about a user
+     */
+    @GetMapping(URL_REPORT_FORM)
+    public ModelAndView reportForm(@PathVariable String userUuid) throws AlovoaException {
+        User viewer = authService.getCurrentUser(true);
+        User subject = userRepo.findByUuid(UUID.fromString(userUuid))
+            .orElseThrow(() -> new AlovoaException("User not found"));
+
+        if (viewer.equals(subject)) {
+            throw new AlovoaException("Cannot report yourself");
+        }
+
+        ModelAndView mav = new ModelAndView("accountability-report-form");
+        mav.addObject("subject", subject);
+        mav.addObject("subjectUuid", subject.getUuid().toString());
+
+        return mav;
+    }
+
+    /**
+     * View detailed information about a specific report
+     */
+    @GetMapping(URL_VIEW_REPORT)
+    public ModelAndView viewReport(@PathVariable String reportUuid) throws AlovoaException {
+        User viewer = authService.getCurrentUser(true);
+        UUID uuid = UUID.fromString(reportUuid);
+
+        // For now, redirect to the accountability page
+        // In the future, this could be a dedicated report detail page
+        return new ModelAndView("redirect:" + URL_MY_REPORTS);
     }
 
     private ModelAndView buildAccountabilityView(User subject, User viewer, boolean canSubmitFeedback) {

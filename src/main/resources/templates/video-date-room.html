@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page video-room-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+
+<!-- Video Room Container -->
+<div class="video-room-container">
+    <!-- Room Header -->
+    <div class="room-header">
+        <div class="room-info">
+            <h3 class="room-title">
+                <i class="fas fa-video mr-2"></i>
+                Video Date with <span th:text="${partner.firstName}">Partner</span>
+            </h3>
+            <span id="call-timer" class="call-timer">00:00</span>
+        </div>
+    </div>
+
+    <!-- Video Frame Container -->
+    <div class="video-frame-wrapper">
+        <iframe
+                th:if="${roomUrl}"
+                th:src="${roomUrl}"
+                id="video-iframe"
+                allow="camera; microphone; fullscreen; speaker; display-capture"
+                class="video-frame"
+                allowfullscreen>
+        </iframe>
+
+        <!-- Fallback if no room URL -->
+        <div th:unless="${roomUrl}" class="no-room-fallback">
+            <i class="fas fa-exclamation-triangle fa-3x"></i>
+            <h3>Video Room Not Available</h3>
+            <p>Unable to load the video room. Please try again later.</p>
+            <a href="/video-dates" class="aura-btn aura-btn-primary">
+                <i class="fas fa-arrow-left"></i> Back to Video Dates
+            </a>
+        </div>
+    </div>
+
+    <!-- Call Controls -->
+    <div class="call-controls">
+        <div class="control-group">
+            <button class="control-btn" id="end-call-btn" onclick="endCall()">
+                <i class="fas fa-phone-slash"></i>
+                <span>End Call</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Date Info Panel -->
+    <div class="date-info-panel">
+        <div class="info-item">
+            <i class="fas fa-user"></i>
+            <span th:text="${partner.firstName}">Partner Name</span>
+        </div>
+        <div class="info-item">
+            <i class="fas fa-calendar"></i>
+            <span th:text="${#dates.format(videoDate.scheduledAt, 'MMM dd, yyyy h:mm a')}">Date Time</span>
+        </div>
+        <div class="info-item">
+            <i class="fas fa-clock"></i>
+            <span>Duration: <span id="duration-display">0 min</span></span>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal (shown after call ends) -->
+<div id="feedback-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>How was your video date?</h3>
+        <p>Please rate your experience with <span th:text="${partner.firstName}">Partner</span></p>
+
+        <div class="rating-container">
+            <button class="rating-star" data-rating="1" onclick="selectRating(1)">
+                <i class="far fa-star"></i>
+            </button>
+            <button class="rating-star" data-rating="2" onclick="selectRating(2)">
+                <i class="far fa-star"></i>
+            </button>
+            <button class="rating-star" data-rating="3" onclick="selectRating(3)">
+                <i class="far fa-star"></i>
+            </button>
+            <button class="rating-star" data-rating="4" onclick="selectRating(4)">
+                <i class="far fa-star"></i>
+            </button>
+            <button class="rating-star" data-rating="5" onclick="selectRating(5)">
+                <i class="far fa-star"></i>
+            </button>
+        </div>
+
+        <textarea id="feedback-comments" class="feedback-textarea" placeholder="Share your thoughts... (optional)" rows="4"></textarea>
+
+        <div class="modal-actions">
+            <button class="aura-btn aura-btn-primary" onclick="submitFeedback()">
+                <i class="fas fa-check"></i> Submit Feedback
+            </button>
+            <button class="aura-btn aura-btn-outline" onclick="skipFeedback()">
+                Skip
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .video-room-page {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+    }
+
+    .video-room-container {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #1a1a1a;
+    }
+
+    .room-header {
+        background: linear-gradient(135deg, var(--aura-primary) 0%, var(--aura-secondary) 100%);
+        padding: 1rem 1.5rem;
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .room-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .room-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .call-timer {
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: monospace;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+    }
+
+    .video-frame-wrapper {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        background: #000;
+    }
+
+    .video-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .no-room-fallback {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: white;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .no-room-fallback i {
+        color: var(--aura-warning);
+        margin-bottom: 1rem;
+    }
+
+    .no-room-fallback h3 {
+        margin-bottom: 0.5rem;
+    }
+
+    .no-room-fallback p {
+        margin-bottom: 2rem;
+        opacity: 0.8;
+    }
+
+    .call-controls {
+        background: #2a2a2a;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .control-group {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .control-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: var(--aura-danger);
+        color: white;
+        font-weight: 600;
+    }
+
+    .control-btn:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .control-btn i {
+        font-size: 1.5rem;
+    }
+
+    .date-info-panel {
+        background: #2a2a2a;
+        padding: 0.75rem 1.5rem;
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        border-top: 1px solid #3a3a3a;
+        color: white;
+        font-size: 0.875rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-item i {
+        color: var(--aura-primary-light);
+    }
+
+    /* Feedback Modal */
+    .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        animation: slideUp 0.3s ease;
+    }
+
+    .modal-content h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--aura-gray-800);
+    }
+
+    .modal-content p {
+        margin: 0 0 1.5rem 0;
+        color: var(--aura-gray-600);
+    }
+
+    .rating-container {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .rating-star {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: var(--aura-gray-300);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0.25rem;
+    }
+
+    .rating-star:hover,
+    .rating-star.selected {
+        color: var(--aura-warning);
+        transform: scale(1.1);
+    }
+
+    .rating-star.selected i {
+        font-weight: 900;
+    }
+
+    .rating-star i {
+        pointer-events: none;
+    }
+
+    .feedback-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--aura-gray-300);
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.875rem;
+        resize: vertical;
+        margin-bottom: 1.5rem;
+    }
+
+    .feedback-textarea:focus {
+        outline: none;
+        border-color: var(--aura-primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .modal-actions button {
+        flex: 1;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .room-title {
+            font-size: 1rem;
+        }
+
+        .call-timer {
+            font-size: 1.25rem;
+            padding: 0.25rem 0.75rem;
+        }
+
+        .date-info-panel {
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: center;
+        }
+
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+        }
+    }
+</style>
+
+<script th:inline="javascript">
+    const videoDateId = /*[[${videoDate.id}]]*/ 0;
+    const partnerName = /*[[${partner.firstName}]]*/ 'Partner';
+    let callStartTime = new Date();
+    let callTimerInterval;
+    let durationInterval;
+    let selectedRating = 0;
+    let callEnded = false;
+
+    // Start the call timer
+    function startCallTimer() {
+        callTimerInterval = setInterval(() => {
+            const now = new Date();
+            const elapsed = Math.floor((now - callStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+
+            document.getElementById('call-timer').textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+
+        durationInterval = setInterval(() => {
+            const now = new Date();
+            const elapsed = Math.floor((now - callStartTime) / 1000 / 60);
+            document.getElementById('duration-display').textContent = elapsed + ' min';
+        }, 10000);
+    }
+
+    // Initialize call
+    async function initializeCall() {
+        try {
+            // Notify backend that call is starting
+            const response = await fetch(`/api/v1/video-date/${videoDateId}/start`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                callStartTime = new Date();
+                startCallTimer();
+            } else {
+                console.error('Failed to start call on backend');
+            }
+        } catch (error) {
+            console.error('Error initializing call:', error);
+        }
+    }
+
+    // End the call
+    async function endCall() {
+        if (callEnded) return;
+
+        if (!confirm('Are you sure you want to end this video date?')) {
+            return;
+        }
+
+        callEnded = true;
+        clearInterval(callTimerInterval);
+        clearInterval(durationInterval);
+
+        try {
+            // Notify backend that call is ending
+            const response = await fetch(`/api/v1/video-date/${videoDateId}/end`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                // Show feedback modal
+                document.getElementById('feedback-modal').style.display = 'flex';
+            } else {
+                console.error('Failed to end call on backend');
+                // Still show feedback
+                document.getElementById('feedback-modal').style.display = 'flex';
+            }
+        } catch (error) {
+            console.error('Error ending call:', error);
+            // Still show feedback
+            document.getElementById('feedback-modal').style.display = 'flex';
+        }
+    }
+
+    // Rating selection
+    function selectRating(rating) {
+        selectedRating = rating;
+        const stars = document.querySelectorAll('.rating-star');
+
+        stars.forEach((star, index) => {
+            const starIcon = star.querySelector('i');
+            if (index < rating) {
+                star.classList.add('selected');
+                starIcon.classList.remove('far');
+                starIcon.classList.add('fas');
+            } else {
+                star.classList.remove('selected');
+                starIcon.classList.remove('fas');
+                starIcon.classList.add('far');
+            }
+        });
+    }
+
+    // Submit feedback
+    async function submitFeedback() {
+        if (selectedRating === 0) {
+            alert('Please select a rating before submitting');
+            return;
+        }
+
+        const comments = document.getElementById('feedback-comments').value;
+
+        try {
+            const response = await fetch(`/api/v1/video-date/${videoDateId}/feedback`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    rating: selectedRating,
+                    comments: comments
+                })
+            });
+
+            if (response.ok) {
+                alert('Thank you for your feedback!');
+                window.location.href = '/video-dates';
+            } else {
+                const error = await response.json();
+                alert('Failed to submit feedback: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+            alert('Failed to submit feedback. Redirecting...');
+            window.location.href = '/video-dates';
+        }
+    }
+
+    // Skip feedback
+    function skipFeedback() {
+        if (confirm('Skip feedback? You can provide feedback later from the history tab.')) {
+            window.location.href = '/video-dates';
+        }
+    }
+
+    // Warn before leaving
+    window.addEventListener('beforeunload', function(e) {
+        if (!callEnded) {
+            e.preventDefault();
+            e.returnValue = 'Your video date is still active. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCall();
+    });
+</script>
+
+</body>
+</html>

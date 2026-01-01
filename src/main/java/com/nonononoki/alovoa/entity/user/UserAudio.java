@@ -29,13 +29,10 @@ public class UserAudio {
 	@EqualsAndHashCode.Exclude
 	private User user;
 
-	@Deprecated
-	@Column(columnDefinition = "mediumtext")
+	@Column(name = "s3_key")
 	@EqualsAndHashCode.Exclude
-	private String data;
+	private String s3Key;
 
-	@Lob
-	@Column(length=10000000)
-	private byte[] bin;
+	private String binMime;
 
 }

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html th:with="lang=${#locale.language}" th:lang="${lang}" dir="auto" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f0f1a">
+    <title>You're on the list! - AURA</title>
+
+    <link rel="stylesheet" href="/css/lib/bulma.min.css" />
+    <link rel="stylesheet" href="/css/alovoa.css" />
+
+    <style>
+        :root {
+            --aura-purple: #a78bfa;
+            --aura-green: #22c55e;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-container {
+            max-width: 500px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(34, 197, 94, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            color: var(--aura-green);
+        }
+
+        .success-title {
+            color: #ffffff;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .success-subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .invite-code-box {
+            background: rgba(167, 139, 250, 0.15);
+            border: 2px dashed rgba(167, 139, 250, 0.4);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .invite-code-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .invite-code {
+            font-family: monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--aura-purple);
+            letter-spacing: 2px;
+        }
+
+        .invite-code-help {
+            color: #64748b;
+            font-size: 0.8125rem;
+            margin-top: 0.75rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .share-button {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .share-button.copy {
+            background: var(--aura-purple);
+            color: #ffffff;
+            border: none;
+        }
+
+        .share-button.copy:hover {
+            background: #8b5cf6;
+        }
+
+        .share-button.twitter {
+            background: rgba(29, 161, 242, 0.2);
+            color: #1da1f2;
+            border: 1px solid rgba(29, 161, 242, 0.3);
+        }
+
+        .position-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .position-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .position-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .market-status {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .market-status h4 {
+            color: var(--aura-green);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .market-status p {
+            color: #94a3b8;
+            font-size: 0.8125rem;
+        }
+
+        .progress-bar-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            height: 12px;
+            overflow: hidden;
+            margin-top: 0.75rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--aura-purple) 0%, var(--aura-green) 100%);
+            border-radius: 8px;
+        }
+
+        .next-steps {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .next-steps h4 {
+            color: #ffffff;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .next-steps ul {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            padding-left: 1.25rem;
+        }
+
+        .next-steps li {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-link {
+            color: var(--aura-purple);
+            font-size: 0.875rem;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="success-container">
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+
+        <h1 class="success-title">You're on the list!</h1>
+        <p class="success-subtitle">
+            We'll email you when your market opens.
+            Women get priority access &mdash; we're building this right.
+        </p>
+
+        <!-- Invite Code -->
+        <div class="invite-code-box" th:if="${entry}">
+            <div class="invite-code-label">Your invite code</div>
+            <div class="invite-code" th:text="${entry.inviteCode}" id="inviteCode">XXXXXXXX</div>
+            <div class="invite-code-help">Share with friends to move up the waitlist!</div>
+        </div>
+
+        <!-- Share Buttons -->
+        <div class="share-buttons" th:if="${entry}">
+            <button class="share-button copy" onclick="copyInviteCode()">Copy Link</button>
+            <a class="share-button twitter"
+               th:href="'https://twitter.com/intent/tweet?text=' + @{|I just joined the AURA waitlist - the dating app that wants you to delete it. Use my code ${entry.inviteCode} to join: |} + ${#httpServletRequest.requestURL.toString().replace('/success', '')} + '?ref=' + ${entry.inviteCode}"
+               target="_blank">Share on X</a>
+        </div>
+
+        <!-- Position -->
+        <div class="position-box" th:if="${position}">
+            <div class="position-number" th:text="'#' + ${position}"></div>
+            <div class="position-label">Your position in line</div>
+        </div>
+
+        <!-- Market Status -->
+        <div class="market-status" th:if="${marketStatus}">
+            <h4 th:text="${marketStatus.getLocationDisplayName()} + ' Launch Progress'">DC Launch Progress</h4>
+            <p th:if="${marketStatus.readyToOpen}">Your market is ready! Invites going out soon.</p>
+            <p th:unless="${marketStatus.readyToOpen}"
+               th:text="'Need ' + ${marketStatus.womenNeeded} + ' more women and ' + ${marketStatus.menNeeded} + ' more men to launch.'">
+                Need more signups to launch.
+            </p>
+            <div class="progress-bar-container">
+                <div class="progress-bar" th:style="'width: ' + ${marketStatus.percentReady} + '%'"></div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="next-steps">
+            <h4>What happens next?</h4>
+            <ul>
+                <li>We're launching markets once they hit critical mass (500+ people, gender-balanced)</li>
+                <li>Women get invited first, then by priority score</li>
+                <li>Each referral moves you up the list</li>
+                <li>You'll get an email when it's your turn to join</li>
+            </ul>
+        </div>
+
+        <a th:href="@{/waitlist}" class="back-link">&larr; Back to main page</a>
+    </div>
+
+    <script th:inline="javascript">
+        function copyInviteCode() {
+            const code = document.getElementById('inviteCode').textContent;
+            const url = window.location.origin + '/waitlist?ref=' + code;
+
+            navigator.clipboard.writeText(url).then(function() {
+                const btn = document.querySelector('.share-button.copy');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy Link', 2000);
+            });
+        }
+    </script>
+</body>
+</html>

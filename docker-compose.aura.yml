@@ -19,6 +19,13 @@ services:
       - APP_AURA_DAILY_MATCH_LIMIT=5
       - APP_AURA_VIDEO_VERIFICATION_ENABLED=true
       - APP_AURA_REPUTATION_ENABLED=true
+      # Backblaze B2 Storage (S3-compatible)
+      - S3_ENDPOINT=${S3_ENDPOINT:-https://s3.us-west-004.backblazeb2.com}
+      - S3_REGION=${S3_REGION:-us-west-004}
+      - B2_APPLICATION_KEY_ID=${B2_APPLICATION_KEY_ID}
+      - B2_APPLICATION_KEY=${B2_APPLICATION_KEY}
+      - B2_BUCKET_MEDIA=${B2_BUCKET_MEDIA:-aura-media}
+      - B2_BUCKET_VIDEO=${B2_BUCKET_VIDEO:-aura-video}
     depends_on:
       - mariadb
       - redis
@@ -122,30 +129,22 @@ services:
       timeout: 5s
       retries: 5
 
-  # MinIO for Object Storage (S3-compatible)
-  minio:
-    image: minio/minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      - MINIO_ROOT_USER=aura_admin
-      - MINIO_ROOT_PASSWORD=aura_secret_key
-    volumes:
-      - minio-data:/data
-    networks:
-      - aura-network
-    command: server /data --console-address ":9001"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # Object Storage: Using Backblaze B2 (external service)
+  # No local container needed - configure via environment variables:
+  #   B2_APPLICATION_KEY_ID - Your Backblaze B2 application key ID
+  #   B2_APPLICATION_KEY - Your Backblaze B2 application key
+  #   B2_BUCKET_MEDIA - Bucket name for images/audio (default: aura-media)
+  #   B2_BUCKET_VIDEO - Bucket name for videos (default: aura-video)
+  #
+  # To create buckets in Backblaze B2:
+  #   1. Log into backblaze.com -> B2 Cloud Storage
+  #   2. Create buckets: aura-media, aura-video (private, B2 default encryption)
+  #   3. Create Application Key with read/write access to these buckets
+  #   4. Note your region (e.g., us-west-004) for S3_ENDPOINT
 
 volumes:
   mariadb-data:
   redis-data:
-  minio-data:
   media-storage:
 
 networks:

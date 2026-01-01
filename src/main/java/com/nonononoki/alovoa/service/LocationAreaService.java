@@ -242,7 +242,7 @@ public class LocationAreaService {
         traveling.setArrivingDate(arrivingDate);
         traveling.setLeavingDate(leavingDate);
         traveling.setShowMeThere(showMeThere);
-        traveling.setShowLocalsTome(showLocalsToMe);
+        traveling.setShowLocalsToMe(showLocalsToMe);
         traveling.setActive(true);
         traveling.setAutoDisable(true);
 

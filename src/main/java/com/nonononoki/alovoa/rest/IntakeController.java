@@ -1,7 +1,10 @@
 package com.nonononoki.alovoa.rest;
 
+import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.model.AssessmentResponseDto;
 import com.nonononoki.alovoa.model.IntakeProgressDto;
+import com.nonononoki.alovoa.model.IntakeStep;
 import com.nonononoki.alovoa.service.AuthService;
 import com.nonononoki.alovoa.service.IntakeEncouragementService;
 import com.nonononoki.alovoa.service.IntakeService;
@@ -117,14 +120,25 @@ public class IntakeController {
      * The video can optionally be processed by AI to extract transcript and analysis.
      * Set skipAiAnalysis=true to skip AI and enter profile info manually.
      * This step is REQUIRED for intake completion.
+     * REQUIRES: Questions must be completed first.
      */
     @PostMapping("/video")
     public ResponseEntity<?> uploadVideo(
             @RequestParam("file") MultipartFile video,
             @RequestParam(value = "skipAiAnalysis", required = false, defaultValue = "false") boolean skipAiAnalysis) {
         try {
+            // Validate that user has completed questions before uploading video
+            User user = authService.getCurrentUser(true);
+            intakeService.validateCanStartStep(user, IntakeStep.VIDEO);
+
             Map<String, Object> result = intakeService.uploadVideoIntroduction(video, skipAiAnalysis);
             return ResponseEntity.ok(result);
+        } catch (AlovoaException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage(),
+                    "blocked", true,
+                    "requiredStep", "QUESTIONS"
+            ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {

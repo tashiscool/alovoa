@@ -56,6 +56,28 @@ public class VideoDate {
     @Column(nullable = false)
     private Date createdAt = new Date();
 
+    // === Calendar Integration ===
+
+    @Column(length = 255)
+    private String googleCalendarEventId;
+
+    @Column(length = 255)
+    private String appleCalendarEventId;
+
+    @Column(length = 255)
+    private String outlookCalendarEventId;
+
+    @Column(length = 255)
+    private String icalUid;
+
+    private boolean userACalendarSynced = false;
+    private boolean userBCalendarSynced = false;
+
+    private boolean reminderSent = false;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date reminderSentAt;
+
     public enum DateStatus {
         PROPOSED,
         ACCEPTED,

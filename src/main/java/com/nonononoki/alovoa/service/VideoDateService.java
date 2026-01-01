@@ -43,6 +43,9 @@ public class VideoDateService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private DonationService donationService;
+
     public Map<String, Object> proposeVideoDate(Long conversationId, Date proposedTime) throws Exception {
         User user = authService.getCurrentUser(true);
 
@@ -189,6 +192,9 @@ public class VideoDateService {
                 UserBehaviorEvent.BehaviorType.COMPLETED_DATE,
                 videoDate.getUserA(),
                 Map.of("duration", videoDate.getDurationSeconds()));
+
+        // Show donation prompt after completing a video date
+        donationService.showAfterDatePrompt(user);
 
         return Map.of(
                 "success", true,

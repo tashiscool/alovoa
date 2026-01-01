@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-user-edit mr-2"></i> Profile Details</h1>
+    <p>Share more about yourself to improve your matches</p>
+</div>
+
+<div class="aura-container">
+    <!-- Physical Attributes -->
+    <div class="aura-card aura-animate-fade-up">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-ruler-vertical"></i></div>
+            <div>
+                <div class="aura-card-title">Physical Attributes</div>
+                <div class="aura-card-subtitle">Optional details about your appearance</div>
+            </div>
+        </div>
+
+        <div class="details-grid">
+            <div class="detail-group">
+                <label>Height</label>
+                <div class="height-input">
+                    <div class="unit-toggle">
+                        <button class="unit-btn active" id="unit-ft">ft/in</button>
+                        <button class="unit-btn" id="unit-cm">cm</button>
+                    </div>
+                    <div id="height-imperial" class="height-fields">
+                        <input type="number" id="height-ft" min="4" max="7" placeholder="ft">
+                        <span>'</span>
+                        <input type="number" id="height-in" min="0" max="11" placeholder="in">
+                        <span>"</span>
+                    </div>
+                    <div id="height-metric" class="height-fields" style="display: none;">
+                        <input type="number" id="height-cm" min="120" max="220" placeholder="cm">
+                        <span>cm</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-group">
+                <label>Build</label>
+                <select id="build">
+                    <option value="">Select...</option>
+                    <option value="SLIM">Slim</option>
+                    <option value="ATHLETIC">Athletic</option>
+                    <option value="AVERAGE">Average</option>
+                    <option value="CURVY">Curvy</option>
+                    <option value="HEAVYSET">Heavyset</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Eye Color</label>
+                <select id="eyeColor">
+                    <option value="">Select...</option>
+                    <option value="BROWN">Brown</option>
+                    <option value="BLUE">Blue</option>
+                    <option value="GREEN">Green</option>
+                    <option value="HAZEL">Hazel</option>
+                    <option value="GRAY">Gray</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Hair Color</label>
+                <select id="hairColor">
+                    <option value="">Select...</option>
+                    <option value="BLACK">Black</option>
+                    <option value="BROWN">Brown</option>
+                    <option value="BLONDE">Blonde</option>
+                    <option value="RED">Red</option>
+                    <option value="GRAY">Gray/White</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-user-graduate"></i></div>
+            <div>
+                <div class="aura-card-title">Background</div>
+                <div class="aura-card-subtitle">Education and lifestyle</div>
+            </div>
+        </div>
+
+        <div class="details-grid">
+            <div class="detail-group">
+                <label>Education Level</label>
+                <select id="education">
+                    <option value="">Select...</option>
+                    <option value="HIGH_SCHOOL">High School</option>
+                    <option value="SOME_COLLEGE">Some College</option>
+                    <option value="ASSOCIATES">Associate's Degree</option>
+                    <option value="BACHELORS">Bachelor's Degree</option>
+                    <option value="MASTERS">Master's Degree</option>
+                    <option value="DOCTORATE">Doctorate</option>
+                    <option value="TRADE_SCHOOL">Trade/Technical School</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Occupation</label>
+                <input type="text" id="occupation" placeholder="e.g., Software Engineer">
+            </div>
+
+            <div class="detail-group">
+                <label>Ethnicity</label>
+                <select id="ethnicity">
+                    <option value="">Prefer not to say</option>
+                    <option value="ASIAN">Asian</option>
+                    <option value="BLACK">Black/African American</option>
+                    <option value="HISPANIC">Hispanic/Latino</option>
+                    <option value="MIDDLE_EASTERN">Middle Eastern</option>
+                    <option value="NATIVE_AMERICAN">Native American</option>
+                    <option value="PACIFIC_ISLANDER">Pacific Islander</option>
+                    <option value="WHITE">White/Caucasian</option>
+                    <option value="MIXED">Mixed</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Languages</label>
+                <input type="text" id="languages" placeholder="e.g., English, Spanish">
+            </div>
+        </div>
+    </div>
+
+    <!-- Lifestyle -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-wine-glass"></i></div>
+            <div>
+                <div class="aura-card-title">Lifestyle</div>
+                <div class="aura-card-subtitle">Habits and preferences</div>
+            </div>
+        </div>
+
+        <div class="details-grid">
+            <div class="detail-group">
+                <label>Smoking</label>
+                <select id="smoking">
+                    <option value="">Select...</option>
+                    <option value="NEVER">Never</option>
+                    <option value="SOCIALLY">Socially</option>
+                    <option value="REGULARLY">Regularly</option>
+                    <option value="TRYING_TO_QUIT">Trying to quit</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Drinking</label>
+                <select id="drinking">
+                    <option value="">Select...</option>
+                    <option value="NEVER">Never</option>
+                    <option value="SOCIALLY">Socially</option>
+                    <option value="REGULARLY">Regularly</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Cannabis</label>
+                <select id="cannabis">
+                    <option value="">Select...</option>
+                    <option value="NEVER">Never</option>
+                    <option value="SOCIALLY">Socially</option>
+                    <option value="REGULARLY">Regularly</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Diet</label>
+                <select id="diet">
+                    <option value="">Select...</option>
+                    <option value="OMNIVORE">Omnivore</option>
+                    <option value="VEGETARIAN">Vegetarian</option>
+                    <option value="VEGAN">Vegan</option>
+                    <option value="PESCATARIAN">Pescatarian</option>
+                    <option value="HALAL">Halal</option>
+                    <option value="KOSHER">Kosher</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Exercise</label>
+                <select id="exercise">
+                    <option value="">Select...</option>
+                    <option value="NEVER">Rarely/Never</option>
+                    <option value="SOMETIMES">A few times a month</option>
+                    <option value="OFTEN">A few times a week</option>
+                    <option value="DAILY">Daily</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Pets</label>
+                <select id="pets">
+                    <option value="">Select...</option>
+                    <option value="NONE">No pets</option>
+                    <option value="DOG">Dog(s)</option>
+                    <option value="CAT">Cat(s)</option>
+                    <option value="BOTH">Dogs and cats</option>
+                    <option value="OTHER">Other pets</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Family & Future -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-home"></i></div>
+            <div>
+                <div class="aura-card-title">Family & Future</div>
+                <div class="aura-card-subtitle">Your plans and situation</div>
+            </div>
+        </div>
+
+        <div class="details-grid">
+            <div class="detail-group">
+                <label>Children</label>
+                <select id="children">
+                    <option value="">Select...</option>
+                    <option value="NONE">No children</option>
+                    <option value="HAS_NOT_LIVING">Has children (not living with me)</option>
+                    <option value="HAS_LIVING">Has children (living with me)</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Want Children?</label>
+                <select id="wantChildren">
+                    <option value="">Select...</option>
+                    <option value="YES">Definitely want</option>
+                    <option value="MAYBE">Open to it</option>
+                    <option value="NO">Don't want</option>
+                    <option value="HAVE_ENOUGH">Have enough already</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Religion</label>
+                <select id="religion">
+                    <option value="">Prefer not to say</option>
+                    <option value="AGNOSTIC">Agnostic</option>
+                    <option value="ATHEIST">Atheist</option>
+                    <option value="BUDDHIST">Buddhist</option>
+                    <option value="CATHOLIC">Catholic</option>
+                    <option value="CHRISTIAN">Christian</option>
+                    <option value="HINDU">Hindu</option>
+                    <option value="JEWISH">Jewish</option>
+                    <option value="MUSLIM">Muslim</option>
+                    <option value="SPIRITUAL">Spiritual but not religious</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Relationship Type</label>
+                <select id="relationshipType">
+                    <option value="">Select...</option>
+                    <option value="MONOGAMOUS">Monogamous</option>
+                    <option value="NON_MONOGAMOUS">Non-monogamous</option>
+                    <option value="OPEN">Open to either</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+        <button class="aura-btn aura-btn-primary aura-btn-lg" onclick="saveDetails()">
+            <i class="fas fa-save"></i> Save Details
+        </button>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .detail-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .detail-group label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--aura-gray-700);
+    }
+
+    .detail-group select,
+    .detail-group input {
+        padding: 0.75rem;
+        border: 1px solid var(--aura-gray-300);
+        border-radius: 8px;
+        font-size: 1rem;
+        background: white;
+    }
+
+    .detail-group select:focus,
+    .detail-group input:focus {
+        border-color: var(--aura-primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .height-input {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .unit-toggle {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .unit-btn {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid var(--aura-gray-300);
+        background: white;
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .unit-btn:first-child {
+        border-radius: 6px 0 0 6px;
+    }
+
+    .unit-btn:last-child {
+        border-radius: 0 6px 6px 0;
+    }
+
+    .unit-btn.active {
+        background: var(--aura-primary);
+        border-color: var(--aura-primary);
+        color: white;
+    }
+
+    .height-fields {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .height-fields input {
+        width: 60px;
+        text-align: center;
+    }
+
+    .height-fields span {
+        color: var(--aura-gray-500);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .detail-group label {
+            color: var(--aura-gray-300);
+        }
+
+        .detail-group select,
+        .detail-group input {
+            background: var(--aura-gray-800);
+            border-color: var(--aura-gray-600);
+            color: var(--aura-gray-100);
+        }
+
+        .unit-btn {
+            background: var(--aura-gray-800);
+            border-color: var(--aura-gray-600);
+            color: var(--aura-gray-300);
+        }
+    }
+</style>
+
+<script th:inline="javascript">
+    let details = /*[[${details}]]*/ {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        populateFields();
+        setupHeightToggle();
+    });
+
+    function populateFields() {
+        if (!details) return;
+
+        // Physical
+        if (details.heightCm) {
+            const totalInches = Math.round(details.heightCm / 2.54);
+            document.getElementById('height-ft').value = Math.floor(totalInches / 12);
+            document.getElementById('height-in').value = totalInches % 12;
+            document.getElementById('height-cm').value = details.heightCm;
+        }
+
+        // Set select values
+        const fields = ['build', 'eyeColor', 'hairColor', 'education', 'ethnicity',
+                        'smoking', 'drinking', 'cannabis', 'diet', 'exercise', 'pets',
+                        'children', 'wantChildren', 'religion', 'relationshipType'];
+
+        fields.forEach(field => {
+            if (details[field]) {
+                document.getElementById(field).value = details[field];
+            }
+        });
+
+        // Text fields
+        if (details.occupation) document.getElementById('occupation').value = details.occupation;
+        if (details.languages) document.getElementById('languages').value = details.languages;
+    }
+
+    function setupHeightToggle() {
+        document.getElementById('unit-ft').addEventListener('click', function() {
+            document.getElementById('unit-ft').classList.add('active');
+            document.getElementById('unit-cm').classList.remove('active');
+            document.getElementById('height-imperial').style.display = 'flex';
+            document.getElementById('height-metric').style.display = 'none';
+        });
+
+        document.getElementById('unit-cm').addEventListener('click', function() {
+            document.getElementById('unit-cm').classList.add('active');
+            document.getElementById('unit-ft').classList.remove('active');
+            document.getElementById('height-metric').style.display = 'flex';
+            document.getElementById('height-imperial').style.display = 'none';
+        });
+    }
+
+    async function saveDetails() {
+        // Calculate height in cm
+        let heightCm = null;
+        if (document.getElementById('height-imperial').style.display !== 'none') {
+            const ft = parseInt(document.getElementById('height-ft').value) || 0;
+            const inch = parseInt(document.getElementById('height-in').value) || 0;
+            if (ft > 0) {
+                heightCm = Math.round((ft * 12 + inch) * 2.54);
+            }
+        } else {
+            heightCm = parseInt(document.getElementById('height-cm').value) || null;
+        }
+
+        const data = {
+            heightCm: heightCm,
+            build: document.getElementById('build').value || null,
+            eyeColor: document.getElementById('eyeColor').value || null,
+            hairColor: document.getElementById('hairColor').value || null,
+            education: document.getElementById('education').value || null,
+            occupation: document.getElementById('occupation').value || null,
+            ethnicity: document.getElementById('ethnicity').value || null,
+            languages: document.getElementById('languages').value || null,
+            smoking: document.getElementById('smoking').value || null,
+            drinking: document.getElementById('drinking').value || null,
+            cannabis: document.getElementById('cannabis').value || null,
+            diet: document.getElementById('diet').value || null,
+            exercise: document.getElementById('exercise').value || null,
+            pets: document.getElementById('pets').value || null,
+            children: document.getElementById('children').value || null,
+            wantChildren: document.getElementById('wantChildren').value || null,
+            religion: document.getElementById('religion').value || null,
+            relationshipType: document.getElementById('relationshipType').value || null
+        };
+
+        try {
+            const response = await fetch('/api/profile/details', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Details saved successfully!');
+            } else {
+                alert('Failed to save details');
+            }
+        } catch (error) {
+            console.error('Failed to save:', error);
+            alert('Failed to save details');
+        }
+    }
+</script>
+
+</body>
+</html>

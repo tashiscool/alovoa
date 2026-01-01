@@ -6,6 +6,7 @@ import com.nonononoki.alovoa.entity.user.UserAudio;
 import com.nonononoki.alovoa.entity.user.UserImage;
 import com.nonononoki.alovoa.entity.user.UserProfilePicture;
 import com.nonononoki.alovoa.entity.user.UserVerificationPicture;
+import com.nonononoki.alovoa.entity.user.UserVideoIntroduction;
 import com.nonononoki.alovoa.repo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,53 +42,106 @@ public class MediaService {
     @Autowired
     private UserVerificationPictureRepository userVerificationPictureRepository;
 
-    @SuppressWarnings("deprecation")
+    @Autowired
+    private S3StorageService s3StorageService;
+
+    @Autowired(required = false)
+    private UserVideoIntroductionRepository userVideoIntroductionRepository;
+
     public ResponseEntity<byte[]> getProfilePicture(UUID uuid) {
         UserProfilePicture profilePic = userProfilePictureRepository.findByUuid(uuid);
         if (profilePic == null) {
             return null;
         }
-        if (profilePic.getBin() == null) {
-            return getImageDataBase(profilePic.getData());
-        } else {
-            return getImageDataBase(profilePic.getBin(), profilePic.getBinMime());
+        byte[] data = s3StorageService.downloadMedia(profilePic.getS3Key());
+        if (data == null) {
+            return null;
         }
+        return getImageDataBase(data, profilePic.getBinMime());
     }
 
     public ResponseEntity<byte[]> getVerificationPicture(UUID uuid) {
         UserVerificationPicture verificationPicture = userVerificationPictureRepository.findByUuid(uuid);
         if (verificationPicture != null) {
-            return getImageDataBase(verificationPicture.getBin(), verificationPicture.getBinMime());
+            byte[] data = s3StorageService.downloadMedia(verificationPicture.getS3Key());
+            if (data != null) {
+                return getImageDataBase(data, verificationPicture.getBinMime());
+            }
         }
         User user = userRepository.findByUuid(uuid);
-        return getImageDataBase(user.getVerificationPicture().getBin(),
-                user.getVerificationPicture().getBinMime());
+        if (user != null && user.getVerificationPicture() != null) {
+            byte[] data = s3StorageService.downloadMedia(user.getVerificationPicture().getS3Key());
+            if (data != null) {
+                return getImageDataBase(data, user.getVerificationPicture().getBinMime());
+            }
+        }
+        return null;
     }
 
     public ResponseEntity<byte[]> getAudio(UUID uuid) {
         UserAudio userAudio = userAudioRepository.findByUuid(uuid);
         byte[] bytes = null;
-        if (userAudio != null) {
-            bytes = userAudio.getBin();
+        String mimeType = "audio/wav";
+
+        if (userAudio != null && userAudio.getS3Key() != null) {
+            bytes = s3StorageService.downloadMedia(userAudio.getS3Key());
+            if (userAudio.getBinMime() != null) {
+                mimeType = userAudio.getBinMime();
+            }
         }
         if (bytes == null) {
             User user = userRepository.findByUuid(uuid);
-            bytes = user.getAudio().getBin();
+            if (user != null && user.getAudio() != null && user.getAudio().getS3Key() != null) {
+                bytes = s3StorageService.downloadMedia(user.getAudio().getS3Key());
+                if (user.getAudio().getBinMime() != null) {
+                    mimeType = user.getAudio().getBinMime();
+                }
+            }
         }
+        if (bytes == null) {
+            return null;
+        }
+
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(new MediaType("audio", "wav"));
+        String[] parts = mimeType.split("/");
+        headers.setContentType(new MediaType(parts[0], parts.length > 1 ? parts[1] : "wav"));
         headers.setContentLength(bytes.length);
         return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
     }
 
-    @SuppressWarnings("deprecation")
     public ResponseEntity<byte[]> getImage(UUID uuid) {
         UserImage image = userImageRepository.findByUuid(uuid);
-        if (image.getBin() == null) {
-            return getImageDataBase(image.getContent());
-        } else {
-            return getImageDataBase(image.getBin(), image.getBinMime());
+        if (image == null) {
+            return null;
         }
+        byte[] data = s3StorageService.downloadMedia(image.getS3Key());
+        if (data == null) {
+            return null;
+        }
+        return getImageDataBase(data, image.getBinMime());
+    }
+
+    /**
+     * Get video introduction for a user
+     */
+    public ResponseEntity<byte[]> getVideoIntroduction(UUID uuid) {
+        if (userVideoIntroductionRepository == null) {
+            return null;
+        }
+        UserVideoIntroduction video = userVideoIntroductionRepository.findByUuid(uuid).orElse(null);
+        if (video == null || video.getS3Key() == null) {
+            return null;
+        }
+        byte[] data = s3StorageService.downloadMedia(video.getS3Key());
+        if (data == null) {
+            return null;
+        }
+        HttpHeaders headers = new HttpHeaders();
+        String mimeType = video.getMimeType() != null ? video.getMimeType() : "video/mp4";
+        String[] parts = mimeType.split("/");
+        headers.setContentType(new MediaType(parts[0], parts.length > 1 ? parts[1] : "mp4"));
+        headers.setContentLength(data.length);
+        return new ResponseEntity<>(data, headers, HttpStatus.OK);
     }
 
     private byte[] getBase64Data(String base64) {

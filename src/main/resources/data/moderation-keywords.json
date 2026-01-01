@@ -1,0 +1,30 @@
+{
+  "blockedWords": [
+    "spam",
+    "scam",
+    "bitcoin",
+    "cryptocurrency",
+    "whatsapp",
+    "telegram",
+    "sugar daddy",
+    "sugar baby",
+    "escort",
+    "prostitution",
+    "hookup",
+    "onlyfans",
+    "snapchat premium"
+  ],
+  "warningWords": [
+    "money",
+    "cash",
+    "payment",
+    "wire transfer",
+    "gift card"
+  ],
+  "blockedPatterns": [
+    "\\b\\d{3}[-.\\s]?\\d{3}[-.\\s]?\\d{4}\\b",
+    "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b",
+    "https?://[^\\s]+",
+    "www\\.[^\\s]+"
+  ]
+}

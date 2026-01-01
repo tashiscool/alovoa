@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ConcurrentModel;
 import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +22,7 @@ import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.Conversation;
 import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.model.MessageDto;
+import com.nonononoki.alovoa.model.MessageReactionDto;
 import com.nonononoki.alovoa.repo.ConversationRepository;
 import com.nonononoki.alovoa.service.AuthService;
 import com.nonononoki.alovoa.service.MessageService;
@@ -44,6 +47,37 @@ public class MessageController {
 	public void send(@RequestBody String msg, @PathVariable long convoId)
 			throws AlovoaException, GeneralSecurityException, IOException {
 		messageService.send(convoId, msg);
+	}
+
+	@ResponseBody
+	@PostMapping(value = "/read/{conversationId}")
+	public void markAsRead(@PathVariable Long conversationId) throws AlovoaException {
+		User user = authService.getCurrentUser(true);
+		messageService.markConversationAsRead(user, conversationId);
+	}
+
+	@ResponseBody
+	@PostMapping(value = "/delivered/{conversationId}")
+	public void markAsDelivered(@PathVariable Long conversationId) throws AlovoaException {
+		User user = authService.getCurrentUser(true);
+		messageService.markConversationAsDelivered(user, conversationId);
+	}
+
+	@ResponseBody
+	@PostMapping(value = "/{messageId}/react", consumes = "text/plain")
+	public ResponseEntity<MessageReactionDto> addReaction(@PathVariable Long messageId,
+	                                                      @RequestBody String emoji) throws AlovoaException {
+		User user = authService.getCurrentUser(true);
+		MessageReactionDto reaction = messageService.addReaction(user, messageId, emoji);
+		return ResponseEntity.ok(reaction);
+	}
+
+	@ResponseBody
+	@DeleteMapping(value = "/{messageId}/react")
+	public ResponseEntity<Void> removeReaction(@PathVariable Long messageId) throws AlovoaException {
+		User user = authService.getCurrentUser(true);
+		messageService.removeReaction(user, messageId);
+		return ResponseEntity.ok().build();
 	}
 
 	@GetMapping(value = "/get-messages/{convoId}/{first}")

@@ -1032,4 +1032,239 @@ public class AssessmentService {
 
         return Math.sqrt(satA * satB) * 100;
     }
+
+    // ============== Question Bank API Methods ==============
+
+    /**
+     * Get the next unanswered question for the current user.
+     * Questions are prioritized by:
+     * 1. Core questions (for intake flow)
+     * 2. Category order (BIG_FIVE, ATTACHMENT, DEALBREAKER, VALUES, LIFESTYLE)
+     * 3. Display order within category
+     *
+     * @param category Optional category filter
+     * @return Next question or null if all answered
+     */
+    public Map<String, Object> getNextQuestion(String category) throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        // Get all answered question IDs for this user
+        List<UserAssessmentResponse> responses = responseRepo.findByUser(user);
+        Set<Long> answeredIds = responses.stream()
+                .map(r -> r.getQuestion().getId())
+                .collect(Collectors.toSet());
+
+        List<AssessmentQuestion> candidates;
+
+        if (category != null && !category.isEmpty()) {
+            // Filter by category
+            QuestionCategory cat = QuestionCategory.valueOf(category.toUpperCase());
+            candidates = questionRepo.findActiveQuestionsByCategory(cat);
+        } else {
+            // Get all questions, prioritizing core questions first
+            candidates = questionRepo.findByActiveTrueOrderByDisplayOrderAsc();
+        }
+
+        // Find first unanswered question (prioritize core questions)
+        AssessmentQuestion nextQuestion = candidates.stream()
+                .filter(q -> !answeredIds.contains(q.getId()))
+                .sorted((a, b) -> {
+                    // Core questions first
+                    boolean aCore = Boolean.TRUE.equals(a.getCoreQuestion());
+                    boolean bCore = Boolean.TRUE.equals(b.getCoreQuestion());
+                    if (aCore != bCore) return aCore ? -1 : 1;
+                    // Then by display order
+                    return Integer.compare(a.getDisplayOrder(), b.getDisplayOrder());
+                })
+                .findFirst()
+                .orElse(null);
+
+        if (nextQuestion == null) {
+            return Map.of(
+                    "hasNext", false,
+                    "message", "All questions in this category have been answered",
+                    "totalAnswered", answeredIds.size()
+            );
+        }
+
+        return buildQuestionResponse(nextQuestion, answeredIds.size(), candidates.size());
+    }
+
+    /**
+     * Get a batch of unanswered questions for the user.
+     *
+     * @param category Optional category filter
+     * @param limit Maximum number of questions to return
+     * @return List of unanswered questions
+     */
+    public Map<String, Object> getNextUnansweredQuestions(String category, int limit) throws Exception {
+        User user = authService.getCurrentUser(true);
+
+        Set<Long> answeredIds = responseRepo.findByUser(user).stream()
+                .map(r -> r.getQuestion().getId())
+                .collect(Collectors.toSet());
+
+        List<AssessmentQuestion> candidates;
+
+        if (category != null && !category.isEmpty()) {
+            QuestionCategory cat = QuestionCategory.valueOf(category.toUpperCase());
+            candidates = questionRepo.findActiveQuestionsByCategory(cat);
+        } else {
+            candidates = questionRepo.findByActiveTrueOrderByDisplayOrderAsc();
+        }
+
+        List<Map<String, Object>> questions = candidates.stream()
+                .filter(q -> !answeredIds.contains(q.getId()))
+                .sorted((a, b) -> {
+                    boolean aCore = Boolean.TRUE.equals(a.getCoreQuestion());
+                    boolean bCore = Boolean.TRUE.equals(b.getCoreQuestion());
+                    if (aCore != bCore) return aCore ? -1 : 1;
+                    return Integer.compare(a.getDisplayOrder(), b.getDisplayOrder());
+                })
+                .limit(limit)
+                .map(q -> buildQuestionData(q))
+                .collect(Collectors.toList());
+
+        long totalUnanswered = candidates.stream()
+                .filter(q -> !answeredIds.contains(q.getId()))
+                .count();
+
+        return Map.of(
+                "questions", questions,
+                "totalUnanswered", totalUnanswered,
+                "totalAnswered", answeredIds.size(),
+                "hasMore", totalUnanswered > limit
+        );
+    }
+
+    /**
+     * Validate an answer before saving.
+     * Checks:
+     * - Question exists and is active
+     * - Response is within valid range for the response scale
+     * - Required fields are present
+     *
+     * @param questionId External question ID
+     * @param numericResponse Numeric response (1-5 for Likert, 0-1 for binary)
+     * @param textResponse Text response for free-text questions
+     * @return Validation result with any errors
+     */
+    public Map<String, Object> validateAnswer(String questionId, Integer numericResponse, String textResponse) {
+        Optional<AssessmentQuestion> questionOpt = questionRepo.findByExternalId(questionId);
+
+        if (questionOpt.isEmpty()) {
+            return Map.of(
+                    "valid", false,
+                    "error", "Question not found: " + questionId
+            );
+        }
+
+        AssessmentQuestion question = questionOpt.get();
+
+        if (!Boolean.TRUE.equals(question.getActive())) {
+            return Map.of(
+                    "valid", false,
+                    "error", "Question is no longer active"
+            );
+        }
+
+        // Validate based on response scale
+        ResponseScale scale = question.getResponseScale();
+
+        switch (scale) {
+            case LIKERT_5, AGREEMENT_5, FREQUENCY_5:
+                if (numericResponse == null) {
+                    return Map.of("valid", false, "error", "Numeric response required");
+                }
+                if (numericResponse < 1 || numericResponse > 5) {
+                    return Map.of("valid", false, "error", "Response must be between 1 and 5");
+                }
+                break;
+
+            case BINARY:
+                if (numericResponse == null) {
+                    return Map.of("valid", false, "error", "Response required (0 or 1)");
+                }
+                if (numericResponse != 0 && numericResponse != 1) {
+                    return Map.of("valid", false, "error", "Binary response must be 0 or 1");
+                }
+                break;
+
+            case FREE_TEXT:
+                if (textResponse == null || textResponse.trim().isEmpty()) {
+                    return Map.of("valid", false, "error", "Text response required");
+                }
+                if (textResponse.length() > 2000) {
+                    return Map.of("valid", false, "error", "Response too long (max 2000 characters)");
+                }
+                break;
+        }
+
+        return Map.of(
+                "valid", true,
+                "questionId", questionId,
+                "responseScale", scale.name()
+        );
+    }
+
+    /**
+     * Submit a single answer with validation.
+     */
+    @Transactional
+    public Map<String, Object> submitSingleAnswer(String questionId, Integer numericResponse,
+                                                   String textResponse, String importance) throws Exception {
+        // Validate first
+        Map<String, Object> validation = validateAnswer(questionId, numericResponse, textResponse);
+        if (!Boolean.TRUE.equals(validation.get("valid"))) {
+            return validation;
+        }
+
+        // Create DTO and submit
+        AssessmentResponseDto dto = new AssessmentResponseDto();
+        dto.setQuestionId(questionId);
+        dto.setNumericResponse(numericResponse);
+        dto.setTextResponse(textResponse);
+        if (importance != null) {
+            dto.setImportance(importance);
+        }
+
+        return submitResponses(List.of(dto));
+    }
+
+    private Map<String, Object> buildQuestionResponse(AssessmentQuestion question, int answered, int total) {
+        Map<String, Object> response = buildQuestionData(question);
+        response.put("hasNext", true);
+        response.put("progress", Map.of(
+                "answered", answered,
+                "total", total,
+                "percentage", total > 0 ? (answered * 100.0 / total) : 0
+        ));
+        return response;
+    }
+
+    private Map<String, Object> buildQuestionData(AssessmentQuestion q) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", q.getId());
+        data.put("externalId", q.getExternalId());
+        data.put("text", q.getText());
+        data.put("category", q.getCategory().name());
+        data.put("responseScale", q.getResponseScale().name());
+        data.put("isCore", Boolean.TRUE.equals(q.getCoreQuestion()));
+
+        if (q.getSubcategory() != null) data.put("subcategory", q.getSubcategory());
+        if (q.getDomain() != null) data.put("domain", q.getDomain());
+        if (q.getFacet() != null) data.put("facet", q.getFacet());
+        if (q.getOptions() != null) {
+            try {
+                data.put("options", objectMapper.readTree(q.getOptions()));
+            } catch (Exception e) {
+                data.put("options", q.getOptions());
+            }
+        }
+        if (q.getSuggestedImportance() != null) {
+            data.put("suggestedImportance", q.getSuggestedImportance());
+        }
+
+        return data;
+    }
 }

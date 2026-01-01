@@ -1,0 +1,573 @@
+/**
+ * Video Introduction - AURA Dark Theme
+ * Styling for video recording interface with graceful AI failure fallback
+ */
+
+/* ========================================
+   INTRO STEP VISIBILITY
+   ======================================== */
+.intro-step.is-hidden {
+    display: none;
+}
+
+/* ========================================
+   BENEFITS GRID
+   ======================================== */
+.video-intro-benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.video-intro-benefit {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--aura-gray-50);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.video-intro-benefit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.video-intro-benefit-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.video-intro-benefit strong {
+    display: block;
+    font-size: 0.9375rem;
+    color: var(--aura-gray-800);
+    margin-bottom: 0.25rem;
+}
+
+.video-intro-benefit p {
+    font-size: 0.8125rem;
+    color: var(--aura-gray-500);
+    margin: 0;
+}
+
+/* ========================================
+   PROMPTS SECTION
+   ======================================== */
+.video-intro-prompts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.video-intro-prompt {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--aura-gray-50);
+    border-radius: 10px;
+    border-left: 4px solid var(--aura-primary);
+    transition: all 0.3s ease;
+}
+
+.video-intro-prompt:hover {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transform: translateX(4px);
+}
+
+.video-intro-prompt i {
+    color: var(--aura-primary);
+    font-size: 1.125rem;
+    min-width: 20px;
+}
+
+.video-intro-prompt span {
+    color: var(--aura-gray-700);
+    font-size: 0.9375rem;
+}
+
+/* ========================================
+   VIDEO RECORDER
+   ======================================== */
+.video-intro-recorder-container {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 16/9;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.video-intro-recorder-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* Mirror for preview */
+}
+
+#video-playback {
+    transform: scaleX(1); /* Don't mirror playback */
+}
+
+.video-intro-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-intro-face-guide {
+    width: 240px;
+    height: 320px;
+    border: 3px dashed rgba(167, 139, 250, 0.6);
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(167, 139, 250, 0.05), transparent);
+}
+
+.video-intro-recording-indicator {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(239, 68, 68, 0.95);
+    color: white;
+    padding: 0.625rem 1.25rem;
+    border-radius: 24px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.video-intro-recording-dot {
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    animation: recording-pulse 1.5s infinite;
+}
+
+@keyframes recording-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* ========================================
+   PROGRESS BAR
+   ======================================== */
+.video-intro-progress-container {
+    margin-top: 1rem;
+}
+
+.video-intro-time-hint {
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--aura-gray-500);
+    margin-top: 0.5rem;
+}
+
+/* ========================================
+   RECORDING CONTROLS
+   ======================================== */
+.video-intro-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.aura-btn-record {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.aura-btn-record:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+}
+
+.aura-btn-record:active {
+    transform: scale(0.98);
+}
+
+.aura-btn-record.recording {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.aura-btn-record.recording:hover {
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+}
+
+.record-icon {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    background: white;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+}
+
+.record-icon i {
+    color: #ef4444;
+    font-size: 0.75rem;
+}
+
+.aura-btn-record.recording .record-icon i {
+    color: #f59e0b;
+}
+
+/* ========================================
+   PROCESSING ANIMATION
+   ======================================== */
+.video-intro-processing-animation {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-intro-processing-animation i {
+    font-size: 3rem;
+    color: var(--aura-primary);
+    z-index: 1;
+}
+
+.video-intro-processing-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: var(--aura-primary);
+    border-radius: 50%;
+    animation: processing-spin 1.2s linear infinite;
+}
+
+.video-intro-processing-ring.delay-1 {
+    width: 85%;
+    height: 85%;
+    border-top-color: var(--aura-secondary);
+    animation-duration: 1.8s;
+    animation-direction: reverse;
+}
+
+.video-intro-processing-ring.delay-2 {
+    width: 70%;
+    height: 70%;
+    border-top-color: var(--aura-accent);
+    animation-duration: 2.4s;
+}
+
+@keyframes processing-spin {
+    to { transform: rotate(360deg); }
+}
+
+.video-intro-processing-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.video-intro-processing-step {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--aura-gray-400);
+    font-size: 0.9375rem;
+    transition: all 0.3s ease;
+}
+
+.video-intro-processing-step.active {
+    color: var(--aura-primary);
+    font-weight: 600;
+}
+
+.video-intro-processing-step.complete {
+    color: var(--aura-success);
+}
+
+/* ========================================
+   MANUAL TAGGING
+   ======================================== */
+.tag-category {
+    margin-bottom: 2rem;
+}
+
+.tag-category h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--aura-gray-800);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.tag-selection-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.625rem 1rem;
+    background: var(--aura-gray-100);
+    border: 2px solid var(--aura-gray-200);
+    border-radius: 24px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--aura-gray-700);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.tag-chip:hover {
+    background: var(--aura-gray-50);
+    border-color: var(--aura-primary-light);
+    transform: translateY(-1px);
+}
+
+.tag-chip.selected {
+    background: linear-gradient(135deg, var(--aura-primary), var(--aura-secondary));
+    border-color: var(--aura-primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+}
+
+.tag-chip i {
+    font-size: 0.75rem;
+}
+
+/* Custom tag input */
+.custom-tag-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.custom-tags-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 40px;
+}
+
+.custom-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+    border-radius: 20px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.custom-tag .remove-tag {
+    cursor: pointer;
+    padding: 0.125rem;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.custom-tag .remove-tag:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   SUCCESS/ERROR BADGES
+   ======================================== */
+.video-intro-success-badge {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto;
+}
+
+.video-intro-success-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--aura-success);
+    z-index: 1;
+}
+
+.video-intro-success-ring {
+    position: absolute;
+    inset: 0;
+    border: 5px solid var(--aura-success);
+    border-radius: 50%;
+    animation: success-pulse 2s infinite;
+}
+
+@keyframes success-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.video-intro-error-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2));
+    color: var(--aura-danger);
+}
+
+/* ========================================
+   DETECTED TAGS DISPLAY
+   ======================================== */
+.detected-tags-container {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--aura-gray-50);
+    border-radius: 12px;
+}
+
+.detected-tags-container h4 {
+    text-align: center;
+    color: var(--aura-gray-700);
+    margin-bottom: 1rem;
+}
+
+/* ========================================
+   DARK MODE SUPPORT
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+    .video-intro-benefit,
+    .video-intro-prompt {
+        background: var(--aura-gray-800);
+    }
+
+    .video-intro-benefit strong,
+    .video-intro-prompt span,
+    .tag-category h4 {
+        color: var(--aura-gray-100);
+    }
+
+    .video-intro-benefit p {
+        color: var(--aura-gray-400);
+    }
+
+    .tag-chip {
+        background: var(--aura-gray-800);
+        border-color: var(--aura-gray-700);
+        color: var(--aura-gray-200);
+    }
+
+    .tag-chip:hover {
+        background: var(--aura-gray-700);
+        border-color: var(--aura-primary-light);
+    }
+
+    .detected-tags-container {
+        background: var(--aura-gray-800);
+    }
+
+    .detected-tags-container h4 {
+        color: var(--aura-gray-300);
+    }
+
+    .video-intro-face-guide {
+        border-color: rgba(167, 139, 250, 0.4);
+        background: radial-gradient(ellipse at center, rgba(167, 139, 250, 0.08), transparent);
+    }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+    .video-intro-benefits {
+        grid-template-columns: 1fr;
+    }
+
+    .video-intro-recorder-container {
+        max-width: 100%;
+    }
+
+    .video-intro-controls {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .video-intro-controls .aura-btn,
+    .video-intro-controls .aura-btn-record {
+        width: 100%;
+    }
+
+    .tag-selection-grid {
+        gap: 0.5rem;
+    }
+
+    .tag-chip {
+        font-size: 0.8125rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .video-intro-processing-animation {
+        width: 100px;
+        height: 100px;
+    }
+
+    .video-intro-processing-animation i {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .video-intro-face-guide {
+        width: 180px;
+        height: 240px;
+    }
+
+    .aura-btn-record {
+        font-size: 1rem;
+        padding: 0.875rem 1.5rem;
+    }
+}

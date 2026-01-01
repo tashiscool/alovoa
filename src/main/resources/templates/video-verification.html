@@ -34,6 +34,18 @@
             <span class="aura-trait aura-trait-positive">
                 <i class="fas fa-star"></i> Trusted Profile
             </span>
+            <span th:if="${faceMatchScore != null and faceMatchScore >= 90}" class="aura-trait aura-trait-positive">
+                <i class="fas fa-check-double"></i> High Confidence
+            </span>
+        </div>
+        <div th:if="${verificationStatus != null}" class="aura-verification-details" style="margin-top: 1.5rem; padding: 1rem; background: var(--aura-gray-50); border-radius: 12px;">
+            <p style="color: var(--aura-gray-600); font-size: 0.875rem;">
+                <i class="fas fa-info-circle"></i>
+                Status: <span th:text="${verificationStatus}" style="font-weight: 600;">Verified</span>
+                <span th:if="${faceMatchScore != null}">
+                    | Match confidence: <span th:text="${#numbers.formatDecimal(faceMatchScore, 0, 1) + '%'}" style="font-weight: 600;">95%</span>
+                </span>
+            </p>
         </div>
     </div>
 

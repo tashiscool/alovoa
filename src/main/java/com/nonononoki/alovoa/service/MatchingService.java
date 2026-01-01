@@ -9,6 +9,7 @@ import com.nonononoki.alovoa.entity.UserAssessmentProfile;
 import com.nonononoki.alovoa.entity.user.UserDailyMatchLimit;
 import com.nonononoki.alovoa.entity.user.UserPersonalityProfile;
 import com.nonononoki.alovoa.model.MatchRecommendationDto;
+import com.nonononoki.alovoa.model.CompatibilityExplanationDto;
 import com.nonononoki.alovoa.entity.user.UserLocationPreferences;
 import com.nonononoki.alovoa.repo.*;
 import org.slf4j.Logger;
@@ -83,6 +84,9 @@ public class MatchingService {
     @Autowired
     private UserLocationPreferencesRepository locationPrefsRepo;
 
+    @Autowired
+    private DonationService donationService;
+
     public Map<String, Object> getDailyMatches() throws Exception {
         User user = authService.getCurrentUser(true);
 
@@ -146,7 +150,7 @@ public class MatchingService {
         );
     }
 
-    public Map<String, Object> getCompatibilityExplanation(String matchUuid) throws Exception {
+    public CompatibilityExplanationDto getCompatibilityExplanation(String matchUuid) throws Exception {
         User user = authService.getCurrentUser(true);
         User matchUser = userRepo.findByUuid(UUID.fromString(matchUuid));
         if (matchUser == null) {
@@ -157,30 +161,140 @@ public class MatchingService {
                 .findByUserAAndUserB(user, matchUser)
                 .orElseGet(() -> calculateAndStoreCompatibility(user, matchUser));
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("overallScore", compatibility.getOverallScore());
-        result.put("enemyScore", compatibility.getEnemyScore() != null ? compatibility.getEnemyScore() : 0.0);
-        result.put("breakdown", Map.of(
-                "values", compatibility.getValuesScore() != null ? compatibility.getValuesScore() : 50.0,
-                "lifestyle", compatibility.getLifestyleScore() != null ? compatibility.getLifestyleScore() : 50.0,
-                "personality", compatibility.getPersonalityScore() != null ? compatibility.getPersonalityScore() : 50.0,
-                "attraction", compatibility.getAttractionScore() != null ? compatibility.getAttractionScore() : 50.0,
-                "circumstantial", compatibility.getCircumstantialScore() != null ? compatibility.getCircumstantialScore() : 50.0,
-                "growth", compatibility.getGrowthScore() != null ? compatibility.getGrowthScore() : 50.0
-        ));
+        CompatibilityExplanationDto dto = new CompatibilityExplanationDto();
+        dto.setOverallScore(compatibility.getOverallScore());
+        dto.setEnemyScore(compatibility.getEnemyScore() != null ? compatibility.getEnemyScore() : 0.0);
 
+        // Set dimension scores
+        Map<String, Double> dimensionScores = new HashMap<>();
+        dimensionScores.put("values", compatibility.getValuesScore() != null ? compatibility.getValuesScore() : 50.0);
+        dimensionScores.put("lifestyle", compatibility.getLifestyleScore() != null ? compatibility.getLifestyleScore() : 50.0);
+        dimensionScores.put("personality", compatibility.getPersonalityScore() != null ? compatibility.getPersonalityScore() : 50.0);
+        dimensionScores.put("attraction", compatibility.getAttractionScore() != null ? compatibility.getAttractionScore() : 50.0);
+        dimensionScores.put("circumstantial", compatibility.getCircumstantialScore() != null ? compatibility.getCircumstantialScore() : 50.0);
+        dimensionScores.put("growth", compatibility.getGrowthScore() != null ? compatibility.getGrowthScore() : 50.0);
+        dto.setDimensionScores(dimensionScores);
+
+        // Parse top compatibilities from stored text
+        if (compatibility.getTopCompatibilities() != null && !compatibility.getTopCompatibilities().isEmpty()) {
+            try {
+                List<String> compatibilities = objectMapper.readValue(
+                        compatibility.getTopCompatibilities(),
+                        new TypeReference<List<String>>() {}
+                );
+                dto.setTopCompatibilities(compatibilities);
+            } catch (JsonProcessingException e) {
+                // Fallback: treat as newline-separated text
+                dto.setTopCompatibilities(Arrays.asList(compatibility.getTopCompatibilities().split("\n")));
+            }
+        } else {
+            // Generate default compatibilities based on scores
+            dto.setTopCompatibilities(generateDefaultCompatibilities(compatibility));
+        }
+
+        // Parse potential challenges from stored text
+        if (compatibility.getPotentialChallenges() != null && !compatibility.getPotentialChallenges().isEmpty()) {
+            try {
+                List<String> challenges = objectMapper.readValue(
+                        compatibility.getPotentialChallenges(),
+                        new TypeReference<List<String>>() {}
+                );
+                dto.setPotentialChallenges(challenges);
+            } catch (JsonProcessingException e) {
+                // Fallback: treat as newline-separated text
+                dto.setPotentialChallenges(Arrays.asList(compatibility.getPotentialChallenges().split("\n")));
+            }
+        } else {
+            // Generate default challenges based on scores
+            dto.setPotentialChallenges(generateDefaultChallenges(compatibility));
+        }
+
+        // Parse detailed explanation JSON if available
         if (compatibility.getExplanationJson() != null) {
             try {
-                result.put("explanation", objectMapper.readValue(
+                Map<String, Object> explanation = objectMapper.readValue(
                         compatibility.getExplanationJson(),
                         new TypeReference<Map<String, Object>>() {}
-                ));
+                );
+                dto.setDetailedExplanation(explanation);
             } catch (JsonProcessingException e) {
                 LOGGER.error("Failed to parse explanation JSON", e);
             }
         }
 
-        return result;
+        // Generate summary
+        dto.setSummary(generateCompatibilitySummary(compatibility));
+
+        return dto;
+    }
+
+    /**
+     * Generate default compatibility strengths when not provided by AI service
+     */
+    private List<String> generateDefaultCompatibilities(CompatibilityScore score) {
+        List<String> compatibilities = new ArrayList<>();
+
+        if (score.getValuesScore() != null && score.getValuesScore() >= 70) {
+            compatibilities.add("Strong alignment in core values and life priorities");
+        }
+        if (score.getPersonalityScore() != null && score.getPersonalityScore() >= 70) {
+            compatibilities.add("Compatible personality traits and communication styles");
+        }
+        if (score.getLifestyleScore() != null && score.getLifestyleScore() >= 70) {
+            compatibilities.add("Similar lifestyle preferences and daily routines");
+        }
+        if (score.getGrowthScore() != null && score.getGrowthScore() >= 70) {
+            compatibilities.add("Shared approach to personal growth and development");
+        }
+
+        if (compatibilities.isEmpty()) {
+            compatibilities.add("You both have unique qualities that could complement each other");
+        }
+
+        return compatibilities;
+    }
+
+    /**
+     * Generate default challenges when not provided by AI service
+     */
+    private List<String> generateDefaultChallenges(CompatibilityScore score) {
+        List<String> challenges = new ArrayList<>();
+
+        if (score.getValuesScore() != null && score.getValuesScore() < 50) {
+            challenges.add("Different perspectives on core values may require open communication");
+        }
+        if (score.getPersonalityScore() != null && score.getPersonalityScore() < 50) {
+            challenges.add("Personality differences may need understanding and compromise");
+        }
+        if (score.getLifestyleScore() != null && score.getLifestyleScore() < 50) {
+            challenges.add("Lifestyle preferences may differ and require coordination");
+        }
+        if (score.getEnemyScore() != null && score.getEnemyScore() > 30) {
+            challenges.add("Some fundamental differences exist that will require patience and understanding");
+        }
+
+        if (challenges.isEmpty()) {
+            challenges.add("Communication and mutual respect will help navigate any differences");
+        }
+
+        return challenges;
+    }
+
+    /**
+     * Generate a human-readable summary of compatibility
+     */
+    private String generateCompatibilitySummary(CompatibilityScore score) {
+        if (score.getOverallScore() >= 80) {
+            return "You two have exceptional compatibility! Strong alignment across multiple dimensions suggests a great potential connection.";
+        } else if (score.getOverallScore() >= 70) {
+            return "You have strong compatibility with this person. Your core values and personalities align well, creating a solid foundation for connection.";
+        } else if (score.getOverallScore() >= 60) {
+            return "You have good compatibility with this person. While you share important similarities, some differences could add interesting dynamics to your relationship.";
+        } else if (score.getOverallScore() >= 50) {
+            return "You have moderate compatibility. There are both shared interests and differences that could either complement or challenge you.";
+        } else {
+            return "You have noticeable differences in key areas. While opposites can attract, this match may require extra effort to understand each other.";
+        }
     }
 
     private List<MatchRecommendationDto> callAIMatchingService(User user, int limit) {

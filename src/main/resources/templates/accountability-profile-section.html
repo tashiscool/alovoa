@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<!-- Fragment: Accountability Section for User Profiles -->
+<div th:fragment="accountability-section(user)" class="aura-card aura-animate-fade-up">
+    <!-- Section Header -->
+    <div class="aura-card-header">
+        <div class="aura-card-icon"><i class="fas fa-users"></i></div>
+        <div style="flex: 1;">
+            <div class="aura-card-title">Feedback from Others</div>
+            <div class="aura-card-subtitle">Public accountability reports</div>
+        </div>
+        <a th:href="@{/accountability/{uuid}(uuid=${user.uuid})}" class="aura-link-button">
+            <span>View All</span>
+            <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Feedback Summary -->
+    <div class="accountability-summary">
+        <!-- Trust Indicators -->
+        <div class="trust-indicators">
+            <div class="trust-indicator" th:if="${feedbackScore >= 70}">
+                <div class="trust-badge success">
+                    <i class="fas fa-shield-check"></i>
+                </div>
+                <div>
+                    <div class="trust-label">High Trust</div>
+                    <div class="trust-value" th:text="${feedbackScore} + '%'">85%</div>
+                </div>
+            </div>
+
+            <div class="trust-indicator" th:if="${feedbackScore < 70 and feedbackScore >= 40}">
+                <div class="trust-badge warning">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <div class="trust-label">Moderate Trust</div>
+                    <div class="trust-value" th:text="${feedbackScore} + '%'">60%</div>
+                </div>
+            </div>
+
+            <div class="trust-indicator" th:if="${feedbackScore < 40}">
+                <div class="trust-badge danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <div class="trust-label">Low Trust</div>
+                    <div class="trust-value" th:text="${feedbackScore} + '%'">30%</div>
+                </div>
+            </div>
+
+            <!-- Report Counts -->
+            <div class="report-counts">
+                <div class="report-count positive">
+                    <i class="fas fa-thumbs-up"></i>
+                    <span th:text="${positiveCount}">8</span>
+                    <span class="count-label">Positive</span>
+                </div>
+                <div class="report-count negative" th:if="${negativeCount > 0}">
+                    <i class="fas fa-thumbs-down"></i>
+                    <span th:text="${negativeCount}">2</span>
+                    <span class="count-label">Negative</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reports Preview -->
+        <div class="recent-reports" th:if="${not #lists.isEmpty(recentReports)}">
+            <h4 class="recent-reports-title">Recent Feedback</h4>
+            <div class="report-preview-list">
+                <div th:each="report : ${recentReports}" class="report-preview-item">
+                    <div class="report-preview-icon"
+                         th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'positive' : 'negative'">
+                        <i th:class="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'fas fa-thumbs-up' : 'fas fa-exclamation-triangle'"></i>
+                    </div>
+                    <div class="report-preview-content">
+                        <div class="report-preview-title" th:text="${report.title}">Report title</div>
+                        <div class="report-preview-meta">
+                            <span class="report-category"
+                                  th:classappend="${report.category.name() == 'POSITIVE_EXPERIENCE'} ? 'positive' : 'negative'"
+                                  th:text="${#strings.replace(report.category.name(), '_', ' ')}">Category</span>
+                            <span class="report-verified" th:if="${report.evidenceVerified}">
+                                <i class="fas fa-check-circle"></i> Verified
+                            </span>
+                            <span class="report-date" th:text="${#dates.format(report.createdAt, 'MMM dd')}">Date</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Reports Message -->
+        <div class="no-reports-message" th:if="${#lists.isEmpty(recentReports)}">
+            <i class="fas fa-comment-slash"></i>
+            <span>No public feedback yet</span>
+        </div>
+    </div>
+
+    <!-- Report This User Button -->
+    <div class="report-user-action" th:if="${canReport}">
+        <a th:href="@{/accountability/report/{uuid}(uuid=${user.uuid})}" class="aura-btn aura-btn-outline aura-btn-sm">
+            <i class="fas fa-flag"></i>
+            <span>Report This User</span>
+        </a>
+    </div>
+</div>
+
+<style>
+    .aura-link-button {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        color: var(--aura-primary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: opacity 0.2s ease;
+    }
+
+    .aura-link-button:hover {
+        opacity: 0.8;
+    }
+
+    .accountability-summary {
+        margin-top: 1rem;
+    }
+
+    .trust-indicators {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .trust-indicator {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--aura-gray-50);
+        border-radius: 12px;
+    }
+
+    .trust-badge {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .trust-badge.success {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2));
+        color: var(--aura-success);
+    }
+
+    .trust-badge.warning {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.2));
+        color: #f59e0b;
+    }
+
+    .trust-badge.danger {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2));
+        color: var(--aura-danger);
+    }
+
+    .trust-label {
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+        margin-bottom: 0.125rem;
+    }
+
+    .trust-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--aura-gray-800);
+    }
+
+    .report-counts {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1rem;
+        background: var(--aura-gray-50);
+        border-radius: 12px;
+    }
+
+    .report-count {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .report-count.positive {
+        color: var(--aura-success);
+    }
+
+    .report-count.negative {
+        color: var(--aura-danger);
+    }
+
+    .report-count i {
+        font-size: 1rem;
+    }
+
+    .report-count > span:not(.count-label) {
+        font-weight: 700;
+        font-size: 1.125rem;
+    }
+
+    .count-label {
+        color: var(--aura-gray-500);
+        margin-left: 0.125rem;
+    }
+
+    .recent-reports {
+        margin-top: 1.5rem;
+    }
+
+    .recent-reports-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--aura-gray-700);
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .report-preview-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .report-preview-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.875rem;
+        background: var(--aura-gray-50);
+        border-radius: 8px;
+        transition: background 0.2s ease;
+    }
+
+    .report-preview-item:hover {
+        background: var(--aura-gray-100);
+    }
+
+    .report-preview-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .report-preview-icon.positive {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2));
+        color: var(--aura-success);
+    }
+
+    .report-preview-icon.negative {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2));
+        color: var(--aura-danger);
+    }
+
+    .report-preview-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .report-preview-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--aura-gray-800);
+        margin-bottom: 0.25rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .report-preview-meta {
+        display: flex;
+        gap: 0.75rem;
+        font-size: 0.75rem;
+        color: var(--aura-gray-500);
+        align-items: center;
+    }
+
+    .report-category {
+        padding: 0.125rem 0.5rem;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+
+    .report-category.positive {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--aura-success);
+    }
+
+    .report-category.negative {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--aura-danger);
+    }
+
+    .report-verified {
+        color: var(--aura-success);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .no-reports-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 2rem;
+        color: var(--aura-gray-500);
+        font-size: 0.875rem;
+    }
+
+    .no-reports-message i {
+        font-size: 1.25rem;
+    }
+
+    .report-user-action {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--aura-gray-200);
+        text-align: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .trust-indicator,
+        .report-counts,
+        .report-preview-item {
+            background: var(--aura-gray-800);
+        }
+
+        .report-preview-item:hover {
+            background: var(--aura-gray-700);
+        }
+
+        .trust-value,
+        .report-preview-title {
+            color: var(--aura-gray-100);
+        }
+
+        .recent-reports-title {
+            color: var(--aura-gray-300);
+        }
+
+        .report-user-action {
+            border-color: var(--aura-gray-700);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .trust-indicator {
+            gap: 0.75rem;
+        }
+
+        .trust-badge {
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
+        }
+
+        .trust-value {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+
+</body>
+</html>

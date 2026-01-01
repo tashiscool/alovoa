@@ -313,4 +313,70 @@ public class PersonalityService {
 
         return Map.of("success", true);
     }
+
+    /**
+     * Generate matching insights based on personality profile.
+     * These insights help users understand how their personality affects matching.
+     */
+    public List<String> getMatchingInsights(UserPersonalityProfile profile) {
+        List<String> insights = new ArrayList<>();
+
+        if (profile == null || !profile.isComplete()) {
+            return insights;
+        }
+
+        // Extraversion insight
+        if (profile.getExtraversion() != null) {
+            if (profile.getExtraversion() >= 70) {
+                insights.add("Your outgoing nature means you'll thrive with partners who enjoy social activities and spontaneous adventures.");
+            } else if (profile.getExtraversion() <= 30) {
+                insights.add("You value deep one-on-one connections. Look for partners who appreciate meaningful conversations over large gatherings.");
+            }
+        }
+
+        // Openness insight
+        if (profile.getOpenness() != null) {
+            if (profile.getOpenness() >= 70) {
+                insights.add("Your curiosity and creativity will attract partners who share your love for new experiences and ideas.");
+            } else if (profile.getOpenness() <= 30) {
+                insights.add("You appreciate stability and tradition. Partners with similar values will share your grounded approach to life.");
+            }
+        }
+
+        // Agreeableness insight
+        if (profile.getAgreeableness() != null) {
+            if (profile.getAgreeableness() >= 70) {
+                insights.add("Your caring and empathetic nature makes you a supportive partner. Look for someone who values emotional connection.");
+            }
+        }
+
+        // Neuroticism insight
+        if (profile.getNeuroticism() != null) {
+            if (profile.getNeuroticism() >= 60) {
+                insights.add("You experience emotions deeply. A patient, understanding partner can help create a secure relationship foundation.");
+            } else if (profile.getNeuroticism() <= 30) {
+                insights.add("Your emotional stability is an asset. You bring calm to relationships and can help partners feel secure.");
+            }
+        }
+
+        // Attachment style insight
+        if (profile.getAttachmentStyle() != null) {
+            switch (profile.getAttachmentStyle()) {
+                case SECURE:
+                    insights.add("Your secure attachment style helps create stable, trusting relationships with all partner types.");
+                    break;
+                case ANXIOUS:
+                    insights.add("Partners with secure or patient attachment styles can help you feel more confident in relationships.");
+                    break;
+                case AVOIDANT:
+                    insights.add("Consider partners who respect your need for independence while gently encouraging emotional openness.");
+                    break;
+                case DISORGANIZED:
+                    insights.add("A secure, consistent partner can help you build trust and feel safe in the relationship.");
+                    break;
+            }
+        }
+
+        return insights;
+    }
 }

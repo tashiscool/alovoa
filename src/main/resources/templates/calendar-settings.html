@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-calendar-alt mr-2"></i> Calendar Integration</h1>
+    <p>Connect your calendar to automatically sync your AURA video dates</p>
+</div>
+
+<div class="aura-container">
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="aura-alert aura-alert-success aura-animate-fade-up">
+        <i class="fas fa-check-circle fa-lg"></i>
+        <div>
+            <strong>Success!</strong>
+            <p th:text="${success}"></p>
+        </div>
+    </div>
+
+    <div th:if="${error}" class="aura-alert aura-alert-danger aura-animate-fade-up">
+        <i class="fas fa-exclamation-circle fa-lg"></i>
+        <div>
+            <strong>Error</strong>
+            <p th:text="${error}"></p>
+        </div>
+    </div>
+
+    <!-- Privacy Notice -->
+    <div class="aura-alert aura-alert-info aura-animate-fade-up">
+        <i class="fas fa-shield-alt fa-lg"></i>
+        <div>
+            <strong>Privacy & Security</strong>
+            <p style="margin-top: 0.25rem; opacity: 0.9;">
+                We only access your calendar to add and update video date events. We never read your other calendar events.
+                Your tokens are encrypted and stored securely. You can disconnect at any time.
+            </p>
+        </div>
+    </div>
+
+    <!-- Connected Calendars Section -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-plug"></i></div>
+            <div>
+                <div class="aura-card-title">Connected Calendars</div>
+                <div class="aura-card-subtitle">Link your calendars to auto-sync video dates</div>
+            </div>
+        </div>
+
+        <div class="calendar-connections">
+            <!-- Google Calendar -->
+            <div class="calendar-provider-card">
+                <div class="provider-info">
+                    <div class="provider-logo google">
+                        <i class="fab fa-google"></i>
+                    </div>
+                    <div class="provider-details">
+                        <h4>Google Calendar</h4>
+                        <p class="provider-status" th:if="${googleConnected}">
+                            <i class="fas fa-check-circle text-success"></i> Connected
+                        </p>
+                        <p class="provider-status text-muted" th:unless="${googleConnected}">
+                            <i class="fas fa-times-circle"></i> Not connected
+                        </p>
+                    </div>
+                </div>
+                <div class="provider-actions">
+                    <a th:if="${!googleConnected}" th:href="@{/calendar/google/connect}"
+                       class="aura-btn aura-btn-google">
+                        <i class="fab fa-google"></i> Connect Google
+                    </a>
+                    <button th:if="${googleConnected}" onclick="disconnectCalendar('google')"
+                            class="aura-btn aura-btn-outline">
+                        <i class="fas fa-unlink"></i> Disconnect
+                    </button>
+                </div>
+            </div>
+
+            <!-- Apple Calendar -->
+            <div class="calendar-provider-card">
+                <div class="provider-info">
+                    <div class="provider-logo apple">
+                        <i class="fab fa-apple"></i>
+                    </div>
+                    <div class="provider-details">
+                        <h4>Apple Calendar</h4>
+                        <p class="provider-status" th:if="${appleConnected}">
+                            <i class="fas fa-check-circle text-success"></i> Connected
+                        </p>
+                        <p class="provider-status text-muted" th:unless="${appleConnected}">
+                            <i class="fas fa-times-circle"></i> Not connected
+                        </p>
+                    </div>
+                </div>
+                <div class="provider-actions">
+                    <button th:if="${!appleConnected}" onclick="showAppleSetup()"
+                            class="aura-btn aura-btn-apple">
+                        <i class="fab fa-apple"></i> Setup Apple Calendar
+                    </button>
+                    <button th:if="${appleConnected}" onclick="disconnectCalendar('apple')"
+                            class="aura-btn aura-btn-outline">
+                        <i class="fas fa-unlink"></i> Disconnect
+                    </button>
+                </div>
+            </div>
+
+            <!-- Outlook Calendar -->
+            <div class="calendar-provider-card">
+                <div class="provider-info">
+                    <div class="provider-logo outlook">
+                        <i class="fab fa-microsoft"></i>
+                    </div>
+                    <div class="provider-details">
+                        <h4>Outlook Calendar</h4>
+                        <p class="provider-status" th:if="${outlookConnected}">
+                            <i class="fas fa-check-circle text-success"></i> Connected
+                        </p>
+                        <p class="provider-status text-muted" th:unless="${outlookConnected}">
+                            <i class="fas fa-times-circle"></i> Not connected
+                        </p>
+                    </div>
+                </div>
+                <div class="provider-actions">
+                    <a th:if="${!outlookConnected}" th:href="@{/calendar/outlook/connect}"
+                       class="aura-btn aura-btn-outlook">
+                        <i class="fab fa-microsoft"></i> Connect Outlook
+                    </a>
+                    <button th:if="${outlookConnected}" onclick="disconnectCalendar('outlook')"
+                            class="aura-btn aura-btn-outline">
+                        <i class="fas fa-unlink"></i> Disconnect
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Settings -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-cog"></i></div>
+            <div>
+                <div class="aura-card-title">Calendar Preferences</div>
+                <div class="aura-card-subtitle">Customize how dates appear in your calendar</div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <!-- Default Reminder Time -->
+            <div class="setting-item">
+                <label class="setting-label">
+                    <i class="fas fa-bell"></i> Default reminder time before dates
+                </label>
+                <select id="default-reminder" class="aura-select">
+                    <option value="15" th:selected="${defaultReminderMinutes == 15}">15 minutes before</option>
+                    <option value="30" th:selected="${defaultReminderMinutes == 30}">30 minutes before</option>
+                    <option value="60" th:selected="${defaultReminderMinutes == 60}">1 hour before</option>
+                    <option value="120" th:selected="${defaultReminderMinutes == 120}">2 hours before</option>
+                </select>
+            </div>
+
+            <!-- Auto-add dates -->
+            <div class="setting-item">
+                <div class="preference-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-add-dates" th:checked="${autoAddDates}">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <div class="toggle-label">
+                        <strong><i class="fas fa-magic"></i> Automatically add confirmed dates</strong>
+                        <p>When you confirm a video date, we'll automatically add it to your connected calendar</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Show match name -->
+            <div class="setting-item">
+                <div class="preference-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="show-match-name" th:checked="${showMatchName}">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <div class="toggle-label">
+                        <strong><i class="fas fa-user"></i> Show partner's name in calendar event</strong>
+                        <p>
+                            <strong>On:</strong> Event title will be "Video Date with [Name]"<br>
+                            <strong>Off:</strong> Event title will be "AURA Video Date" (for privacy)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Status -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-sync"></i></div>
+            <div>
+                <div class="aura-card-title">Sync Status</div>
+                <div class="aura-card-subtitle">Calendar synchronization information</div>
+            </div>
+        </div>
+
+        <div class="sync-status">
+            <div class="status-item">
+                <div class="status-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="status-details">
+                    <strong>Last Updated</strong>
+                    <p th:if="${lastUpdated}">
+                        <span th:text="${#temporals.format(lastUpdated, 'MMM dd, yyyy HH:mm')}"></span>
+                    </p>
+                    <p th:unless="${lastUpdated}">Never</p>
+                </div>
+            </div>
+
+            <div class="status-item">
+                <div class="status-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="status-details">
+                    <strong>Sync Mode</strong>
+                    <p th:if="${googleConnected || appleConnected || outlookConnected}">
+                        <span class="text-success">
+                            <i class="fas fa-check-circle"></i> Active
+                        </span>
+                    </p>
+                    <p th:unless="${googleConnected || appleConnected || outlookConnected}">
+                        <span class="text-muted">
+                            <i class="fas fa-times-circle"></i> Inactive - Connect a calendar
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+        <button class="aura-btn aura-btn-primary aura-btn-lg" onclick="saveSettings()">
+            <i class="fas fa-check"></i> Save Calendar Settings
+        </button>
+    </div>
+</div>
+
+<!-- Apple Calendar Setup Modal -->
+<div id="apple-setup-modal" class="modal" style="display: none;">
+    <div class="modal-content aura-card">
+        <div class="modal-header">
+            <h3><i class="fab fa-apple"></i> Setup Apple Calendar (CalDAV)</h3>
+            <button class="modal-close" onclick="closeAppleSetup()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="aura-alert aura-alert-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Apple Calendar uses CalDAV protocol</strong>
+                    <p>We'll guide you through the setup process.</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>iCloud Email *</label>
+                <input type="email" id="apple-email" placeholder="your.email@icloud.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>App-Specific Password *</label>
+                <input type="password" id="apple-password" placeholder="xxxx-xxxx-xxxx-xxxx" required>
+                <small class="form-help">
+                    <i class="fas fa-question-circle"></i>
+                    Generate an app-specific password at
+                    <a href="https://appleid.apple.com/account/manage" target="_blank">appleid.apple.com</a>
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>Calendar Name (optional)</label>
+                <input type="text" id="apple-calendar-name" placeholder="Default">
+                <small class="form-help">Leave blank to use your default calendar</small>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="aura-btn aura-btn-outline" onclick="closeAppleSetup()">Cancel</button>
+            <button class="aura-btn aura-btn-apple" onclick="connectAppleCalendar()">
+                <i class="fab fa-apple"></i> Connect Apple Calendar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .calendar-connections {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .calendar-provider-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: var(--aura-gray-50);
+        border-radius: var(--aura-radius);
+        border-left: 4px solid var(--aura-gray-300);
+        transition: all var(--aura-transition);
+    }
+
+    .calendar-provider-card:hover {
+        box-shadow: var(--aura-shadow);
+        transform: translateY(-2px);
+    }
+
+    .provider-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .provider-logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: white;
+    }
+
+    .provider-logo.google {
+        background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+    }
+
+    .provider-logo.apple {
+        background: linear-gradient(135deg, #000000 0%, #434343 100%);
+    }
+
+    .provider-logo.outlook {
+        background: linear-gradient(135deg, #0078d4 0%, #00bcf2 100%);
+    }
+
+    .provider-details h4 {
+        margin: 0;
+        font-size: 1.125rem;
+        color: var(--aura-gray-800);
+    }
+
+    .provider-status {
+        margin: 0.25rem 0 0;
+        font-size: 0.875rem;
+    }
+
+    .provider-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Brand-specific buttons */
+    .aura-btn-google {
+        background: #4285f4;
+        color: white;
+        border: none;
+    }
+
+    .aura-btn-google:hover {
+        background: #357ae8;
+    }
+
+    .aura-btn-apple {
+        background: #000000;
+        color: white;
+        border: none;
+    }
+
+    .aura-btn-apple:hover {
+        background: #333333;
+    }
+
+    .aura-btn-outlook {
+        background: #0078d4;
+        color: white;
+        border: none;
+    }
+
+    .aura-btn-outlook:hover {
+        background: #106ebe;
+    }
+
+    .settings-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .setting-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--aura-gray-200);
+    }
+
+    .setting-item:last-child {
+        border-bottom: none;
+    }
+
+    .setting-label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        color: var(--aura-gray-700);
+    }
+
+    .setting-label i {
+        color: var(--aura-primary);
+        margin-right: 0.5rem;
+    }
+
+    .aura-select {
+        width: 100%;
+        max-width: 300px;
+        padding: 0.75rem;
+        border: 1px solid var(--aura-gray-300);
+        border-radius: var(--aura-radius-sm);
+        font-size: 1rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .preference-toggle {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: var(--aura-gray-300);
+        border-radius: 26px;
+        transition: 0.3s;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+
+    input:checked + .toggle-slider {
+        background: var(--aura-primary);
+    }
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(22px);
+    }
+
+    .toggle-label strong {
+        display: block;
+        color: var(--aura-gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .toggle-label strong i {
+        color: var(--aura-primary);
+        margin-right: 0.5rem;
+    }
+
+    .toggle-label p {
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+        margin: 0;
+    }
+
+    .sync-status {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .status-item {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .status-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--aura-gradient-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .status-details strong {
+        display: block;
+        color: var(--aura-gray-800);
+        margin-bottom: 0.25rem;
+    }
+
+    .status-details p {
+        font-size: 0.875rem;
+        color: var(--aura-gray-600);
+        margin: 0;
+    }
+
+    .text-success {
+        color: var(--aura-success);
+    }
+
+    .text-muted {
+        color: var(--aura-gray-400);
+    }
+
+    /* Modal styles */
+    .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--aura-gray-200);
+        margin-bottom: 1rem;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--aura-gray-800);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--aura-gray-500);
+        cursor: pointer;
+    }
+
+    .modal-body {
+        margin-bottom: 1rem;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--aura-gray-200);
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--aura-gray-700);
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--aura-gray-300);
+        border-radius: var(--aura-radius-sm);
+        font-size: 1rem;
+    }
+
+    .form-help {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--aura-gray-500);
+    }
+
+    .form-help a {
+        color: var(--aura-primary);
+        text-decoration: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .calendar-provider-card {
+            background: var(--aura-gray-800);
+        }
+
+        .provider-details h4,
+        .setting-label,
+        .toggle-label strong,
+        .status-details strong {
+            color: var(--aura-gray-100);
+        }
+
+        .aura-select,
+        .form-group input,
+        .form-group select {
+            background: var(--aura-gray-800);
+            border-color: var(--aura-gray-600);
+            color: var(--aura-gray-100);
+        }
+    }
+</style>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.aura-alert-success, .aura-alert-danger').forEach(alert => {
+                alert.style.display = 'none';
+            });
+        }, 5000);
+    });
+
+    function showAppleSetup() {
+        document.getElementById('apple-setup-modal').style.display = 'flex';
+    }
+
+    function closeAppleSetup() {
+        document.getElementById('apple-setup-modal').style.display = 'none';
+        // Clear form
+        document.getElementById('apple-email').value = '';
+        document.getElementById('apple-password').value = '';
+        document.getElementById('apple-calendar-name').value = '';
+    }
+
+    async function connectAppleCalendar() {
+        const email = document.getElementById('apple-email').value.trim();
+        const password = document.getElementById('apple-password').value.trim();
+        const calendarName = document.getElementById('apple-calendar-name').value.trim();
+
+        if (!email || !password) {
+            alert('Please enter your iCloud email and app-specific password');
+            return;
+        }
+
+        const data = {
+            email: email,
+            password: password,
+            calendarName: calendarName || 'Default'
+        };
+
+        try {
+            const response = await fetch('/api/v1/calendar/apple/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Apple Calendar connected successfully!');
+                closeAppleSetup();
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Failed to connect Apple Calendar. Please check your credentials.');
+            }
+        } catch (error) {
+            console.error('Failed to connect Apple Calendar:', error);
+            alert('Failed to connect Apple Calendar. Please try again.');
+        }
+    }
+
+    async function disconnectCalendar(provider) {
+        const providerNames = {
+            'google': 'Google Calendar',
+            'apple': 'Apple Calendar',
+            'outlook': 'Outlook Calendar'
+        };
+
+        if (!confirm(`Disconnect ${providerNames[provider]}? Your existing calendar events will not be affected.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/calendar/${provider}/disconnect`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                alert(`${providerNames[provider]} disconnected successfully`);
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert(error.message || `Failed to disconnect ${providerNames[provider]}`);
+            }
+        } catch (error) {
+            console.error(`Failed to disconnect ${provider}:`, error);
+            alert(`Failed to disconnect ${providerNames[provider]}. Please try again.`);
+        }
+    }
+
+    async function saveSettings() {
+        const data = {
+            defaultReminderMinutes: parseInt(document.getElementById('default-reminder').value),
+            autoAddDates: document.getElementById('auto-add-dates').checked,
+            showMatchName: document.getElementById('show-match-name').checked
+        };
+
+        try {
+            const response = await fetch('/api/v1/calendar/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                // Show success message
+                const successAlert = document.createElement('div');
+                successAlert.className = 'aura-alert aura-alert-success aura-animate-fade-up';
+                successAlert.innerHTML = `
+                    <i class="fas fa-check-circle fa-lg"></i>
+                    <div>
+                        <strong>Success!</strong>
+                        <p>Calendar settings saved successfully</p>
+                    </div>
+                `;
+                document.querySelector('.aura-container').insertBefore(
+                    successAlert,
+                    document.querySelector('.aura-container').firstChild
+                );
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    successAlert.style.display = 'none';
+                }, 3000);
+            } else {
+                alert('Failed to save settings. Please try again.');
+            }
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+            alert('Failed to save settings. Please try again.');
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-eye mr-2"></i> Profile Visitors</h1>
+    <p>See who's been checking out your profile</p>
+</div>
+
+<div class="aura-container">
+    <!-- Tabs -->
+    <div class="aura-tabs">
+        <button class="aura-tab active" data-tab="visitors">
+            <i class="fas fa-users"></i> Who Visited Me
+        </button>
+        <button class="aura-tab" data-tab="visited">
+            <i class="fas fa-eye"></i> Who I Visited
+        </button>
+    </div>
+
+    <!-- Visitors Tab -->
+    <div id="visitors-tab" class="tab-content active">
+        <div class="visitors-grid" th:if="${!recentVisitors.isEmpty()}">
+            <div th:each="visit : ${recentVisitors}" class="visitor-card">
+                <a th:href="'/profile/' + ${visit.visitor.uuid}">
+                    <div class="visitor-avatar-container">
+                        <img th:src="${visit.visitor.profilePicture != null ? '/img/profile/' + visit.visitor.profilePicture.uuid : '/img/default-avatar.png'}"
+                             th:alt="${visit.visitor.firstName}"
+                             class="visitor-avatar">
+                        <span class="visit-count" th:if="${visit.visitCount > 1}" th:text="${visit.visitCount}"></span>
+                    </div>
+                    <div class="visitor-info">
+                        <h4 th:text="${visit.visitor.firstName}">Name</h4>
+                        <div th:replace="~{fragments :: verification-icons(${visit.visitor})}"></div>
+                        <p class="visitor-time">
+                            <i class="fas fa-clock"></i>
+                            <span th:text="${#temporals.format(visit.lastVisitedAt, 'MMM d, h:mm a')}">Dec 15, 3:30 PM</span>
+                        </p>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div th:if="${recentVisitors.isEmpty()}" class="empty-state">
+            <i class="fas fa-user-friends fa-3x"></i>
+            <h3>No Visitors Yet</h3>
+            <p>Complete your profile to attract more visitors!</p>
+        </div>
+    </div>
+
+    <!-- Visited Tab -->
+    <div id="visited-tab" class="tab-content" style="display: none;">
+        <div class="visitors-grid" th:if="${!myVisits.isEmpty()}">
+            <div th:each="visit : ${myVisits}" class="visitor-card">
+                <a th:href="'/profile/' + ${visit.visited.uuid}">
+                    <div class="visitor-avatar-container">
+                        <img th:src="${visit.visited.profilePicture != null ? '/img/profile/' + visit.visited.profilePicture.uuid : '/img/default-avatar.png'}"
+                             th:alt="${visit.visited.firstName}"
+                             class="visitor-avatar">
+                    </div>
+                    <div class="visitor-info">
+                        <h4 th:text="${visit.visited.firstName}">Name</h4>
+                        <div th:replace="~{fragments :: verification-icons(${visit.visited})}"></div>
+                        <p class="visitor-time">
+                            <i class="fas fa-clock"></i>
+                            <span th:text="${#temporals.format(visit.lastVisitedAt, 'MMM d, h:mm a')}">Dec 15, 3:30 PM</span>
+                        </p>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div th:if="${myVisits.isEmpty()}" class="empty-state">
+            <i class="fas fa-search fa-3x"></i>
+            <h3>Haven't Visited Anyone</h3>
+            <p>Start browsing profiles to find your match!</p>
+            <a href="/" class="aura-btn aura-btn-primary" style="margin-top: 1rem;">
+                <i class="fas fa-heart"></i> Browse Matches
+            </a>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .aura-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--aura-gray-200);
+        padding-bottom: 0.5rem;
+    }
+
+    .aura-tab {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border: none;
+        background: none;
+        color: var(--aura-gray-500);
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 8px 8px 0 0;
+        transition: all 0.2s ease;
+    }
+
+    .aura-tab:hover {
+        color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    .aura-tab.active {
+        color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.1);
+        border-bottom: 2px solid var(--aura-primary);
+        margin-bottom: -2px;
+    }
+
+    .visitors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+
+    .visitor-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .visitor-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .visitor-card a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .visitor-avatar-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .visitor-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--aura-gray-100);
+    }
+
+    .visit-count {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: var(--aura-primary);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+    }
+
+    .visitor-info h4 {
+        margin: 0.75rem 0 0.25rem;
+        font-size: 1rem;
+        color: var(--aura-gray-800);
+    }
+
+    .visitor-time {
+        font-size: 0.75rem;
+        color: var(--aura-gray-500);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--aura-gray-400);
+    }
+
+    .empty-state i {
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: var(--aura-gray-600);
+        margin-bottom: 0.5rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .visitor-card {
+            background: var(--aura-gray-800);
+        }
+
+        .visitor-info h4 {
+            color: var(--aura-gray-100);
+        }
+
+        .visitor-avatar {
+            border-color: var(--aura-gray-700);
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.aura-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.aura-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab + '-tab').style.display = 'block';
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

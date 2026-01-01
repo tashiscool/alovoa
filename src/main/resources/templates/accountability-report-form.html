@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-comment-medical mr-2"></i> <span th:text="#{accountability.submit.title}">Submit Report</span></h1>
+    <p>Share your experience to help build trust in the community</p>
+</div>
+
+<div class="aura-container" style="max-width: 800px; margin: 0 auto;">
+    <!-- Subject Info Card -->
+    <div class="aura-card aura-animate-fade-up" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="aura-avatar-circle" style="width: 60px; height: 60px; font-size: 1.5rem; flex-shrink: 0;">
+                <span th:text="${subject.firstName.substring(0, 1)}">U</span>
+            </div>
+            <div>
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.25rem;">
+                    <span>Report about </span>
+                    <span th:text="${subject.firstName}">User</span>
+                </h3>
+                <p style="color: var(--aura-gray-500); font-size: 0.875rem; margin: 0;">
+                    Provide honest feedback about your interaction with this person
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Form -->
+    <form id="report-form" class="aura-card aura-animate-fade-up">
+        <input type="hidden" id="subject-uuid" th:value="${subjectUuid}">
+
+        <!-- Category Selection -->
+        <div class="aura-form-group">
+            <label class="aura-label">
+                <i class="fas fa-tag"></i>
+                <span th:text="#{accountability.form.category}">Report Category</span>
+            </label>
+            <div class="category-grid">
+                <label class="category-card" onclick="selectCategory('GHOSTING')">
+                    <input type="radio" name="category" value="GHOSTING">
+                    <div class="category-icon">👻</div>
+                    <div class="category-name">Ghosting</div>
+                    <div class="category-desc">Disappeared without explanation</div>
+                </label>
+
+                <label class="category-card" onclick="selectCategory('DISHONESTY')">
+                    <input type="radio" name="category" value="DISHONESTY">
+                    <div class="category-icon">🎭</div>
+                    <div class="category-name">Dishonesty</div>
+                    <div class="category-desc">Misleading or false information</div>
+                </label>
+
+                <label class="category-card" onclick="selectCategory('DISRESPECT')">
+                    <input type="radio" name="category" value="DISRESPECT">
+                    <div class="category-icon">😤</div>
+                    <div class="category-name">Disrespect</div>
+                    <div class="category-desc">Rude or demeaning behavior</div>
+                </label>
+
+                <label class="category-card" onclick="selectCategory('HARASSMENT')">
+                    <input type="radio" name="category" value="HARASSMENT">
+                    <div class="category-icon">📱</div>
+                    <div class="category-name">Harassment</div>
+                    <div class="category-desc">Unwanted persistent contact</div>
+                </label>
+
+                <label class="category-card" onclick="selectCategory('MANIPULATION')">
+                    <input type="radio" name="category" value="MANIPULATION">
+                    <div class="category-icon">🔄</div>
+                    <div class="category-name">Manipulation</div>
+                    <div class="category-desc">Love bombing, gaslighting</div>
+                </label>
+
+                <label class="category-card" onclick="selectCategory('BOUNDARY_VIOLATION')">
+                    <input type="radio" name="category" value="BOUNDARY_VIOLATION">
+                    <div class="category-icon">🚫</div>
+                    <div class="category-name">Boundary Violation</div>
+                    <div class="category-desc">Ignored stated boundaries</div>
+                </label>
+
+                <label class="category-card" onclick="selectCategory('DATE_NO_SHOW')">
+                    <input type="radio" name="category" value="DATE_NO_SHOW">
+                    <div class="category-icon">📅</div>
+                    <div class="category-name">Date No-Show</div>
+                    <div class="category-desc">Didn't show up to date</div>
+                </label>
+
+                <label class="category-card positive" onclick="selectCategory('POSITIVE_EXPERIENCE')">
+                    <input type="radio" name="category" value="POSITIVE_EXPERIENCE">
+                    <div class="category-icon">⭐</div>
+                    <div class="category-name">Positive Experience</div>
+                    <div class="category-desc">Great interaction</div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Behavior Type -->
+        <div class="aura-form-group" id="behavior-type-group" style="display: none;">
+            <label class="aura-label">
+                <i class="fas fa-list-ul"></i>
+                <span th:text="#{accountability.form.behavior}">Specific Behavior</span>
+            </label>
+            <select id="behavior-type" class="aura-select">
+                <!-- Populated by JavaScript based on category -->
+            </select>
+        </div>
+
+        <!-- Title -->
+        <div class="aura-form-group">
+            <label class="aura-label">
+                <i class="fas fa-heading"></i>
+                <span th:text="#{accountability.form.title}">Report Title</span>
+            </label>
+            <input type="text" id="report-title" class="aura-input" maxlength="200"
+                   th:placeholder="#{accountability.form.title.placeholder}"
+                   placeholder="Brief summary of the situation">
+        </div>
+
+        <!-- Description -->
+        <div class="aura-form-group">
+            <label class="aura-label">
+                <i class="fas fa-align-left"></i>
+                <span th:text="#{accountability.form.description}">Detailed Description</span>
+            </label>
+            <textarea id="report-description" class="aura-textarea" rows="6"
+                      th:placeholder="#{accountability.form.description.placeholder}"
+                      placeholder="Describe what happened in detail. Be specific and factual."></textarea>
+            <div class="aura-form-hint">
+                Be specific and provide context. This helps others make informed decisions.
+            </div>
+        </div>
+
+        <!-- Incident Date Range -->
+        <div class="aura-form-group">
+            <label class="aura-label">
+                <i class="fas fa-calendar-alt"></i>
+                <span>When did this occur?</span>
+            </label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <input type="date" id="incident-start" class="aura-input" placeholder="Start date">
+                    <div class="aura-form-hint">Start date</div>
+                </div>
+                <div>
+                    <input type="date" id="incident-end" class="aura-input" placeholder="End date">
+                    <div class="aura-form-hint">End date (optional)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evidence Upload -->
+        <div class="aura-form-group">
+            <label class="aura-label">
+                <i class="fas fa-image"></i>
+                <span>Evidence (Screenshots)</span>
+            </label>
+            <div class="evidence-upload-area" onclick="document.getElementById('evidence-file').click()">
+                <i class="fas fa-cloud-upload-alt fa-2x" style="color: var(--aura-gray-400); margin-bottom: 0.5rem;"></i>
+                <p style="color: var(--aura-gray-600); margin-bottom: 0.25rem;">Click to upload screenshots</p>
+                <p style="color: var(--aura-gray-500); font-size: 0.875rem;">PNG, JPG up to 5MB each</p>
+            </div>
+            <input type="file" id="evidence-file" style="display: none;" accept="image/*" multiple onchange="handleFileSelect(event)">
+            <div id="evidence-preview" class="evidence-preview"></div>
+            <div class="aura-form-hint">
+                Screenshots of messages will be verified against our database for authenticity
+            </div>
+        </div>
+
+        <!-- Anonymous Option -->
+        <div class="aura-form-group">
+            <label class="aura-checkbox">
+                <input type="checkbox" id="anonymous">
+                <span class="aura-checkbox-mark"></span>
+                <div>
+                    <div style="font-weight: 500;">
+                        <i class="fas fa-user-secret"></i>
+                        <span th:text="#{accountability.form.anonymous}">Submit anonymously</span>
+                    </div>
+                    <div style="color: var(--aura-gray-500); font-size: 0.875rem; margin-top: 0.25rem;">
+                        Your name will not be shown with this report
+                    </div>
+                </div>
+            </label>
+        </div>
+
+        <!-- Warning -->
+        <div class="aura-alert aura-alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Important:</strong>
+                <p th:text="#{accountability.form.warning}" style="font-size: 0.875rem; margin-top: 0.25rem;">
+                    False or malicious reports will negatively impact your own reputation score.
+                    Please only submit honest, factual feedback. All reports are reviewed before being published.
+                </p>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="button" class="aura-btn aura-btn-secondary" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i>
+                <span th:text="#{button.cancel}">Cancel</span>
+            </button>
+            <button type="submit" class="aura-btn aura-btn-primary" style="flex: 1;">
+                <i class="fas fa-paper-plane"></i>
+                <span th:text="#{accountability.submit}">Submit Report</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .aura-avatar-circle {
+        background: linear-gradient(135deg, var(--aura-primary), var(--aura-accent));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+    }
+
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .category-card {
+        position: relative;
+        background: var(--aura-gray-50);
+        border: 2px solid var(--aura-gray-200);
+        border-radius: 12px;
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .category-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .category-card:hover {
+        border-color: var(--aura-primary);
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(236, 72, 153, 0.05));
+    }
+
+    .category-card input[type="radio"]:checked ~ * {
+        color: var(--aura-primary);
+    }
+
+    .category-card input[type="radio"]:checked {
+        border-color: var(--aura-primary);
+    }
+
+    .category-card.active {
+        border-color: var(--aura-primary);
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1));
+    }
+
+    .category-card.positive.active {
+        border-color: var(--aura-success);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.1));
+    }
+
+    .category-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .category-name {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        margin-bottom: 0.25rem;
+        color: var(--aura-gray-800);
+    }
+
+    .category-desc {
+        font-size: 0.75rem;
+        color: var(--aura-gray-500);
+        line-height: 1.3;
+    }
+
+    .evidence-upload-area {
+        border: 2px dashed var(--aura-gray-300);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .evidence-upload-area:hover {
+        border-color: var(--aura-primary);
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(236, 72, 153, 0.05));
+    }
+
+    .evidence-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .evidence-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 1;
+    }
+
+    .evidence-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .evidence-item-remove {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        transition: background 0.2s ease;
+    }
+
+    .evidence-item-remove:hover {
+        background: var(--aura-danger);
+    }
+
+    .aura-checkbox {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .aura-checkbox input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--aura-primary);
+        flex-shrink: 0;
+        margin-top: 0.25rem;
+    }
+
+    .aura-form-hint {
+        font-size: 0.8125rem;
+        color: var(--aura-gray-500);
+        margin-top: 0.375rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .aura-avatar-circle {
+            color: white;
+        }
+
+        .category-card {
+            background: var(--aura-gray-800);
+            border-color: var(--aura-gray-700);
+        }
+
+        .category-name {
+            color: var(--aura-gray-100);
+        }
+
+        .evidence-upload-area {
+            border-color: var(--aura-gray-700);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .category-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<script th:inline="javascript">
+    const behaviors = {
+        'POSITIVE_EXPERIENCE': [
+            {value: 'RESPECTFUL_COMMUNICATOR', label: 'Respectful Communicator'},
+            {value: 'HONEST_AND_AUTHENTIC', label: 'Honest and Authentic'},
+            {value: 'GRACEFUL_REJECTION', label: 'Graceful Rejection'},
+            {value: 'GREAT_DATE', label: 'Great Date'}
+        ],
+        'GHOSTING': [
+            {value: 'UNMATCHED_WITHOUT_EXPLANATION', label: 'Unmatched Without Explanation'},
+            {value: 'STOPPED_RESPONDING', label: 'Stopped Responding'},
+            {value: 'STOOD_UP_ON_DATE', label: 'Stood Up on Date'}
+        ],
+        'DISHONESTY': [
+            {value: 'FAKE_PHOTOS', label: 'Fake Photos'},
+            {value: 'LIED_ABOUT_INTENTIONS', label: 'Lied About Intentions'},
+            {value: 'MISREPRESENTED_RELATIONSHIP_STATUS', label: 'Misrepresented Relationship Status'}
+        ],
+        'DISRESPECT': [
+            {value: 'INSULTS', label: 'Insults'},
+            {value: 'BODY_SHAMING', label: 'Body Shaming'},
+            {value: 'CRUDE_BEHAVIOR', label: 'Crude Behavior'}
+        ],
+        'HARASSMENT': [
+            {value: 'SPAM_MESSAGING', label: 'Spam Messaging'},
+            {value: 'CONTACTED_OUTSIDE_APP', label: 'Contacted Outside App'},
+            {value: 'REFUSED_TO_ACCEPT_REJECTION', label: 'Refused to Accept Rejection'}
+        ],
+        'MANIPULATION': [
+            {value: 'LOVE_BOMBING', label: 'Love Bombing'},
+            {value: 'GASLIGHTING', label: 'Gaslighting'},
+            {value: 'GUILT_TRIPPING', label: 'Guilt Tripping'}
+        ],
+        'BOUNDARY_VIOLATION': [],
+        'DATE_NO_SHOW': []
+    };
+
+    let selectedFiles = [];
+
+    function selectCategory(category) {
+        // Update active state on cards
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('active');
+        });
+        event.currentTarget.classList.add('active');
+
+        // Update behavior types dropdown
+        const behaviorGroup = document.getElementById('behavior-type-group');
+        const behaviorSelect = document.getElementById('behavior-type');
+
+        const options = behaviors[category] || [];
+
+        if (options.length > 0) {
+            behaviorGroup.style.display = 'block';
+            behaviorSelect.innerHTML = '';
+
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.label;
+                behaviorSelect.appendChild(option);
+            });
+        } else {
+            behaviorGroup.style.display = 'none';
+        }
+    }
+
+    function handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+        const preview = document.getElementById('evidence-preview');
+
+        files.forEach((file, index) => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+                return;
+            }
+
+            selectedFiles.push(file);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const div = document.createElement('div');
+                div.className = 'evidence-item';
+                div.innerHTML = `
+                    <img src="${e.target.result}" alt="Evidence">
+                    <button type="button" class="evidence-item-remove" onclick="removeEvidence(${selectedFiles.length - 1})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                preview.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Reset input
+        event.target.value = '';
+    }
+
+    function removeEvidence(index) {
+        selectedFiles.splice(index, 1);
+        const preview = document.getElementById('evidence-preview');
+        preview.children[index].remove();
+    }
+
+    document.getElementById('report-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const category = document.querySelector('input[name="category"]:checked');
+        if (!category) {
+            alert('Please select a category');
+            return;
+        }
+
+        const title = document.getElementById('report-title').value;
+        const description = document.getElementById('report-description').value;
+
+        if (!title.trim() || !description.trim()) {
+            alert('Please provide both a title and description');
+            return;
+        }
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Submitting...</span>';
+
+        try {
+            // Submit report
+            const reportData = {
+                subjectUuid: document.getElementById('subject-uuid').value,
+                category: category.value,
+                title: title,
+                description: description,
+                anonymous: document.getElementById('anonymous').checked
+            };
+
+            const behaviorType = document.getElementById('behavior-type').value;
+            if (behaviorType) {
+                reportData.behaviorType = behaviorType;
+            }
+
+            const response = await fetch('/api/v1/accountability/report', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(reportData)
+            });
+
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to submit report');
+            }
+
+            const reportUuid = result.reportUuid;
+
+            // Upload evidence if any
+            for (const file of selectedFiles) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('type', 'SCREENSHOT');
+                formData.append('caption', '');
+
+                await fetch(`/api/v1/accountability/report/${reportUuid}/evidence`, {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+
+            alert('Report submitted successfully! It will be reviewed before being published.');
+            window.location.href = '/accountability/my-reports';
+
+        } catch (error) {
+            alert('Error: ' + error.message);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>Submit Report</span>';
+        }
+    });
+</script>
+
+</body>
+</html>

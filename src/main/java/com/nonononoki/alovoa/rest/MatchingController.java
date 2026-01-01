@@ -1,5 +1,6 @@
 package com.nonononoki.alovoa.rest;
 
+import com.nonononoki.alovoa.model.CompatibilityExplanationDto;
 import com.nonononoki.alovoa.service.MatchingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class MatchingController {
     @GetMapping("/compatibility/{matchUuid}")
     public ResponseEntity<?> getCompatibilityExplanation(@PathVariable String matchUuid) {
         try {
-            Map<String, Object> result = matchingService.getCompatibilityExplanation(matchUuid);
+            CompatibilityExplanationDto result = matchingService.getCompatibilityExplanation(matchUuid);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

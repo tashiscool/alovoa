@@ -30,15 +30,9 @@ public class UserProfilePicture {
     @EqualsAndHashCode.Exclude
     private User user;
 
-    @Deprecated
-    @Column(columnDefinition = "mediumtext")
+    @Column(name = "s3_key")
     @EqualsAndHashCode.Exclude
-    private String data = null;
-
-    @Lob
-    @Column(length = 5000000)
-    @EqualsAndHashCode.Exclude
-    private byte[] bin;
+    private String s3Key;
 
     @EqualsAndHashCode.Exclude
     private String binMime;

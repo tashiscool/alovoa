@@ -253,6 +253,12 @@
                         <i class="fas fa-thumbs-up"></i> <span th:text="${user.positiveFeedbackCount}">0</span>
                         <i class="fas fa-thumbs-down" style="margin-left: 4px;"></i> <span th:text="${user.negativeFeedbackCount}">0</span>
                     </span>
+                    <!-- Reputation Score -->
+                    <span th:if="${user.reputationScore != null and user.reputationScore >= 50}" class="activity-tag"
+                          th:classappend="${user.reputationScore >= 80} ? 'tag-green' : (${user.reputationScore >= 60} ? 'tag-yellow' : '')">
+                        <i class="fas fa-star"></i>
+                        <span th:text="${#numbers.formatDecimal(user.reputationScore, 0, 0)}">75</span>
+                    </span>
                 </div>
 
                 <button class="button" th:onclick="viewProfileMedia([[${user.uuid}]])"><i
@@ -261,6 +267,136 @@
         </div>
     </th:block>
 </div>
+
+<!-- Reusable Verification Badge Fragment -->
+<div th:fragment="verification-badges(user)" class="aura-badge-group">
+    <!-- Video Verification Badge -->
+    <span th:if="${user.videoVerified}" class="aura-verification-badge" title="Video Verified">
+        <i class="fas fa-check-circle"></i>
+        <span>Verified</span>
+    </span>
+
+    <!-- Trust Level Badge -->
+    <span th:if="${user.trustLevel != null}"
+          class="aura-trust-badge"
+          th:classappend="${#strings.toLowerCase(user.trustLevel).replace('_', '-')}"
+          th:title="${user.trustLevel}">
+        <i class="fas fa-shield-alt"></i>
+        <span th:switch="${user.trustLevel}">
+            <span th:case="'NEW_MEMBER'">New Member</span>
+            <span th:case="'VERIFIED'">Verified</span>
+            <span th:case="'TRUSTED'">Trusted</span>
+            <span th:case="'HIGHLY_TRUSTED'">Highly Trusted</span>
+            <span th:case="'UNDER_REVIEW'">Under Review</span>
+            <span th:case="'RESTRICTED'">Restricted</span>
+        </span>
+    </span>
+</div>
+
+<!-- Compact Verification Icons Fragment (for small spaces like search cards) -->
+<div th:fragment="verification-icons(user)" class="aura-badge-inline">
+    <!-- Video Verified Icon -->
+    <span th:if="${user.videoVerified}" class="aura-verification-badge" title="Video Verified" style="padding: 0.2rem 0.5rem;">
+        <i class="fas fa-video"></i>
+    </span>
+
+    <!-- Trust Level Icon -->
+    <span th:if="${user.trustLevel != null and user.trustLevel != 'NEW_MEMBER'}"
+          class="aura-trust-badge"
+          th:classappend="${#strings.toLowerCase(user.trustLevel).replace('_', '-')}"
+          th:title="${user.trustLevel}"
+          style="padding: 0.2rem 0.5rem;">
+        <i class="fas fa-shield-alt"></i>
+    </span>
+</div>
+
+<!-- Detailed Reputation Card Fragment (for profile pages) -->
+<div th:fragment="reputation-card(user)" class="aura-card" style="margin-top: 1rem;">
+    <div class="aura-card-header">
+        <div class="aura-card-icon"><i class="fas fa-star"></i></div>
+        <div>
+            <div class="aura-card-title">Reputation & Trust</div>
+            <div class="aura-card-subtitle">How this user is viewed in the community</div>
+        </div>
+    </div>
+
+    <!-- Trust Level Display -->
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--aura-gradient-subtle); border-radius: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span th:switch="${user.trustLevel}" style="font-size: 2rem;">
+                <i th:case="'HIGHLY_TRUSTED'" class="fas fa-shield-alt" style="color: var(--aura-success);"></i>
+                <i th:case="'TRUSTED'" class="fas fa-check-circle" style="color: var(--aura-success);"></i>
+                <i th:case="'VERIFIED'" class="fas fa-user-check" style="color: var(--aura-info);"></i>
+                <i th:case="'NEW_MEMBER'" class="fas fa-user" style="color: var(--aura-gray-500);"></i>
+                <i th:case="'UNDER_REVIEW'" class="fas fa-clock" style="color: var(--aura-warning);"></i>
+                <i th:case="'RESTRICTED'" class="fas fa-exclamation-triangle" style="color: var(--aura-danger);"></i>
+            </span>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 1.125rem;" th:switch="${user.trustLevel}">
+                    <span th:case="'NEW_MEMBER'">New Member</span>
+                    <span th:case="'VERIFIED'">Verified Member</span>
+                    <span th:case="'TRUSTED'">Trusted Member</span>
+                    <span th:case="'HIGHLY_TRUSTED'">Highly Trusted</span>
+                    <span th:case="'UNDER_REVIEW'">Under Review</span>
+                    <span th:case="'RESTRICTED'">Restricted</span>
+                </div>
+                <div style="font-size: 0.875rem; color: var(--aura-gray-600); margin-top: 0.25rem;" th:switch="${user.trustLevel}">
+                    <span th:case="'NEW_MEMBER'">New to AURA - building their reputation</span>
+                    <span th:case="'VERIFIED'">Verified member with basic verification</span>
+                    <span th:case="'TRUSTED'">Trusted member with positive history</span>
+                    <span th:case="'HIGHLY_TRUSTED'">Exemplary member with excellent track record</span>
+                    <span th:case="'UNDER_REVIEW'">Account under review</span>
+                    <span th:case="'RESTRICTED'">Limited features due to policy violations</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reputation Stats -->
+    <div class="aura-stats aura-stagger" style="margin-bottom: 1rem;">
+        <div class="aura-stat">
+            <div class="aura-stat-value" th:text="${user.reputationScore != null ? #numbers.formatDecimal(user.reputationScore, 0, 0) : '50'}">75</div>
+            <div class="aura-stat-label"><i class="fas fa-star mr-1"></i> Overall</div>
+        </div>
+        <div class="aura-stat" th:if="${user.positiveFeedbackCount != null}">
+            <div class="aura-stat-value" th:text="${user.positiveFeedbackCount}">5</div>
+            <div class="aura-stat-label"><i class="fas fa-thumbs-up mr-1"></i> Positive</div>
+        </div>
+        <div class="aura-stat" th:if="${user.videoVerified != null}">
+            <div class="aura-stat-value">
+                <i th:if="${user.videoVerified}" class="fas fa-check" style="color: var(--aura-success);"></i>
+                <i th:unless="${user.videoVerified}" class="fas fa-times" style="color: var(--aura-gray-400);"></i>
+            </div>
+            <div class="aura-stat-label"><i class="fas fa-video mr-1"></i> Verified</div>
+        </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div th:if="${user.responseRate != null}" style="margin-top: 1rem; padding: 0.75rem; background: var(--aura-bg-secondary); border-radius: 0.5rem;">
+        <div style="font-size: 0.875rem; color: var(--aura-gray-600);">
+            <i class="fas fa-comment mr-2"></i>
+            <span th:switch="${user.responseRate}">
+                <span th:case="'REPLIES_OFTEN'">Replies often to messages</span>
+                <span th:case="'REPLIES_SELECTIVELY'">Replies selectively</span>
+                <span th:case="'REPLIES_RARELY'">Rarely replies</span>
+                <span th:case="*">Response rate not available</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Warning for Under Review or Restricted -->
+    <div th:if="${user.trustLevel == 'UNDER_REVIEW' or user.trustLevel == 'RESTRICTED'}"
+         class="aura-alert aura-alert-warning" style="margin-top: 1rem;">
+        <i class="fas fa-exclamation-triangle fa-lg"></i>
+        <div>
+            <strong>Please exercise caution</strong>
+            <p style="margin-top: 0.25rem;">This account has been flagged for review. Proceed with care when interacting with this user.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Donation Modal Fragment -->
+<div th:fragment="donation-modal" th:replace="~{fragments/donation-modal.html::donation-modal}"></div>
 
 </body>
 

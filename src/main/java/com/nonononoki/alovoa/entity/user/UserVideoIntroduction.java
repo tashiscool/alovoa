@@ -29,10 +29,9 @@ public class UserVideoIntroduction {
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
 
-    // Video data stored as blob for privacy/security
-    @Lob
-    @Column(name = "video_data", columnDefinition = "LONGBLOB")
-    private byte[] videoData;
+    // S3 key for video storage
+    @Column(name = "s3_key")
+    private String s3Key;
 
     @Column(name = "mime_type", length = 50)
     private String mimeType;
@@ -85,6 +84,27 @@ public class UserVideoIntroduction {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private AnalysisStatus status = AnalysisStatus.PENDING;
+
+    // === Voice Intro Support (Known app feature) ===
+    // Short 2-3 minute voice intro that supplements the question bank
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "intro_type")
+    private IntroType introType = IntroType.VIDEO;
+
+    // S3 key for voice-only audio file
+    @Column(name = "voice_only_url", length = 500)
+    private String voiceOnlyUrl;
+
+    // Duration of voice intro in seconds
+    @Column(name = "voice_duration_seconds")
+    private Integer voiceDurationSeconds;
+
+    public enum IntroType {
+        VIDEO,       // Full video intro (original)
+        VOICE_ONLY,  // 2-3 minute voice recording (Known-style)
+        TEXT_ONLY    // Written intro only (fallback)
+    }
 
     public enum AnalysisStatus {
         PENDING,        // Uploaded, awaiting processing

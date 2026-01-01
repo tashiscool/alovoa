@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-rocket mr-2"></i> Complete Your Profile</h1>
+    <p>Answer a few questions and upload a video to start matching</p>
+</div>
+
+<div class="aura-container">
+    <!-- Progress Overview -->
+    <div class="aura-card aura-animate-fade-up">
+        <div class="intake-progress-header">
+            <h2>Your Progress</h2>
+            <div class="progress-percentage" id="overall-progress">0%</div>
+        </div>
+        <div class="aura-progress-bar" style="height: 12px; margin: 1rem 0;">
+            <div id="progress-fill" class="aura-progress-fill" style="width: 0%;"></div>
+        </div>
+
+        <div class="intake-steps">
+            <div class="intake-step" id="step-questions">
+                <div class="step-icon pending"><i class="fas fa-question-circle"></i></div>
+                <div class="step-info">
+                    <strong>Core Questions</strong>
+                    <p>Answer 10 questions about your values and preferences</p>
+                </div>
+                <div class="step-status" id="step-questions-status">
+                    <span class="badge pending">Pending</span>
+                </div>
+            </div>
+
+            <div class="intake-step" id="step-video">
+                <div class="step-icon pending"><i class="fas fa-video"></i></div>
+                <div class="step-info">
+                    <strong>Video Introduction</strong>
+                    <p>Record a short video to introduce yourself</p>
+                </div>
+                <div class="step-status" id="step-video-status">
+                    <span class="badge pending">Pending</span>
+                </div>
+            </div>
+
+            <div class="intake-step" id="step-photos">
+                <div class="step-icon pending"><i class="fas fa-images"></i></div>
+                <div class="step-info">
+                    <strong>Profile Photos</strong>
+                    <p>Upload at least one photo</p>
+                </div>
+                <div class="step-status" id="step-photos-status">
+                    <span class="badge pending">Pending</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Step Content -->
+    <div id="current-step-content" class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <!-- Step 1: Core Questions -->
+        <div id="questions-section" class="step-section">
+            <div class="aura-card-header">
+                <div class="aura-card-icon"><i class="fas fa-question-circle"></i></div>
+                <div>
+                    <div class="aura-card-title">Core Questions</div>
+                    <div class="aura-card-subtitle">One question from each category</div>
+                </div>
+            </div>
+
+            <div id="questions-container">
+                <!-- Questions will be loaded dynamically -->
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading questions...</p>
+                </div>
+            </div>
+
+            <div id="questions-navigation" style="display: none;">
+                <div class="question-progress">
+                    Question <span id="current-question">1</span> of <span id="total-questions">10</span>
+                </div>
+                <div class="question-buttons">
+                    <button class="aura-btn aura-btn-outline" id="prev-question" disabled>
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button class="aura-btn aura-btn-primary" id="next-question">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Video Introduction -->
+        <div id="video-section" class="step-section" style="display: none;">
+            <div class="aura-card-header">
+                <div class="aura-card-icon"><i class="fas fa-video"></i></div>
+                <div>
+                    <div class="aura-card-title">Video Introduction</div>
+                    <div class="aura-card-subtitle">Tell potential matches about yourself</div>
+                </div>
+            </div>
+
+            <div class="video-tips">
+                <h4><i class="fas fa-lightbulb"></i> Tips for a great video:</h4>
+                <ul>
+                    <li>Share your name and what you're looking for</li>
+                    <li>Mention a hobby or interest</li>
+                    <li>Say what makes you unique</li>
+                    <li>Keep it under 60 seconds</li>
+                </ul>
+            </div>
+
+            <div class="video-upload-area">
+                <div class="video-preview-container">
+                    <video id="video-preview" autoplay playsinline muted></video>
+                    <div class="video-overlay">
+                        <div class="recording-indicator" id="recording-indicator" style="display: none;">
+                            <span class="recording-dot"></span> Recording
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-controls">
+                    <button class="aura-btn aura-btn-outline" id="start-camera">
+                        <i class="fas fa-camera"></i> Start Camera
+                    </button>
+                    <button class="aura-btn aura-btn-record" id="record-btn" style="display: none;">
+                        <i class="fas fa-circle"></i> Start Recording
+                    </button>
+                    <button class="aura-btn aura-btn-primary" id="upload-video" style="display: none;">
+                        <i class="fas fa-upload"></i> Upload Video
+                    </button>
+                </div>
+
+                <div class="upload-alternative">
+                    <p>Or upload an existing video:</p>
+                    <input type="file" id="video-file" accept="video/*" style="display: none;">
+                    <button class="aura-btn aura-btn-outline" onclick="document.getElementById('video-file').click()">
+                        <i class="fas fa-file-video"></i> Choose File
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Photos -->
+        <div id="photos-section" class="step-section" style="display: none;">
+            <div class="aura-card-header">
+                <div class="aura-card-icon"><i class="fas fa-images"></i></div>
+                <div>
+                    <div class="aura-card-title">Profile Photos</div>
+                    <div class="aura-card-subtitle">Upload at least one photo</div>
+                </div>
+            </div>
+
+            <div class="photos-grid" id="photos-grid">
+                <div class="photo-slot empty" onclick="document.getElementById('photo-input').click()">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Photo</span>
+                </div>
+            </div>
+            <input type="file" id="photo-input" accept="image/*" multiple style="display: none;">
+
+            <div class="photo-tips">
+                <p><i class="fas fa-info-circle"></i> Tips: Use clear, recent photos showing your face. Avoid group photos as your main picture.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Section -->
+    <div id="completion-section" class="aura-card aura-animate-fade-up" style="margin-top: 1rem; display: none;">
+        <div style="text-align: center; padding: 2rem;">
+            <div class="completion-icon">
+                <i class="fas fa-check-circle fa-4x" style="color: var(--aura-success);"></i>
+            </div>
+            <h2 style="margin-top: 1.5rem; color: var(--aura-success);">Profile Complete!</h2>
+            <p style="color: var(--aura-gray-500); margin-top: 0.5rem;">
+                You're ready to start matching with compatible people.
+            </p>
+            <a href="/" class="aura-btn aura-btn-primary aura-btn-lg" style="margin-top: 1.5rem;">
+                <i class="fas fa-heart"></i> Start Matching
+            </a>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<style>
+    .intake-progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .progress-percentage {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: var(--aura-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .intake-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .intake-step {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--aura-gray-50);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .intake-step.active {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(168, 85, 247, 0.1));
+        border: 2px solid var(--aura-primary);
+    }
+
+    .intake-step.completed {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.1));
+    }
+
+    .step-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .step-icon.pending {
+        background: var(--aura-gray-200);
+        color: var(--aura-gray-500);
+    }
+
+    .step-icon.active {
+        background: var(--aura-gradient);
+        color: white;
+    }
+
+    .step-icon.completed {
+        background: var(--aura-success);
+        color: white;
+    }
+
+    .step-info {
+        flex: 1;
+    }
+
+    .step-info strong {
+        display: block;
+        color: var(--aura-gray-800);
+    }
+
+    .step-info p {
+        font-size: 0.875rem;
+        color: var(--aura-gray-500);
+        margin-top: 0.25rem;
+    }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge.pending {
+        background: var(--aura-gray-200);
+        color: var(--aura-gray-600);
+    }
+
+    .badge.active {
+        background: var(--aura-primary);
+        color: white;
+    }
+
+    .badge.completed {
+        background: var(--aura-success);
+        color: white;
+    }
+
+    .step-section {
+        padding: 1rem 0;
+    }
+
+    .question-card {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .question-text {
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: var(--aura-gray-800);
+        margin-bottom: 1.5rem;
+    }
+
+    .answer-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .answer-option {
+        padding: 1rem;
+        border: 2px solid var(--aura-gray-200);
+        border-radius: 12px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+    }
+
+    .answer-option:hover {
+        border-color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    .answer-option.selected {
+        border-color: var(--aura-primary);
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(168, 85, 247, 0.1));
+    }
+
+    .question-progress {
+        text-align: center;
+        margin-bottom: 1rem;
+        color: var(--aura-gray-500);
+    }
+
+    .question-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .video-tips {
+        background: var(--aura-gray-50);
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    .video-tips h4 {
+        color: var(--aura-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .video-tips ul {
+        margin: 0;
+        padding-left: 1.5rem;
+        color: var(--aura-gray-600);
+    }
+
+    .video-preview-container {
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 4/3;
+    }
+
+    .video-preview-container video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+    }
+
+    .video-controls {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .aura-btn-record {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .aura-btn-record.recording {
+        animation: pulse 1s infinite;
+    }
+
+    .upload-alternative {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--aura-gray-200);
+    }
+
+    .photos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+
+    .photo-slot {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .photo-slot.empty {
+        border: 2px dashed var(--aura-gray-300);
+        background: var(--aura-gray-50);
+        color: var(--aura-gray-400);
+    }
+
+    .photo-slot.empty:hover {
+        border-color: var(--aura-primary);
+        color: var(--aura-primary);
+    }
+
+    .photo-slot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+        color: var(--aura-gray-500);
+    }
+
+    .completion-icon {
+        animation: bounceIn 0.5s ease;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    @keyframes bounceIn {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .intake-step {
+            background: var(--aura-gray-800);
+        }
+
+        .intake-step.active {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(168, 85, 247, 0.2));
+        }
+
+        .step-info strong,
+        .question-text {
+            color: var(--aura-gray-100);
+        }
+
+        .answer-option {
+            background: var(--aura-gray-800);
+            border-color: var(--aura-gray-600);
+        }
+
+        .video-tips {
+            background: var(--aura-gray-800);
+        }
+    }
+</style>
+
+<script th:inline="javascript">
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let answers = {};
+    let progress = /*[[${progress}]]*/ {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateProgressDisplay();
+        loadCurrentStep();
+    });
+
+    function updateProgressDisplay() {
+        let completedSteps = 0;
+        let totalSteps = 3;
+
+        if (progress.questionsComplete) {
+            completedSteps++;
+            document.getElementById('step-questions').classList.add('completed');
+            document.getElementById('step-questions-status').innerHTML = '<span class="badge completed">Complete</span>';
+        }
+
+        if (progress.videoIntroComplete) {
+            completedSteps++;
+            document.getElementById('step-video').classList.add('completed');
+            document.getElementById('step-video-status').innerHTML = '<span class="badge completed">Complete</span>';
+        }
+
+        if (progress.picturesComplete) {
+            completedSteps++;
+            document.getElementById('step-photos').classList.add('completed');
+            document.getElementById('step-photos-status').innerHTML = '<span class="badge completed">Complete</span>';
+        }
+
+        let percentage = Math.round((completedSteps / totalSteps) * 100);
+        document.getElementById('overall-progress').textContent = percentage + '%';
+        document.getElementById('progress-fill').style.width = percentage + '%';
+
+        if (progress.intakeComplete) {
+            document.getElementById('current-step-content').style.display = 'none';
+            document.getElementById('completion-section').style.display = 'block';
+        }
+    }
+
+    function loadCurrentStep() {
+        if (!progress.questionsComplete) {
+            showQuestionsStep();
+        } else if (!progress.videoIntroComplete) {
+            showVideoStep();
+        } else if (!progress.picturesComplete) {
+            showPhotosStep();
+        }
+    }
+
+    async function showQuestionsStep() {
+        document.getElementById('step-questions').classList.add('active');
+        document.getElementById('step-questions-status').innerHTML = '<span class="badge active">In Progress</span>';
+
+        try {
+            const response = await fetch('/intake/questions');
+            questions = await response.json();
+            renderQuestions();
+        } catch (error) {
+            console.error('Failed to load questions:', error);
+        }
+    }
+
+    function renderQuestions() {
+        if (questions.length === 0) {
+            document.getElementById('questions-container').innerHTML = '<p>No questions available.</p>';
+            return;
+        }
+
+        document.getElementById('total-questions').textContent = questions.length;
+        document.getElementById('questions-navigation').style.display = 'block';
+        renderCurrentQuestion();
+    }
+
+    function renderCurrentQuestion() {
+        const question = questions[currentQuestionIndex];
+        document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+
+        let optionsHtml = '';
+        if (question.options) {
+            question.options.forEach((opt, idx) => {
+                const selected = answers[question.id] === idx ? 'selected' : '';
+                optionsHtml += `
+                    <div class="answer-option ${selected}" onclick="selectAnswer(${question.id}, ${idx})">
+                        ${opt}
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('questions-container').innerHTML = `
+            <div class="question-card">
+                <div class="question-category" style="font-size: 0.875rem; color: var(--aura-primary); margin-bottom: 0.5rem;">
+                    ${question.category || 'General'}
+                </div>
+                <div class="question-text">${question.text}</div>
+                <div class="answer-options">${optionsHtml}</div>
+            </div>
+        `;
+
+        // Update navigation buttons
+        document.getElementById('prev-question').disabled = currentQuestionIndex === 0;
+        document.getElementById('next-question').innerHTML = currentQuestionIndex === questions.length - 1
+            ? '<i class="fas fa-check"></i> Submit'
+            : 'Next <i class="fas fa-arrow-right"></i>';
+    }
+
+    function selectAnswer(questionId, optionIndex) {
+        answers[questionId] = optionIndex;
+        renderCurrentQuestion();
+    }
+
+    document.getElementById('prev-question').addEventListener('click', function() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderCurrentQuestion();
+        }
+    });
+
+    document.getElementById('next-question').addEventListener('click', async function() {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderCurrentQuestion();
+        } else {
+            // Submit all answers
+            await submitAnswers();
+        }
+    });
+
+    async function submitAnswers() {
+        const submissions = Object.entries(answers).map(([questionId, optionIndex]) => ({
+            questionId: parseInt(questionId),
+            selectedOption: optionIndex
+        }));
+
+        try {
+            const response = await fetch('/intake/questions/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(submissions)
+            });
+
+            if (response.ok) {
+                progress.questionsComplete = true;
+                updateProgressDisplay();
+                showVideoStep();
+            } else {
+                alert('Failed to submit answers');
+            }
+        } catch (error) {
+            console.error('Failed to submit:', error);
+        }
+    }
+
+    function showVideoStep() {
+        document.getElementById('questions-section').style.display = 'none';
+        document.getElementById('video-section').style.display = 'block';
+
+        document.getElementById('step-questions').classList.remove('active');
+        document.getElementById('step-video').classList.add('active');
+        document.getElementById('step-video-status').innerHTML = '<span class="badge active">In Progress</span>';
+    }
+
+    function showPhotosStep() {
+        document.getElementById('video-section').style.display = 'none';
+        document.getElementById('photos-section').style.display = 'block';
+
+        document.getElementById('step-video').classList.remove('active');
+        document.getElementById('step-photos').classList.add('active');
+        document.getElementById('step-photos-status').innerHTML = '<span class="badge active">In Progress</span>';
+    }
+
+    // Video recording logic
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    document.getElementById('start-camera').addEventListener('click', async function() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('video-preview').srcObject = stream;
+            this.style.display = 'none';
+            document.getElementById('record-btn').style.display = 'inline-flex';
+
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
+            mediaRecorder.onstop = handleRecordingComplete;
+        } catch (error) {
+            alert('Camera access denied');
+        }
+    });
+
+    document.getElementById('record-btn').addEventListener('click', function() {
+        if (mediaRecorder.state === 'inactive') {
+            recordedChunks = [];
+            mediaRecorder.start();
+            this.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+            this.classList.add('recording');
+            document.getElementById('recording-indicator').style.display = 'flex';
+        } else {
+            mediaRecorder.stop();
+            this.innerHTML = '<i class="fas fa-circle"></i> Start Recording';
+            this.classList.remove('recording');
+            document.getElementById('recording-indicator').style.display = 'none';
+        }
+    });
+
+    function handleRecordingComplete() {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        // Show upload button
+        document.getElementById('upload-video').style.display = 'inline-flex';
+        document.getElementById('upload-video').onclick = () => uploadVideo(blob);
+    }
+
+    async function uploadVideo(blob) {
+        const formData = new FormData();
+        formData.append('file', blob, 'introduction.webm');
+
+        try {
+            const response = await fetch('/intake/video', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                progress.videoIntroComplete = true;
+                updateProgressDisplay();
+                showPhotosStep();
+            } else {
+                alert('Failed to upload video');
+            }
+        } catch (error) {
+            console.error('Failed to upload:', error);
+        }
+    }
+
+    // File upload handler
+    document.getElementById('video-file').addEventListener('change', async function(e) {
+        if (e.target.files.length > 0) {
+            await uploadVideo(e.target.files[0]);
+        }
+    });
+
+    // Photo upload
+    document.getElementById('photo-input').addEventListener('change', async function(e) {
+        for (let file of e.target.files) {
+            await uploadPhoto(file);
+        }
+    });
+
+    async function uploadPhoto(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/user/userdata/picture', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                // Add photo to grid
+                const grid = document.getElementById('photos-grid');
+                const slot = document.createElement('div');
+                slot.className = 'photo-slot';
+                slot.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Photo">`;
+                grid.insertBefore(slot, grid.lastElementChild);
+
+                // Mark photos as complete
+                progress.picturesComplete = true;
+                updateProgressDisplay();
+            }
+        } catch (error) {
+            console.error('Failed to upload photo:', error);
+        }
+    }
+</script>
+
+</body>
+</html>

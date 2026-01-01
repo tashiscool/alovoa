@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-heart mr-2"></i> Compatibility Breakdown</h1>
+    <p>Understanding your connection</p>
+</div>
+
+<div class="aura-container">
+    <!-- Overall Compatibility Card -->
+    <div class="aura-card aura-animate-fade-up">
+        <div class="aura-card-header">
+            <div class="aura-card-icon"><i class="fas fa-chart-line"></i></div>
+            <div>
+                <div class="aura-card-title">Overall Compatibility</div>
+                <div class="aura-card-subtitle" id="compatibility-summary">Loading...</div>
+            </div>
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <!-- Overall Score Display -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 4rem; font-weight: bold; color: var(--aura-primary);" id="overall-score">--</div>
+                <div style="font-size: 1.2rem; color: var(--text-light);">Match Score</div>
+
+                <!-- Enemy Score (if significant) -->
+                <div id="enemy-score-container" style="margin-top: 1rem; display: none;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #e74c3c;" id="enemy-score">--</div>
+                    <div style="font-size: 1rem; color: var(--text-light);">Incompatibility %</div>
+                </div>
+            </div>
+
+            <!-- Progress Bars for Each Dimension -->
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-weight: 600;">Compatibility Dimensions</h3>
+
+                <div class="compatibility-dimension">
+                    <div class="dimension-label">
+                        <i class="fas fa-heart"></i>
+                        <span>Values & Beliefs</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="values-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-score" id="values-score">--</div>
+                </div>
+
+                <div class="compatibility-dimension">
+                    <div class="dimension-label">
+                        <i class="fas fa-user"></i>
+                        <span>Personality</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="personality-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-score" id="personality-score">--</div>
+                </div>
+
+                <div class="compatibility-dimension">
+                    <div class="dimension-label">
+                        <i class="fas fa-coffee"></i>
+                        <span>Lifestyle</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="lifestyle-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-score" id="lifestyle-score">--</div>
+                </div>
+
+                <div class="compatibility-dimension">
+                    <div class="dimension-label">
+                        <i class="fas fa-bolt"></i>
+                        <span>Attraction</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="attraction-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-score" id="attraction-score">--</div>
+                </div>
+
+                <div class="compatibility-dimension">
+                    <div class="dimension-label">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Circumstantial</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="circumstantial-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-score" id="circumstantial-score">--</div>
+                </div>
+
+                <div class="compatibility-dimension">
+                    <div class="dimension-label">
+                        <i class="fas fa-seedling"></i>
+                        <span>Growth Potential</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="growth-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-score" id="growth-score">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Compatibilities Card -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon" style="background: #27ae60;"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div class="aura-card-title">Your Strengths Together</div>
+                <div class="aura-card-subtitle">What makes you compatible</div>
+            </div>
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <ul id="top-compatibilities" class="compatibility-list">
+                <li>Loading...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Potential Challenges Card -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon" style="background: #e67e22;"><i class="fas fa-exclamation-triangle"></i></div>
+            <div>
+                <div class="aura-card-title">Areas to Navigate</div>
+                <div class="aura-card-subtitle">Differences to be aware of</div>
+            </div>
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <ul id="potential-challenges" class="compatibility-list">
+                <li>Loading...</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+
+<style>
+.compatibility-dimension {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.dimension-label {
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.dimension-label i {
+    color: var(--aura-primary);
+    width: 20px;
+}
+
+.progress-bar-container {
+    flex: 1;
+    height: 24px;
+    background: #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    border-radius: 12px;
+    transition: width 0.6s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+}
+
+.dimension-score {
+    min-width: 40px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.compatibility-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.compatibility-list li {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    border-left: 4px solid var(--aura-primary);
+    font-size: 0.95rem;
+}
+
+.compatibility-list li:before {
+    content: "• ";
+    color: var(--aura-primary);
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+:root {
+    --aura-primary: #3498db;
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+    --bg-light: #ecf0f1;
+}
+</style>
+
+<script>
+// Get the match UUID from URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+const matchUuid = urlParams.get('matchUuid');
+
+if (matchUuid) {
+    // Fetch compatibility explanation from API
+    fetch(`/api/v1/matching/compatibility/${matchUuid}`)
+        .then(response => response.json())
+        .then(data => {
+            // Update overall score
+            document.getElementById('overall-score').textContent = Math.round(data.overallScore || 0);
+
+            // Update enemy score if significant
+            if (data.enemyScore && data.enemyScore > 10) {
+                document.getElementById('enemy-score-container').style.display = 'block';
+                document.getElementById('enemy-score').textContent = Math.round(data.enemyScore) + '%';
+            }
+
+            // Update summary
+            document.getElementById('compatibility-summary').textContent = data.summary || '';
+
+            // Update dimension scores and progress bars
+            if (data.dimensionScores) {
+                updateDimension('values', data.dimensionScores.values);
+                updateDimension('personality', data.dimensionScores.personality);
+                updateDimension('lifestyle', data.dimensionScores.lifestyle);
+                updateDimension('attraction', data.dimensionScores.attraction);
+                updateDimension('circumstantial', data.dimensionScores.circumstantial);
+                updateDimension('growth', data.dimensionScores.growth);
+            }
+
+            // Update top compatibilities
+            if (data.topCompatibilities && data.topCompatibilities.length > 0) {
+                const list = document.getElementById('top-compatibilities');
+                list.innerHTML = '';
+                data.topCompatibilities.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    list.appendChild(li);
+                });
+            }
+
+            // Update potential challenges
+            if (data.potentialChallenges && data.potentialChallenges.length > 0) {
+                const list = document.getElementById('potential-challenges');
+                list.innerHTML = '';
+                data.potentialChallenges.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    list.appendChild(li);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching compatibility data:', error);
+            document.getElementById('compatibility-summary').textContent = 'Unable to load compatibility data';
+        });
+}
+
+function updateDimension(name, score) {
+    const roundedScore = Math.round(score || 50);
+    document.getElementById(`${name}-score`).textContent = roundedScore;
+    document.getElementById(`${name}-bar`).style.width = roundedScore + '%';
+
+    // Color code the bar based on score
+    const bar = document.getElementById(`${name}-bar`);
+    if (roundedScore >= 70) {
+        bar.style.background = 'linear-gradient(90deg, #27ae60, #2ecc71)';
+    } else if (roundedScore >= 50) {
+        bar.style.background = 'linear-gradient(90deg, #3498db, #5dade2)';
+    } else {
+        bar.style.background = 'linear-gradient(90deg, #e67e22, #f39c12)';
+    }
+}
+</script>
+
+</body>
+</html>
