@@ -588,7 +588,10 @@ public class AssessmentService {
         // Update profile question counts
         updateProfileQuestionCounts(user, profile);
 
-        // Calculate scores if categories are complete
+        // Save profile to trigger checkCompletion() via @PrePersist/@PreUpdate
+        profile = profileRepo.save(profile);
+
+        // Calculate scores if categories are complete (after checkCompletion has run)
         if (Boolean.TRUE.equals(profile.getBigFiveComplete())) {
             calculateBigFiveScores(user, profile);
         }
@@ -602,6 +605,7 @@ public class AssessmentService {
             calculateLifestyleScores(user, profile);
         }
 
+        // Save again if scores were calculated
         profileRepo.save(profile);
 
         // Record profile completion behavior if complete
