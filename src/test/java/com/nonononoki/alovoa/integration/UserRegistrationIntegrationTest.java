@@ -50,7 +50,7 @@ public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
 
         Captcha captcha = captchaService.generate();
         RegisterDto registerDto = createRegisterDto(
-            "integration-test@" + Tools.MAIL_TEST_DOMAIN,
+            "integration-test" + Tools.MAIL_TEST_DOMAIN,
             25,
             1,
             captcha
@@ -66,7 +66,7 @@ public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
         // Then
         assertNotNull(confirmedUser, "User should be confirmed");
         assertNotNull(confirmedUser.getId(), "User should have an ID");
-        assertEquals("integration-test@" + Tools.MAIL_TEST_DOMAIN, confirmedUser.getEmail());
+        assertEquals("integration-test" + Tools.MAIL_TEST_DOMAIN, confirmedUser.getEmail());
         assertEquals(initialCount + 1, userRepository.count(), "User count should increase");
     }
 
@@ -75,7 +75,7 @@ public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
         // Given - First registration
         Captcha captcha1 = captchaService.generate();
         RegisterDto registerDto1 = createRegisterDto(
-            "duplicate-test@" + Tools.MAIL_TEST_DOMAIN,
+            "duplicate-test" + Tools.MAIL_TEST_DOMAIN,
             25,
             1,
             captcha1
@@ -86,7 +86,7 @@ public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
         // When - Try to register with same email
         Captcha captcha2 = captchaService.generate();
         RegisterDto registerDto2 = createRegisterDto(
-            "duplicate-test@" + Tools.MAIL_TEST_DOMAIN,
+            "duplicate-test" + Tools.MAIL_TEST_DOMAIN,
             26,
             2,
             captcha2
@@ -101,7 +101,7 @@ public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
         // Given - User under minimum age
         Captcha captcha = captchaService.generate();
         RegisterDto registerDto = createRegisterDto(
-            "underage-test@" + Tools.MAIL_TEST_DOMAIN,
+            "underage-test" + Tools.MAIL_TEST_DOMAIN,
             16, // Under 18
             1,
             captcha
@@ -115,7 +115,7 @@ public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
     void testCaptchaValidation() throws Exception {
         // Given - Invalid captcha
         RegisterDto registerDto = new RegisterDto();
-        registerDto.setEmail("captcha-test@" + Tools.MAIL_TEST_DOMAIN);
+        registerDto.setEmail("captcha-test" + Tools.MAIL_TEST_DOMAIN);
         registerDto.setDateOfBirth(Tools.ageToDate(25));
         registerDto.setPassword("password123");
         registerDto.setFirstName("Test");

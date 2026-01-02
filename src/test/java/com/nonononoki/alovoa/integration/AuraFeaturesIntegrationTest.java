@@ -53,7 +53,7 @@ public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
         // Create a test user
         Captcha captcha = captchaService.generate();
         RegisterDto registerDto = new RegisterDto();
-        registerDto.setEmail("aura-test-" + System.currentTimeMillis() + "@" + Tools.MAIL_TEST_DOMAIN);
+        registerDto.setEmail("aura-test-" + System.currentTimeMillis() + Tools.MAIL_TEST_DOMAIN);
         registerDto.setDateOfBirth(Tools.ageToDate(25));
         registerDto.setPassword("testPassword123");
         registerDto.setFirstName("AuraTest");
@@ -108,7 +108,7 @@ public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
         for (int i = 0; i < 5; i++) {
             Captcha captcha = captchaService.generate();
             RegisterDto registerDto = new RegisterDto();
-            registerDto.setEmail("multi-user-" + i + "-" + System.currentTimeMillis() + "@" + Tools.MAIL_TEST_DOMAIN);
+            registerDto.setEmail("multi-user-" + i + "-" + System.currentTimeMillis() + Tools.MAIL_TEST_DOMAIN);
             registerDto.setDateOfBirth(Tools.ageToDate(20 + i));
             registerDto.setPassword("testPassword123");
             registerDto.setFirstName("User" + i);
@@ -142,7 +142,7 @@ public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
         // Create a user
         Captcha captcha = captchaService.generate();
         RegisterDto registerDto = new RegisterDto();
-        registerDto.setEmail("rollback-test-" + System.currentTimeMillis() + "@" + Tools.MAIL_TEST_DOMAIN);
+        registerDto.setEmail("rollback-test-" + System.currentTimeMillis() + Tools.MAIL_TEST_DOMAIN);
         registerDto.setDateOfBirth(Tools.ageToDate(30));
         registerDto.setPassword("testPassword123");
         registerDto.setFirstName("RollbackTest");
