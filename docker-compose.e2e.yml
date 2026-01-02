@@ -210,6 +210,10 @@ services:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: e2e-test-google-client-secret
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_ID: e2e-test-facebook-client-id
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_SECRET: e2e-test-facebook-client-secret
+      # Disable mail server connection test (no mail server in E2E environment)
+      SPRING_MAIL_TEST_CONNECTION: "false"
+      SPRING_MAIL_HOST: localhost
+      SPRING_MAIL_PORT: "25"
     depends_on:
       mariadb:
         condition: service_healthy
