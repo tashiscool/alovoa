@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @Transactional
-@EnabledIf("com.nonononoki.alovoa.integration.BaseIntegrationTest#isDockerAvailable")
+@EnabledIf("com.nonononoki.alovoa.integration.BaseIntegrationTest#shouldRunIntegrationTests")
 public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

@@ -26,10 +26,22 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * </pre>
  */
 @Testcontainers
-@EnabledIf("isDockerAvailable")
+@EnabledIf("shouldRunIntegrationTests")
 public abstract class BaseIntegrationTest {
 
-    static boolean isDockerAvailable() {
+    /**
+     * Only run integration tests when:
+     * 1. Docker is available locally
+     * 2. NOT running in GitHub Actions CI (CI env var is set)
+     *
+     * CI has its own service containers, so Testcontainers would conflict.
+     */
+    static boolean shouldRunIntegrationTests() {
+        // Skip in CI - GitHub Actions sets CI=true
+        if ("true".equals(System.getenv("CI"))) {
+            return false;
+        }
+        // Check if Docker is available locally
         try {
             DockerClientFactory.instance().client();
             return true;
