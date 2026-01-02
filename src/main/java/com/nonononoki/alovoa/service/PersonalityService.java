@@ -174,9 +174,9 @@ public class PersonalityService {
         if (questionId.startsWith("O")) return "openness";
         if (questionId.startsWith("C")) return "conscientiousness";
         if (questionId.startsWith("E")) return "extraversion";
+        if (questionId.startsWith("AT")) return "attachment"; // Check AT before A
         if (questionId.startsWith("A")) return "agreeableness";
         if (questionId.startsWith("N")) return "neuroticism";
-        if (questionId.startsWith("AT")) return "attachment";
         return null;
     }
 

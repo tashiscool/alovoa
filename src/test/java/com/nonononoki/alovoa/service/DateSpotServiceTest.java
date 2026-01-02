@@ -569,7 +569,8 @@ class DateSpotServiceTest {
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
         Mockito.doReturn(user2).when(authService).getCurrentUser(true);
-        locationAreaService.addArea("Georgetown", "Washington", "DC",
+        // Use a completely different city to test no overlap
+        locationAreaService.addArea("Times Square", "New York", "NY",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
         Map<String, Object> result = dateSpotService.getCategorizedSpotsForMatch(user1, user2);

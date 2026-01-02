@@ -575,8 +575,9 @@ class CalendarServiceTest {
 
         // Should contain properly formatted date (yyyyMMdd'T'HHmmss'Z')
         // Example: 20250101T120000Z
-        assertTrue(ical.matches(".*DTSTART:\\d{8}T\\d{6}Z.*"));
-        assertTrue(ical.matches(".*DTEND:\\d{8}T\\d{6}Z.*"));
+        // Use Pattern with DOTALL to match across newlines
+        assertTrue(java.util.regex.Pattern.compile("DTSTART:\\d{8}T\\d{6}Z").matcher(ical).find());
+        assertTrue(java.util.regex.Pattern.compile("DTEND:\\d{8}T\\d{6}Z").matcher(ical).find());
     }
 
     // ============================================
