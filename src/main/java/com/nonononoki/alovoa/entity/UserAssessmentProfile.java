@@ -119,11 +119,15 @@ public class UserAssessmentProfile {
     }
 
     private void checkCompletion() {
-        bigFiveComplete = bigFiveQuestionsAnswered != null && bigFiveQuestionsAnswered >= 120;
-        attachmentComplete = attachmentQuestionsAnswered != null && attachmentQuestionsAnswered >= 9;
-        valuesComplete = valuesQuestionsAnswered != null && valuesQuestionsAnswered >= 10;
-        dealbreakerComplete = dealbreakerQuestionsAnswered != null && dealbreakerQuestionsAnswered >= 10;
-        lifestyleComplete = lifestyleQuestionsAnswered != null && lifestyleQuestionsAnswered >= 12;
+        // Minimum thresholds for category completion
+        // Big Five: 25 questions (5 traits x 5 questions minimum)
+        // Attachment: 4 questions
+        // Values/Dealbreaker/Lifestyle: 5 questions minimum
+        bigFiveComplete = bigFiveQuestionsAnswered != null && bigFiveQuestionsAnswered >= 25;
+        attachmentComplete = attachmentQuestionsAnswered != null && attachmentQuestionsAnswered >= 4;
+        valuesComplete = valuesQuestionsAnswered != null && valuesQuestionsAnswered >= 5;
+        dealbreakerComplete = dealbreakerQuestionsAnswered != null && dealbreakerQuestionsAnswered >= 5;
+        lifestyleComplete = lifestyleQuestionsAnswered != null && lifestyleQuestionsAnswered >= 5;
 
         profileComplete = Boolean.TRUE.equals(bigFiveComplete) &&
                           Boolean.TRUE.equals(attachmentComplete) &&

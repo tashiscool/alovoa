@@ -102,7 +102,7 @@ class PersonalityServiceTest {
         Map<String, Object> firstQuestion = questions.get(0);
         assertTrue(firstQuestion.containsKey("id"));
         assertTrue(firstQuestion.containsKey("text"));
-        assertTrue(firstQuestion.containsKey("trait"));
+        assertTrue(firstQuestion.containsKey("category")); // Service uses "category" not "trait"
 
         // Check scale
         assertEquals(1, result.get("scaleMin"));
