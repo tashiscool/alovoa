@@ -62,6 +62,10 @@ public class UserProfileDetails {
     @Enumerated(EnumType.STRING)
     private ResponseRate responseRate;
 
+    // Income level (optional)
+    @Enumerated(EnumType.STRING)
+    private IncomeLevel income;
+
     // === ENUMS ===
 
     public enum BodyType {
@@ -143,6 +147,19 @@ public class UserProfileDetails {
         REPLIES_OFTEN,           // > 80% response rate
         REPLIES_SELECTIVELY,     // 40-80%
         REPLIES_VERY_SELECTIVELY // < 40%
+    }
+
+    public enum IncomeLevel {
+        LESS_THAN_20K,           // Less than $20,000
+        INCOME_20K_40K,          // $20,000 - $40,000
+        INCOME_40K_60K,          // $40,000 - $60,000
+        INCOME_60K_80K,          // $60,000 - $80,000
+        INCOME_80K_100K,         // $80,000 - $100,000
+        INCOME_100K_150K,        // $100,000 - $150,000
+        INCOME_150K_250K,        // $150,000 - $250,000
+        INCOME_250K_500K,        // $250,000 - $500,000
+        INCOME_500K_PLUS,        // $500,000+
+        RATHER_NOT_SAY
     }
 
     // Helper method to get height in feet/inches

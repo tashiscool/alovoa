@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Essays - AURA</title>
+    <link rel="stylesheet" href="/css/aura.css">
+    <style>
+        .essays-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .essays-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .essays-header h1 {
+            color: var(--aura-purple, #a78bfa);
+            margin-bottom: 10px;
+        }
+
+        .essays-header .subtitle {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .completion-bar {
+            background: rgba(167, 139, 250, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .completion-bar-fill {
+            background: linear-gradient(90deg, #a78bfa, #ec4899);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .completion-text {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .essay-card {
+            background: var(--aura-bg-card, #1a1a2e);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(167, 139, 250, 0.1);
+            transition: border-color 0.3s ease;
+        }
+
+        .essay-card:hover {
+            border-color: rgba(167, 139, 250, 0.3);
+        }
+
+        .essay-card.has-answer {
+            border-left: 3px solid #10b981;
+        }
+
+        .essay-card.empty {
+            border-left: 3px solid transparent;
+        }
+
+        .essay-title {
+            color: #f3f4f6;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .essay-title .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .essay-title .status-dot.filled {
+            background: #10b981;
+        }
+
+        .essay-title .status-dot.empty {
+            background: #4b5563;
+        }
+
+        .essay-help {
+            color: #9ca3af;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .essay-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            border-radius: 8px;
+            color: #f3f4f6;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .essay-textarea:focus {
+            outline: none;
+            border-color: var(--aura-purple, #a78bfa);
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+        }
+
+        .essay-textarea::placeholder {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .essay-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .char-count.warning {
+            color: #f59e0b;
+        }
+
+        .char-count.error {
+            color: #ef4444;
+        }
+
+        .save-indicator {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .save-indicator.saving {
+            color: #f59e0b;
+        }
+
+        .save-indicator.saved {
+            color: #10b981;
+        }
+
+        .save-indicator.error {
+            color: #ef4444;
+        }
+
+        .save-all-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 30px auto;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .save-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(167, 139, 250, 0.4);
+        }
+
+        .save-all-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .tips-section {
+            background: rgba(167, 139, 250, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .tips-section h3 {
+            color: var(--aura-purple, #a78bfa);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .tips-section ul {
+            color: #9ca3af;
+            font-size: 13px;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .tips-section li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .essays-container {
+                padding: 15px;
+            }
+
+            .essay-card {
+                padding: 15px;
+            }
+
+            .essay-textarea {
+                min-height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="essays-container">
+        <div class="essays-header">
+            <h1>My Essays</h1>
+            <p class="subtitle">Tell potential matches more about yourself</p>
+
+            <div class="completion-bar">
+                <div class="completion-bar-fill" th:style="'width: ' + (${filledCount} * 10) + '%'"></div>
+            </div>
+            <p class="completion-text">
+                <span th:text="${filledCount}">0</span> of <span th:text="${totalCount}">10</span> essays completed
+            </p>
+        </div>
+
+        <div class="tips-section">
+            <h3>Tips for Great Essays</h3>
+            <ul>
+                <li>Be specific - "I love hiking in the mountains" beats "I like outdoors"</li>
+                <li>Show don't tell - Share stories and examples</li>
+                <li>Be authentic - Your unique personality is your best asset</li>
+                <li>Keep it positive - Focus on what you love, not what you hate</li>
+            </ul>
+        </div>
+
+        <form id="essays-form">
+            <div th:each="essay : ${essays}" class="essay-card"
+                 th:classappend="${essay.answer != null and !#strings.isEmpty(essay.answer)} ? 'has-answer' : 'empty'">
+                <div class="essay-title">
+                    <span class="status-dot"
+                          th:classappend="${essay.answer != null and !#strings.isEmpty(essay.answer)} ? 'filled' : 'empty'"></span>
+                    <span th:text="${essay.title}">Essay Title</span>
+                </div>
+                <p class="essay-help" th:text="${essay.helpText}">Help text</p>
+                <textarea class="essay-textarea"
+                          th:id="'essay-' + ${essay.promptId}"
+                          th:name="'essay-' + ${essay.promptId}"
+                          th:data-prompt-id="${essay.promptId}"
+                          th:data-max-length="${essay.maxLength}"
+                          th:placeholder="${essay.placeholder}"
+                          th:text="${essay.answer}"></textarea>
+                <div class="essay-footer">
+                    <span class="char-count" th:id="'count-' + ${essay.promptId}">
+                        <span th:text="${essay.answer != null} ? ${#strings.length(essay.answer)} : 0">0</span> /
+                        <span th:text="${essay.maxLength}">2000</span>
+                    </span>
+                    <span class="save-indicator" th:id="'status-' + ${essay.promptId}"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="save-all-btn">Save All Essays</button>
+        </form>
+    </div>
+
+    <script>
+        // Auto-save with debounce
+        let saveTimeouts = {};
+        let unsavedChanges = new Set();
+
+        document.querySelectorAll('.essay-textarea').forEach(textarea => {
+            const promptId = textarea.dataset.promptId;
+            const maxLength = parseInt(textarea.dataset.maxLength) || 2000;
+            const countEl = document.getElementById('count-' + promptId);
+            const statusEl = document.getElementById('status-' + promptId);
+
+            // Update character count
+            function updateCount() {
+                const len = textarea.value.length;
+                countEl.innerHTML = `${len} / ${maxLength}`;
+                countEl.className = 'char-count';
+                if (len > maxLength * 0.9) {
+                    countEl.classList.add('warning');
+                }
+                if (len > maxLength) {
+                    countEl.classList.add('error');
+                }
+            }
+
+            // Auto-save function
+            function autoSave() {
+                if (textarea.value.length > maxLength) {
+                    statusEl.textContent = 'Too long!';
+                    statusEl.className = 'save-indicator error';
+                    return;
+                }
+
+                statusEl.textContent = 'Saving...';
+                statusEl.className = 'save-indicator saving';
+
+                fetch(`/api/v1/essay/${promptId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: textarea.value })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        statusEl.textContent = '✓ Saved';
+                        statusEl.className = 'save-indicator saved';
+                        unsavedChanges.delete(promptId);
+                        updateCardStatus(textarea);
+                        updateCompletionBar();
+                    } else {
+                        throw new Error('Save failed');
+                    }
+                })
+                .catch(error => {
+                    statusEl.textContent = 'Error saving';
+                    statusEl.className = 'save-indicator error';
+                });
+            }
+
+            // Update card visual status
+            function updateCardStatus(textarea) {
+                const card = textarea.closest('.essay-card');
+                const dot = card.querySelector('.status-dot');
+                if (textarea.value.trim()) {
+                    card.classList.remove('empty');
+                    card.classList.add('has-answer');
+                    dot.classList.remove('empty');
+                    dot.classList.add('filled');
+                } else {
+                    card.classList.remove('has-answer');
+                    card.classList.add('empty');
+                    dot.classList.remove('filled');
+                    dot.classList.add('empty');
+                }
+            }
+
+            textarea.addEventListener('input', () => {
+                updateCount();
+                unsavedChanges.add(promptId);
+
+                // Clear existing timeout
+                if (saveTimeouts[promptId]) {
+                    clearTimeout(saveTimeouts[promptId]);
+                }
+
+                // Debounce auto-save (2 seconds)
+                saveTimeouts[promptId] = setTimeout(autoSave, 2000);
+            });
+
+            // Initial count
+            updateCount();
+        });
+
+        // Update completion bar
+        function updateCompletionBar() {
+            const textareas = document.querySelectorAll('.essay-textarea');
+            let filled = 0;
+            textareas.forEach(ta => {
+                if (ta.value.trim()) filled++;
+            });
+
+            const bar = document.querySelector('.completion-bar-fill');
+            bar.style.width = (filled * 10) + '%';
+
+            const countText = document.querySelector('.completion-text');
+            countText.innerHTML = `${filled} of ${textareas.length} essays completed`;
+        }
+
+        // Form submit - save all
+        document.getElementById('essays-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = e.target.querySelector('.save-all-btn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            const essays = {};
+            document.querySelectorAll('.essay-textarea').forEach(textarea => {
+                essays[textarea.dataset.promptId] = textarea.value;
+            });
+
+            try {
+                const response = await fetch('/api/v1/essay/bulk', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(essays)
+                });
+
+                if (response.ok) {
+                    btn.textContent = 'All Saved!';
+                    setTimeout(() => {
+                        btn.textContent = 'Save All Essays';
+                        btn.disabled = false;
+                    }, 2000);
+
+                    // Update all status indicators
+                    document.querySelectorAll('.save-indicator').forEach(el => {
+                        el.textContent = '✓ Saved';
+                        el.className = 'save-indicator saved';
+                    });
+
+                    unsavedChanges.clear();
+                } else {
+                    throw new Error('Save failed');
+                }
+            } catch (error) {
+                btn.textContent = 'Error - Try Again';
+                btn.disabled = false;
+            }
+        });
+
+        // Warn before leaving with unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (unsavedChanges.size > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>

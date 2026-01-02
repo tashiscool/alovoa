@@ -155,6 +155,107 @@
     </script>
 </footer>
 
+<!-- Profile Menu Fragment - Include in logged-in pages -->
+<div th:fragment="profile-menu" class="aura-profile-menu">
+    <div class="profile-menu-title">Profile & Settings</div>
+    <nav class="profile-nav">
+        <a href="/profile" class="profile-nav-item">
+            <i class="fas fa-user"></i> My Profile
+        </a>
+        <a href="/profile-details" class="profile-nav-item">
+            <i class="fas fa-user-edit"></i> Profile Details
+        </a>
+        <a href="/essays" class="profile-nav-item">
+            <i class="fas fa-pen-fancy"></i> My Essays
+        </a>
+        <a href="/personality-assessment" class="profile-nav-item">
+            <i class="fas fa-brain"></i> Personality Assessment
+        </a>
+        <a href="/political-assessment" class="profile-nav-item">
+            <i class="fas fa-balance-scale"></i> Values Assessment
+        </a>
+        <a href="/verification" class="profile-nav-item">
+            <i class="fas fa-check-circle"></i> Verification
+        </a>
+        <div class="profile-nav-divider"></div>
+        <a href="/search-filters" class="profile-nav-item">
+            <i class="fas fa-filter"></i> Search Filters
+        </a>
+        <a href="/settings/calendar" class="profile-nav-item">
+            <i class="fas fa-calendar"></i> Calendar Settings
+        </a>
+        <a href="/match-windows" class="profile-nav-item">
+            <i class="fas fa-clock"></i> Match Windows
+        </a>
+        <a href="/chat" class="profile-nav-item">
+            <i class="fas fa-comments"></i> Messages
+        </a>
+        <a href="/video-dates" class="profile-nav-item">
+            <i class="fas fa-video"></i> Video Dates
+        </a>
+        <div class="profile-nav-divider"></div>
+        <a href="/accountability/my-reports" class="profile-nav-item">
+            <i class="fas fa-flag"></i> My Reports
+        </a>
+        <a href="/reputation" class="profile-nav-item">
+            <i class="fas fa-star"></i> Reputation
+        </a>
+        <a href="/relationship" class="profile-nav-item">
+            <i class="fas fa-heart"></i> Relationship
+        </a>
+    </nav>
+</div>
+
+<style th:fragment="profile-menu-styles">
+.aura-profile-menu {
+    background: var(--aura-bg-card, #1a1a2e);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid rgba(167, 139, 250, 0.1);
+}
+.profile-menu-title {
+    color: var(--aura-purple, #a78bfa);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(167, 139, 250, 0.2);
+}
+.profile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.profile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    color: #d1d5db;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+.profile-nav-item:hover {
+    background: rgba(167, 139, 250, 0.1);
+    color: var(--aura-purple, #a78bfa);
+}
+.profile-nav-item i {
+    width: 18px;
+    text-align: center;
+    color: #9ca3af;
+}
+.profile-nav-item:hover i {
+    color: var(--aura-purple, #a78bfa);
+}
+.profile-nav-divider {
+    height: 1px;
+    background: rgba(167, 139, 250, 0.1);
+    margin: 8px 0;
+}
+</style>
+
 <style>
 /* Activity Badges & Tags Styles */
 .user-badges .badge {

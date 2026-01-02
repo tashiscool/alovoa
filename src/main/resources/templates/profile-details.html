@@ -46,14 +46,17 @@
             </div>
 
             <div class="detail-group">
-                <label>Build</label>
-                <select id="build">
+                <label>Body Type</label>
+                <select id="bodyType">
                     <option value="">Select...</option>
-                    <option value="SLIM">Slim</option>
-                    <option value="ATHLETIC">Athletic</option>
+                    <option value="THIN">Thin</option>
+                    <option value="FIT">Fit</option>
                     <option value="AVERAGE">Average</option>
                     <option value="CURVY">Curvy</option>
-                    <option value="HEAVYSET">Heavyset</option>
+                    <option value="FULL_FIGURED">Full figured</option>
+                    <option value="OVERWEIGHT">Overweight</option>
+                    <option value="JACKED">Jacked</option>
+                    <option value="RATHER_NOT_SAY">Rather not say</option>
                 </select>
             </div>
 
@@ -134,6 +137,42 @@
             <div class="detail-group">
                 <label>Languages</label>
                 <input type="text" id="languages" placeholder="e.g., English, Spanish">
+            </div>
+
+            <div class="detail-group">
+                <label>Income</label>
+                <select id="income">
+                    <option value="">Prefer not to say</option>
+                    <option value="LESS_THAN_20K">Less than $20,000</option>
+                    <option value="INCOME_20K_40K">$20,000 - $40,000</option>
+                    <option value="INCOME_40K_60K">$40,000 - $60,000</option>
+                    <option value="INCOME_60K_80K">$60,000 - $80,000</option>
+                    <option value="INCOME_80K_100K">$80,000 - $100,000</option>
+                    <option value="INCOME_100K_150K">$100,000 - $150,000</option>
+                    <option value="INCOME_150K_250K">$150,000 - $250,000</option>
+                    <option value="INCOME_250K_500K">$250,000 - $500,000</option>
+                    <option value="INCOME_500K_PLUS">$500,000+</option>
+                    <option value="RATHER_NOT_SAY">Rather not say</option>
+                </select>
+            </div>
+
+            <div class="detail-group">
+                <label>Zodiac Sign</label>
+                <select id="zodiacSign">
+                    <option value="">Select...</option>
+                    <option value="ARIES">Aries (Mar 21 - Apr 19)</option>
+                    <option value="TAURUS">Taurus (Apr 20 - May 20)</option>
+                    <option value="GEMINI">Gemini (May 21 - Jun 20)</option>
+                    <option value="CANCER">Cancer (Jun 21 - Jul 22)</option>
+                    <option value="LEO">Leo (Jul 23 - Aug 22)</option>
+                    <option value="VIRGO">Virgo (Aug 23 - Sep 22)</option>
+                    <option value="LIBRA">Libra (Sep 23 - Oct 22)</option>
+                    <option value="SCORPIO">Scorpio (Oct 23 - Nov 21)</option>
+                    <option value="SAGITTARIUS">Sagittarius (Nov 22 - Dec 21)</option>
+                    <option value="CAPRICORN">Capricorn (Dec 22 - Jan 19)</option>
+                    <option value="AQUARIUS">Aquarius (Jan 20 - Feb 18)</option>
+                    <option value="PISCES">Pisces (Feb 19 - Mar 20)</option>
+                </select>
             </div>
         </div>
     </div>
@@ -416,9 +455,10 @@
         }
 
         // Set select values
-        const fields = ['build', 'eyeColor', 'hairColor', 'education', 'ethnicity',
-                        'smoking', 'drinking', 'cannabis', 'diet', 'exercise', 'pets',
-                        'children', 'wantChildren', 'religion', 'relationshipType'];
+        const fields = ['bodyType', 'eyeColor', 'hairColor', 'education', 'ethnicity',
+                        'income', 'zodiacSign', 'smoking', 'drinking', 'cannabis',
+                        'diet', 'exercise', 'pets', 'children', 'wantChildren',
+                        'religion', 'relationshipType'];
 
         fields.forEach(field => {
             if (details[field]) {
@@ -462,13 +502,15 @@
 
         const data = {
             heightCm: heightCm,
-            build: document.getElementById('build').value || null,
+            bodyType: document.getElementById('bodyType').value || null,
             eyeColor: document.getElementById('eyeColor').value || null,
             hairColor: document.getElementById('hairColor').value || null,
             education: document.getElementById('education').value || null,
             occupation: document.getElementById('occupation').value || null,
             ethnicity: document.getElementById('ethnicity').value || null,
             languages: document.getElementById('languages').value || null,
+            income: document.getElementById('income').value || null,
+            zodiacSign: document.getElementById('zodiacSign').value || null,
             smoking: document.getElementById('smoking').value || null,
             drinking: document.getElementById('drinking').value || null,
             cannabis: document.getElementById('cannabis').value || null,

@@ -1,0 +1,125 @@
+version: '3.8'
+
+# Docker Compose configuration for running integration tests
+# Usage: docker-compose -f docker-compose.test.yml up -d
+
+services:
+  # Test Database - MariaDB
+  mariadb-test:
+    image: mariadb:10.11
+    container_name: aura-test-db
+    ports:
+      - "3307:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: alovoa_test
+      MARIADB_USER: alovoa_test
+      MARIADB_PASSWORD: alovoa_test
+    tmpfs:
+      - /var/lib/mysql:rw
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - aura-test-network
+
+  # Redis for testing (optional, for cache-dependent tests)
+  redis-test:
+    image: redis:7-alpine
+    container_name: aura-test-redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aura-test-network
+
+  # MinIO for S3-compatible storage testing
+  minio-test:
+    image: minio/minio:latest
+    container_name: aura-test-minio
+    ports:
+      - "9100:9000"
+      - "9101:9001"
+    environment:
+      MINIO_ROOT_USER: aura_test_admin
+      MINIO_ROOT_PASSWORD: aura_test_secret
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aura-test-network
+
+  # Create MinIO test buckets
+  minio-init:
+    image: minio/mc:latest
+    container_name: aura-test-minio-init
+    depends_on:
+      minio-test:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set aura http://minio-test:9000 aura_test_admin aura_test_secret;
+      mc mb aura/aura-test-media --ignore-existing;
+      mc mb aura/aura-test-video --ignore-existing;
+      mc anonymous set download aura/aura-test-media;
+      exit 0;
+      "
+    networks:
+      - aura-test-network
+
+  # Mock AI Service for testing
+  ai-service-mock:
+    image: python:3.11-slim
+    container_name: aura-test-ai-mock
+    working_dir: /app
+    volumes:
+      - ./services/ai-service/tests/mock_server.py:/app/mock_server.py:ro
+    command: >
+      sh -c "pip install flask && python mock_server.py"
+    ports:
+      - "8102:8002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aura-test-network
+
+  # Mock Media Service for testing
+  media-service-mock:
+    image: python:3.11-slim
+    container_name: aura-test-media-mock
+    working_dir: /app
+    volumes:
+      - ./services/media-service/tests/mock_server.py:/app/mock_server.py:ro
+    command: >
+      sh -c "pip install flask && python mock_server.py"
+    ports:
+      - "8101:8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aura-test-network
+
+networks:
+  aura-test-network:
+    driver: bridge
+
+# To run tests with this setup:
+# 1. Start test services: docker-compose -f docker-compose.test.yml up -d
+# 2. Wait for healthy: docker-compose -f docker-compose.test.yml ps
+# 3. Run tests: mvn test -Dspring.profiles.active=docker-test
+# 4. Cleanup: docker-compose -f docker-compose.test.yml down -v

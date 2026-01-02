@@ -214,8 +214,13 @@ public class SearchService {
         }
 
         if (!users.isEmpty()) {
-            return SearchDto.builder().users(searchResultsToUserDto(users, sortId, user))
-                    .stage(SearchStage.NORMAL).build();
+            // Apply extended profile filters (height, body type, ethnicity, etc.)
+            users = applyExtendedFilters(users, params);
+
+            if (!users.isEmpty()) {
+                return SearchDto.builder().users(searchResultsToUserDto(users, sortId, user))
+                        .stage(SearchStage.NORMAL).build();
+            }
         }
 
         // NO COMPATIBLE USERS FOUND
@@ -374,6 +379,75 @@ public class SearchService {
         private Set<String> interests = new HashSet<>();
         @Builder.Default
         private String keyword = null;
+
+        // Extended OKCupid-style filters
+        @Builder.Default
+        private Integer minHeightCm = null;
+        @Builder.Default
+        private Integer maxHeightCm = null;
+        @Builder.Default
+        private Set<String> bodyTypes = new HashSet<>();  // e.g., "FIT", "AVERAGE"
+        @Builder.Default
+        private Set<String> ethnicities = new HashSet<>();  // e.g., "ASIAN", "WHITE"
+        @Builder.Default
+        private Set<String> diets = new HashSet<>();  // e.g., "VEGETARIAN", "VEGAN"
+        @Builder.Default
+        private Set<String> educationLevels = new HashSet<>();  // e.g., "BACHELORS", "MASTERS"
+        @Builder.Default
+        private Set<String> zodiacSigns = new HashSet<>();  // e.g., "ARIES", "LIBRA"
+        @Builder.Default
+        private Set<String> incomeLevels = new HashSet<>();  // e.g., "INCOME_60K_80K"
+        @Builder.Default
+        private Integer minMatchPercent = null;  // e.g., 80 for 80%+ matches only
+    }
+
+    /**
+     * Apply extended profile filters to search results.
+     * These filters work on UserProfileDetails fields.
+     */
+    private List<User> applyExtendedFilters(List<User> users, SearchParams params) {
+        return users.stream()
+                .filter(u -> matchesHeightFilter(u, params.getMinHeightCm(), params.getMaxHeightCm()))
+                .filter(u -> matchesEnumFilter(u, params.getBodyTypes(), "bodyType"))
+                .filter(u -> matchesEnumFilter(u, params.getEthnicities(), "ethnicity"))
+                .filter(u -> matchesEnumFilter(u, params.getDiets(), "diet"))
+                .filter(u -> matchesEnumFilter(u, params.getEducationLevels(), "education"))
+                .filter(u -> matchesEnumFilter(u, params.getZodiacSigns(), "zodiacSign"))
+                .filter(u -> matchesEnumFilter(u, params.getIncomeLevels(), "income"))
+                .collect(Collectors.toList());
+    }
+
+    private boolean matchesHeightFilter(User user, Integer minHeight, Integer maxHeight) {
+        if (minHeight == null && maxHeight == null) return true;
+        var details = user.getProfileDetails();
+        if (details == null || details.getHeightCm() == null) return true; // Don't filter out users without height
+        int height = details.getHeightCm();
+        if (minHeight != null && height < minHeight) return false;
+        if (maxHeight != null && height > maxHeight) return false;
+        return true;
+    }
+
+    private boolean matchesEnumFilter(User user, Set<String> allowedValues, String fieldName) {
+        if (allowedValues == null || allowedValues.isEmpty()) return true;
+        var details = user.getProfileDetails();
+        if (details == null) return true; // Don't filter out users without profile details
+
+        String value = null;
+        try {
+            switch (fieldName) {
+                case "bodyType" -> value = details.getBodyType() != null ? details.getBodyType().name() : null;
+                case "ethnicity" -> value = details.getEthnicity() != null ? details.getEthnicity().name() : null;
+                case "diet" -> value = details.getDiet() != null ? details.getDiet().name() : null;
+                case "education" -> value = details.getEducation() != null ? details.getEducation().name() : null;
+                case "zodiacSign" -> value = details.getZodiacSign() != null ? details.getZodiacSign().name() : null;
+                case "income" -> value = details.getIncome() != null ? details.getIncome().name() : null;
+            }
+        } catch (Exception e) {
+            return true;
+        }
+
+        if (value == null) return true; // Don't filter out users who haven't set this field
+        return allowedValues.contains(value);
     }
 
 }

@@ -400,4 +400,523 @@ class TestEmbeddingEndpoint:
         assert data["embedding_dim"] == EMBEDDING_DIM
 
 
+# ============ Edge Cases for Compatibility Scoring ============
+
+class TestCompatibilityEdgeCases:
+    def test_missing_personality_data_zero_values(self, user_profile_a):
+        """Test users with all personality traits set to zero"""
+        zero_personality_user = user_profile_a.model_copy()
+        zero_personality_user.openness = 0.0
+        zero_personality_user.conscientiousness = 0.0
+        zero_personality_user.extraversion = 0.0
+        zero_personality_user.agreeableness = 0.0
+        zero_personality_user.neuroticism = 0.0
+
+        result = calculate_full_compatibility(user_profile_a, zero_personality_user)
+        # Should still return valid scores
+        assert 0 <= result.overall_score <= 100
+        assert 0 <= result.personality_score <= 100
+
+    def test_extreme_personality_values_max(self, user_profile_a):
+        """Test users with extreme personality values (100)"""
+        extreme_user = user_profile_a.model_copy()
+        extreme_user.openness = 100.0
+        extreme_user.conscientiousness = 100.0
+        extreme_user.extraversion = 100.0
+        extreme_user.agreeableness = 100.0
+        extreme_user.neuroticism = 100.0
+
+        result = calculate_full_compatibility(user_profile_a, extreme_user)
+        # Should handle extreme values without errors
+        assert 0 <= result.overall_score <= 100
+        assert result.personality_score >= 0
+
+    def test_extreme_personality_values_min_max_contrast(self, user_profile_a):
+        """Test contrast between minimum and maximum personality values"""
+        min_user = user_profile_a.model_copy()
+        min_user.openness = 0.0
+        min_user.conscientiousness = 0.0
+        min_user.extraversion = 0.0
+        min_user.agreeableness = 0.0
+        min_user.neuroticism = 0.0
+
+        max_user = user_profile_a.model_copy()
+        max_user.openness = 100.0
+        max_user.conscientiousness = 100.0
+        max_user.extraversion = 100.0
+        max_user.agreeableness = 100.0
+        max_user.neuroticism = 100.0
+
+        result = calculate_full_compatibility(min_user, max_user)
+        # Extreme contrast should have lower compatibility
+        assert result.personality_score < 70
+
+    def test_empty_interest_lists(self, user_profile_a):
+        """Test users with no interests"""
+        user_no_interests_a = user_profile_a.model_copy()
+        user_no_interests_a.interests = []
+
+        user_no_interests_b = user_profile_a.model_copy()
+        user_no_interests_b.interests = []
+
+        result = calculate_full_compatibility(user_no_interests_a, user_no_interests_b)
+        # Should handle empty interests gracefully
+        assert 0 <= result.overall_score <= 100
+        assert 0 <= result.lifestyle_score <= 100
+
+    def test_one_empty_one_full_interests(self, user_profile_a, user_profile_b):
+        """Test one user with interests, one without"""
+        user_profile_a.interests = []
+        user_profile_b.interests = [1, 2, 3, 4, 5, 10, 15, 20]
+
+        result = calculate_full_compatibility(user_profile_a, user_profile_b)
+        # Should not crash and return valid score
+        assert 0 <= result.overall_score <= 100
+
+    def test_null_values_handling_wants_kids(self, user_profile_a, user_profile_b):
+        """Test handling of None values in wants_kids"""
+        user_profile_a.wants_kids = None
+        user_profile_b.wants_kids = None
+
+        score, _ = calculate_lifestyle_compatibility(user_profile_a, user_profile_b)
+        # Should handle None gracefully
+        assert 0 <= score <= 1
+
+    def test_null_values_handling_substance_use(self, user_profile_a, user_profile_b):
+        """Test handling of None values in drinks and smokes"""
+        user_profile_a.drinks = None
+        user_profile_a.smokes = None
+        user_profile_b.drinks = None
+        user_profile_b.smokes = None
+
+        score, _ = calculate_lifestyle_compatibility(user_profile_a, user_profile_b)
+        # Should not crash with None values
+        assert 0 <= score <= 1
+
+    def test_empty_values_dict(self, user_profile_a):
+        """Test users with empty values dictionaries"""
+        user_empty_a = user_profile_a.model_copy()
+        user_empty_a.values = {}
+
+        user_empty_b = user_profile_a.model_copy()
+        user_empty_b.values = {}
+
+        score, compatibilities = calculate_values_compatibility(user_empty_a, user_empty_b)
+        # Should return default score
+        assert score == 0.5
+        assert len(compatibilities) == 0
+
+    def test_invalid_attachment_style(self, user_profile_a, user_profile_b):
+        """Test handling of invalid attachment style"""
+        user_profile_a.attachment_style = "INVALID_STYLE"
+
+        score, _ = calculate_personality_compatibility(user_profile_a, user_profile_b)
+        # Should handle invalid style and return valid score
+        assert 0 <= score <= 1
+
+    def test_interest_ids_out_of_range(self, user_profile_a):
+        """Test interest IDs beyond expected range"""
+        user_profile_a.interests = [200, 300, 500]  # Way beyond max 100
+        user_profile_b_copy = user_profile_a.model_copy()
+        user_profile_b_copy.interests = [150, 250, 350]
+
+        # Should not crash
+        embedding = generate_interest_embedding(user_profile_a.interests)
+        assert embedding.shape == (EMBEDDING_DIM,)
+
+    def test_negative_interest_ids(self, user_profile_a):
+        """Test negative interest IDs"""
+        user_profile_a.interests = [-1, -5, -10]
+
+        # Should handle negative IDs gracefully
+        embedding = generate_interest_embedding(user_profile_a.interests)
+        assert embedding.shape == (EMBEDDING_DIM,)
+
+
+# ============ Recommendation Algorithm Tests ============
+
+class TestRecommendationAlgorithm:
+    def test_sorting_by_compatibility(self, user_profile_a):
+        """Test that matches are sorted by compatibility score"""
+        # Create candidates with varying compatibility
+        high_compat = user_profile_a.model_copy()
+        high_compat.user_id = 10
+        high_compat.age = 28
+        high_compat.openness = 82.0
+        high_compat.conscientiousness = 71.0
+
+        medium_compat = user_profile_a.model_copy()
+        medium_compat.user_id = 11
+        medium_compat.age = 35
+        medium_compat.openness = 60.0
+        medium_compat.conscientiousness = 50.0
+
+        low_compat = user_profile_a.model_copy()
+        low_compat.user_id = 12
+        low_compat.age = 40
+        low_compat.openness = 30.0
+        low_compat.conscientiousness = 30.0
+        low_compat.wants_kids = False
+
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": [
+                low_compat.model_dump(),
+                high_compat.model_dump(),
+                medium_compat.model_dump(),
+            ],
+            "limit": 3,
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+
+        # Verify sorted in descending order
+        if len(recommendations) >= 2:
+            for i in range(len(recommendations) - 1):
+                assert recommendations[i]["compatibility_score"] >= recommendations[i + 1]["compatibility_score"]
+
+    def test_filtering_excluded_users(self, user_profile_a, user_profile_b):
+        """Test that excluded users are filtered out"""
+        candidate1 = user_profile_b.model_copy()
+        candidate1.user_id = 20
+
+        candidate2 = user_profile_b.model_copy()
+        candidate2.user_id = 21
+
+        candidate3 = user_profile_b.model_copy()
+        candidate3.user_id = 22
+
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": [
+                candidate1.model_dump(),
+                candidate2.model_dump(),
+                candidate3.model_dump(),
+            ],
+            "limit": 5,
+            "excluded_user_ids": [20, 22],
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+
+        # Should only contain candidate2 (ID 21)
+        assert len(recommendations) == 1
+        assert recommendations[0]["user_id"] == 21
+
+    def test_limit_enforcement(self, user_profile_a, user_profile_b):
+        """Test that limit is properly enforced"""
+        candidates = []
+        for i in range(10):
+            candidate = user_profile_b.model_copy()
+            candidate.user_id = 100 + i
+            candidates.append(candidate.model_dump())
+
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": candidates,
+            "limit": 3,
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+
+        # Should return exactly 3 matches
+        assert len(recommendations) == 3
+
+    def test_limit_larger_than_candidates(self, user_profile_a, user_profile_b):
+        """Test limit larger than available candidates"""
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": [user_profile_b.model_dump()],
+            "limit": 10,
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+
+        # Should return only available candidates
+        assert len(recommendations) == 1
+
+    def test_empty_candidate_list(self, user_profile_a):
+        """Test empty candidate list"""
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": [],
+            "limit": 5,
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+        assert len(recommendations) == 0
+
+    def test_all_candidates_excluded(self, user_profile_a, user_profile_b):
+        """Test when all candidates are excluded"""
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": [user_profile_b.model_dump()],
+            "limit": 5,
+            "excluded_user_ids": [user_profile_b.user_id],
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+        assert len(recommendations) == 0
+
+
+# ============ API Error Handling Tests ============
+
+class TestAPIErrorHandling:
+    def test_invalid_request_body_compatibility(self):
+        """Test compatibility endpoint with invalid JSON"""
+        response = client.post("/compatibility", json={
+            "user_a": {"invalid": "data"},
+        })
+        assert response.status_code == 422  # Validation error
+
+    def test_missing_required_fields_user_profile(self):
+        """Test missing required fields in user profile"""
+        incomplete_user = {
+            "user_id": 1,
+            "uuid": "test-uuid",
+            # Missing required fields like age, gender, etc.
+        }
+
+        response = client.post("/compatibility", json={
+            "user_a": incomplete_user,
+            "user_b": incomplete_user,
+        })
+        assert response.status_code == 422
+
+    def test_out_of_range_age_values(self, user_profile_a, user_profile_b):
+        """Test age values outside reasonable range"""
+        user_dict_a = user_profile_a.model_dump()
+        user_dict_b = user_profile_b.model_dump()
+        user_dict_a["age"] = -5  # Invalid age
+
+        response = client.post("/compatibility", json={
+            "user_a": user_dict_a,
+            "user_b": user_dict_b,
+        })
+        # FastAPI validation should catch this
+        assert response.status_code in [200, 422]  # May pass or fail validation
+
+    def test_out_of_range_personality_values(self, user_profile_a, user_profile_b):
+        """Test personality values outside 0-100 range"""
+        user_dict_a = user_profile_a.model_dump()
+        user_dict_b = user_profile_b.model_dump()
+        user_dict_a["openness"] = 150.0  # Out of range
+
+        response = client.post("/compatibility", json={
+            "user_a": user_dict_a,
+            "user_b": user_dict_b,
+        })
+        # Should still process or return validation error
+        assert response.status_code in [200, 422]
+
+    def test_invalid_gender_format(self, user_profile_a, user_profile_b):
+        """Test invalid gender value"""
+        user_dict_a = user_profile_a.model_dump()
+        user_dict_b = user_profile_b.model_dump()
+        user_dict_a["gender"] = 12345  # Should be string
+
+        response = client.post("/compatibility", json={
+            "user_a": user_dict_a,
+            "user_b": user_dict_b,
+        })
+        assert response.status_code == 422
+
+    def test_invalid_coordinates(self, user_profile_a, user_profile_b):
+        """Test invalid latitude/longitude values"""
+        user_dict_a = user_profile_a.model_dump()
+        user_dict_b = user_profile_b.model_dump()
+        user_dict_a["location_lat"] = 200.0  # Invalid latitude
+
+        response = client.post("/compatibility", json={
+            "user_a": user_dict_a,
+            "user_b": user_dict_b,
+        })
+        # Should process or validate
+        assert response.status_code in [200, 422, 500]
+
+    def test_malformed_interests_list(self, user_profile_a, user_profile_b):
+        """Test malformed interests list"""
+        user_dict_a = user_profile_a.model_dump()
+        user_dict_b = user_profile_b.model_dump()
+        user_dict_a["interests"] = "not a list"  # Should be list
+
+        response = client.post("/compatibility", json={
+            "user_a": user_dict_a,
+            "user_b": user_dict_b,
+        })
+        assert response.status_code == 422
+
+    def test_malformed_values_dict(self, user_profile_a, user_profile_b):
+        """Test malformed values dictionary"""
+        user_dict_a = user_profile_a.model_dump()
+        user_dict_b = user_profile_b.model_dump()
+        user_dict_a["values"] = "not a dict"  # Should be dict
+
+        response = client.post("/compatibility", json={
+            "user_a": user_dict_a,
+            "user_b": user_dict_b,
+        })
+        assert response.status_code == 422
+
+    def test_missing_uuid_field(self, user_profile_a, user_profile_b):
+        """Test missing UUID field"""
+        user_dict_a = user_profile_a.model_dump()
+        user_dict_b = user_profile_b.model_dump()
+        del user_dict_a["uuid"]
+
+        response = client.post("/compatibility", json={
+            "user_a": user_dict_a,
+            "user_b": user_dict_b,
+        })
+        assert response.status_code == 422
+
+    def test_negative_limit_value(self, user_profile_a, user_profile_b):
+        """Test negative limit in match recommendations"""
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": [user_profile_b.model_dump()],
+            "limit": -5,
+        })
+        # Should handle negative limit
+        assert response.status_code in [200, 422]
+
+
+# ============ Integration Scenarios ============
+
+class TestIntegrationScenarios:
+    def test_full_matching_flow(self, user_profile_a, user_profile_b):
+        """Test complete matching workflow from start to finish"""
+        # Step 1: Generate embeddings
+        embed_response_a = client.post("/embedding/generate", json=user_profile_a.model_dump())
+        embed_response_b = client.post("/embedding/generate", json=user_profile_b.model_dump())
+
+        assert embed_response_a.status_code == 200
+        assert embed_response_b.status_code == 200
+
+        # Step 2: Calculate compatibility
+        compat_response = client.post("/compatibility", json={
+            "user_a": user_profile_a.model_dump(),
+            "user_b": user_profile_b.model_dump(),
+        })
+
+        assert compat_response.status_code == 200
+        compat_data = compat_response.json()
+
+        # Step 3: Get conversation starters
+        starters_response = client.post("/conversation-starters", json={
+            "user_a": user_profile_a.model_dump(),
+            "user_b": user_profile_b.model_dump(),
+            "compatibility_score": compat_data["overall_score"],
+        })
+
+        assert starters_response.status_code == 200
+        starters = starters_response.json()["starters"]
+        assert len(starters) > 0
+
+    def test_batch_processing_multiple_matches(self, user_profile_a):
+        """Test processing multiple match recommendations in batch"""
+        # Create 20 candidates
+        candidates = []
+        for i in range(20):
+            candidate = user_profile_a.model_copy()
+            candidate.user_id = 200 + i
+            candidate.age = 25 + (i % 10)
+            candidate.openness = 50.0 + (i % 50)
+            candidates.append(candidate.model_dump())
+
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": candidates,
+            "limit": 10,
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+
+        # Should return top 10
+        assert len(recommendations) == 10
+
+        # All should have required fields
+        for rec in recommendations:
+            assert "user_id" in rec
+            assert "compatibility_score" in rec
+            assert "match_reasons" in rec
+            assert "conversation_starters" in rec
+
+    def test_multiple_compatibility_calculations(self, user_profile_a, user_profile_b, user_profile_incompatible):
+        """Test multiple compatibility calculations in sequence"""
+        # Calculate compatibility with multiple users
+        response1 = client.post("/compatibility", json={
+            "user_a": user_profile_a.model_dump(),
+            "user_b": user_profile_b.model_dump(),
+        })
+
+        response2 = client.post("/compatibility", json={
+            "user_a": user_profile_a.model_dump(),
+            "user_b": user_profile_incompatible.model_dump(),
+        })
+
+        assert response1.status_code == 200
+        assert response2.status_code == 200
+
+        compat1 = response1.json()
+        compat2 = response2.json()
+
+        # Compatible user should have higher score
+        assert compat1["overall_score"] > compat2["overall_score"]
+
+    def test_conversation_starters_consistency(self, user_profile_a, user_profile_b):
+        """Test that conversation starters are consistent for same inputs"""
+        response1 = client.post("/conversation-starters", json={
+            "user_a": user_profile_a.model_dump(),
+            "user_b": user_profile_b.model_dump(),
+            "compatibility_score": 80.0,
+        })
+
+        response2 = client.post("/conversation-starters", json={
+            "user_a": user_profile_a.model_dump(),
+            "user_b": user_profile_b.model_dump(),
+            "compatibility_score": 80.0,
+        })
+
+        assert response1.status_code == 200
+        assert response2.status_code == 200
+
+        # Should generate same starters for same input
+        starters1 = response1.json()["starters"]
+        starters2 = response2.json()["starters"]
+        assert starters1 == starters2
+
+    def test_edge_case_single_candidate_matching(self, user_profile_a, user_profile_b):
+        """Test matching with only one candidate"""
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": [user_profile_b.model_dump()],
+            "limit": 5,
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+        assert len(recommendations) == 1
+        assert recommendations[0]["user_id"] == user_profile_b.user_id
+
+    def test_zero_limit_matches(self, user_profile_a, user_profile_b):
+        """Test match recommendation with limit of 0"""
+        response = client.post("/matches/recommend", json={
+            "user": user_profile_a.model_dump(),
+            "candidates": [user_profile_b.model_dump()],
+            "limit": 0,
+        })
+
+        assert response.status_code == 200
+        recommendations = response.json()
+        assert len(recommendations) == 0
+
+
 # Run with: pytest test_main.py -v

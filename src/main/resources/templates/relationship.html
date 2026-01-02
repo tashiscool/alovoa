@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relationship Status - AURA</title>
+    <link rel="stylesheet" href="/css/aura.css">
+    <style>
+        .relationship-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .relationship-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .relationship-header h1 {
+            color: var(--aura-purple, #a78bfa);
+            margin-bottom: 10px;
+        }
+
+        .relationship-card {
+            background: var(--aura-bg-card, #1a1a2e);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(167, 139, 250, 0.1);
+        }
+
+        .relationship-card.active {
+            border: 2px solid var(--aura-purple, #a78bfa);
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(236, 72, 153, 0.05));
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aura-purple, #a78bfa);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .partner-display {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(15, 15, 35, 0.5);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .partner-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+        }
+
+        .partner-info {
+            flex: 1;
+        }
+
+        .partner-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin-bottom: 4px;
+        }
+
+        .relationship-type {
+            font-size: 16px;
+            color: var(--aura-purple, #a78bfa);
+        }
+
+        .relationship-meta {
+            display: flex;
+            gap: 20px;
+            color: #9ca3af;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .relationship-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(167, 139, 250, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(167, 139, 250, 0.1);
+            color: var(--aura-purple, #a78bfa);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .request-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: rgba(15, 15, 35, 0.5);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .request-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .request-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .request-name {
+            font-weight: 500;
+            color: #f3f4f6;
+        }
+
+        .request-type {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #4b5563;
+        }
+
+        /* Link Partner Form */
+        .link-form {
+            display: none;
+            padding: 20px;
+            background: rgba(15, 15, 35, 0.5);
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+
+        .link-form.show {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(15, 15, 35, 0.8);
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            border-radius: 8px;
+            color: #f3f4f6;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--aura-purple, #a78bfa);
+        }
+
+        .visibility-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(15, 15, 35, 0.5);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .visibility-toggle input {
+            width: 20px;
+            height: 20px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .status-confirmed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        @media (max-width: 600px) {
+            .partner-display {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .relationship-actions {
+                justify-content: center;
+            }
+
+            .request-item {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="relationship-container">
+        <div class="relationship-header">
+            <h1><i class="fas fa-heart"></i> Relationship Status</h1>
+            <p style="color: #9ca3af;">Link your profile with your partner</p>
+        </div>
+
+        <!-- Active Relationship -->
+        <div th:if="${activeRelationship != null}" class="relationship-card active">
+            <div class="card-title">
+                <i class="fas fa-heart"></i>
+                <span th:text="${activeRelationship.typeDisplayName}">In a relationship</span>
+                <span class="status-badge status-confirmed">
+                    <i class="fas fa-check"></i> Confirmed
+                </span>
+            </div>
+
+            <div class="partner-display">
+                <div class="partner-avatar">
+                    <span th:text="${#strings.substring(activeRelationship.partnerName, 0, 1)}">J</span>
+                </div>
+                <div class="partner-info">
+                    <div class="partner-name">
+                        <span th:text="${activeRelationship.typeDisplayName}">In a relationship</span> with
+                        <a th:href="'/profile/' + ${activeRelationship.partnerUuid}"
+                           style="color: var(--aura-purple);"
+                           th:text="${activeRelationship.partnerName}">Partner Name</a>
+                    </div>
+                    <div class="relationship-meta">
+                        <span th:if="${activeRelationship.confirmedAt != null}">
+                            <i class="fas fa-calendar-check"></i>
+                            Since <span th:text="${#dates.format(activeRelationship.confirmedAt, 'MMM d, yyyy')}">Jan 1, 2024</span>
+                        </span>
+                        <span th:if="${activeRelationship.anniversaryDate != null}">
+                            <i class="fas fa-gift"></i>
+                            Anniversary: <span th:text="${#dates.format(activeRelationship.anniversaryDate, 'MMM d')}">Feb 14</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="visibility-toggle" onclick="toggleVisibility()">
+                <input type="checkbox" id="isPublic" th:checked="${activeRelationship.isPublic}">
+                <label for="isPublic">Show on my profile</label>
+            </div>
+
+            <div class="relationship-actions" style="margin-top: 16px;">
+                <select id="updateType" class="btn btn-secondary" onchange="updateRelationshipType()"
+                        style="padding: 10px 15px;">
+                    <option th:each="type : ${relationshipTypes}"
+                            th:value="${type}"
+                            th:text="${type.displayName}"
+                            th:selected="${type == activeRelationship.type}">Type</option>
+                </select>
+                <button class="btn btn-danger" onclick="confirmEndRelationship()">
+                    <i class="fas fa-heart-broken"></i> End Relationship
+                </button>
+            </div>
+        </div>
+
+        <!-- No Active Relationship -->
+        <div th:if="${activeRelationship == null}" class="relationship-card">
+            <div class="card-title">
+                <i class="fas fa-link"></i> Link Your Profile
+            </div>
+
+            <div class="empty-state" id="emptyState">
+                <i class="fas fa-heart"></i>
+                <p>You're not currently linked with anyone.</p>
+                <p style="font-size: 14px;">Found someone special on AURA? Link your profiles together!</p>
+                <button class="btn btn-primary" onclick="showLinkForm()" style="margin-top: 16px;">
+                    <i class="fas fa-plus"></i> Link with Partner
+                </button>
+            </div>
+
+            <div class="link-form" id="linkForm">
+                <div class="form-group">
+                    <label>Partner's Profile ID or Username</label>
+                    <input type="text" id="partnerInput" placeholder="Enter their profile UUID or search...">
+                </div>
+
+                <div class="form-group">
+                    <label>Relationship Type</label>
+                    <select id="relationshipType">
+                        <option th:each="type : ${relationshipTypes}"
+                                th:value="${type}"
+                                th:text="${type.displayName}">Type</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Anniversary Date (optional)</label>
+                    <input type="date" id="anniversaryDate">
+                </div>
+
+                <div class="relationship-actions">
+                    <button class="btn btn-secondary" onclick="hideLinkForm()">Cancel</button>
+                    <button class="btn btn-primary" onclick="sendRequest()">
+                        <i class="fas fa-paper-plane"></i> Send Request
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Requests Received -->
+        <div th:if="${not #lists.isEmpty(pendingRequests)}" class="relationship-card">
+            <div class="card-title">
+                <i class="fas fa-inbox"></i> Relationship Requests
+                <span class="status-badge status-pending" th:text="${pendingCount}">1</span>
+            </div>
+
+            <div th:each="request : ${pendingRequests}" class="request-item">
+                <div class="request-info">
+                    <div class="request-avatar">
+                        <span th:text="${#strings.substring(request.partnerName, 0, 1)}">J</span>
+                    </div>
+                    <div>
+                        <div class="request-name" th:text="${request.partnerName}">Partner Name</div>
+                        <div class="request-type">
+                            wants to be <span th:text="${request.typeDisplayName}">in a relationship</span> with you
+                        </div>
+                    </div>
+                </div>
+                <div class="request-actions">
+                    <button class="btn btn-success" th:onclick="'acceptRequest(\'' + ${request.uuid} + '\')'">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="btn btn-danger" th:onclick="'declineRequest(\'' + ${request.uuid} + '\')'">
+                        <i class="fas fa-times"></i> Decline
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sent Requests -->
+        <div th:if="${not #lists.isEmpty(sentRequests)}" class="relationship-card">
+            <div class="card-title">
+                <i class="fas fa-paper-plane"></i> Sent Requests
+            </div>
+
+            <div th:each="request : ${sentRequests}" class="request-item">
+                <div class="request-info">
+                    <div class="request-avatar">
+                        <span th:text="${#strings.substring(request.partnerName, 0, 1)}">J</span>
+                    </div>
+                    <div>
+                        <div class="request-name" th:text="${request.partnerName}">Partner Name</div>
+                        <div class="request-type">
+                            <span th:text="${request.typeDisplayName}">In a relationship</span>
+                            <span class="status-badge status-pending">Pending</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="request-actions">
+                    <button class="btn btn-secondary" th:onclick="'cancelRequest(\'' + ${request.uuid} + '\')'">
+                        <i class="fas fa-undo"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const activeRelationship = /*[[${activeRelationship}]]*/ null;
+
+        function showLinkForm() {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('linkForm').classList.add('show');
+        }
+
+        function hideLinkForm() {
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('linkForm').classList.remove('show');
+        }
+
+        async function sendRequest() {
+            const partnerInput = document.getElementById('partnerInput').value.trim();
+            const type = document.getElementById('relationshipType').value;
+            const anniversaryDate = document.getElementById('anniversaryDate').value || null;
+
+            if (!partnerInput) {
+                alert('Please enter your partner\'s profile ID');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/relationship/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        partnerUuid: partnerInput,
+                        type: type,
+                        anniversaryDate: anniversaryDate
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Relationship request sent!');
+                    location.reload();
+                } else {
+                    const error = await response.text();
+                    alert('Error: ' + error);
+                }
+            } catch (error) {
+                alert('Failed to send request');
+            }
+        }
+
+        async function acceptRequest(uuid) {
+            try {
+                const response = await fetch(`/api/v1/relationship/${uuid}/accept`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    alert('Relationship confirmed!');
+                    location.reload();
+                } else {
+                    alert('Failed to accept request');
+                }
+            } catch (error) {
+                alert('Failed to accept request');
+            }
+        }
+
+        async function declineRequest(uuid) {
+            if (!confirm('Are you sure you want to decline this request?')) return;
+
+            try {
+                const response = await fetch(`/api/v1/relationship/${uuid}/decline`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Failed to decline request');
+            }
+        }
+
+        async function cancelRequest(uuid) {
+            if (!confirm('Cancel this relationship request?')) return;
+
+            try {
+                const response = await fetch(`/api/v1/relationship/${uuid}/cancel`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Failed to cancel request');
+            }
+        }
+
+        async function toggleVisibility() {
+            if (!activeRelationship) return;
+
+            try {
+                await fetch(`/api/v1/relationship/${activeRelationship.uuid}/toggle-visibility`, {
+                    method: 'POST'
+                });
+            } catch (error) {
+                alert('Failed to update visibility');
+            }
+        }
+
+        async function updateRelationshipType() {
+            if (!activeRelationship) return;
+
+            const newType = document.getElementById('updateType').value;
+
+            try {
+                const response = await fetch(`/api/v1/relationship/${activeRelationship.uuid}/type`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: newType })
+                });
+
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Failed to update relationship type');
+            }
+        }
+
+        function confirmEndRelationship() {
+            if (!activeRelationship) return;
+
+            if (confirm('Are you sure you want to end this relationship? This cannot be undone.')) {
+                endRelationship(activeRelationship.uuid);
+            }
+        }
+
+        async function endRelationship(uuid) {
+            try {
+                const response = await fetch(`/api/v1/relationship/${uuid}/end`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    alert('Relationship ended');
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Failed to end relationship');
+            }
+        }
+    </script>
+</body>
+</html>

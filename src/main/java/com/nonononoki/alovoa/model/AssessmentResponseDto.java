@@ -14,6 +14,7 @@ public class AssessmentResponseDto {
     private String questionId;
     private Integer numericResponse;
     private String textResponse;
+    private String importance;
 
     public AssessmentResponseDto(String questionId, Integer numericResponse) {
         this.questionId = questionId;

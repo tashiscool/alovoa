@@ -142,12 +142,20 @@ public class ProfileController {
         String employer = (String) request.get("employer");
         String languages = (String) request.get("languages");
 
-        UserProfileDetails.ZodiacSign zodiacSign = request.containsKey("zodiacSign") ?
+        UserProfileDetails.ZodiacSign zodiacSign = request.containsKey("zodiacSign") && request.get("zodiacSign") != null ?
                 UserProfileDetails.ZodiacSign.valueOf((String) request.get("zodiacSign")) : null;
+
+        UserProfileDetails.IncomeLevel income = request.containsKey("income") && request.get("income") != null ?
+                UserProfileDetails.IncomeLevel.valueOf((String) request.get("income")) : null;
 
         UserProfileDetails updated = detailsService.updateAllDetails(
                 heightCm, bodyType, ethnicity, diet, pets, petDetails,
                 education, occupation, employer, languages, zodiacSign);
+
+        // Update income separately since it was added later
+        if (income != null) {
+            updated = detailsService.updateIncome(income);
+        }
 
         return ResponseEntity.ok(mapDetailsToDto(updated));
     }
@@ -175,6 +183,7 @@ public class ProfileController {
         options.put("petStatuses", UserProfileDetails.PetStatus.values());
         options.put("educationLevels", UserProfileDetails.EducationLevel.values());
         options.put("zodiacSigns", UserProfileDetails.ZodiacSign.values());
+        options.put("incomeLevels", UserProfileDetails.IncomeLevel.values());
         options.put("responseRates", UserProfileDetails.ResponseRate.values());
         return ResponseEntity.ok(options);
     }
@@ -226,6 +235,7 @@ public class ProfileController {
         dto.put("employer", details.getEmployer());
         dto.put("languages", details.getLanguages());
         dto.put("zodiacSign", details.getZodiacSign());
+        dto.put("income", details.getIncome());
         dto.put("responseRate", details.getResponseRate());
         return dto;
     }

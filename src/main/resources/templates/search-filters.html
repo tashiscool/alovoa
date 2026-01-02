@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Filters - AURA</title>
+    <link rel="stylesheet" href="/css/aura.css">
+    <style>
+        .filters-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .filters-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .filters-header h1 {
+            color: var(--aura-purple, #a78bfa);
+            margin-bottom: 10px;
+        }
+
+        .filter-section {
+            background: var(--aura-bg-card, #1a1a2e);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(167, 139, 250, 0.1);
+        }
+
+        .filter-section-title {
+            color: var(--aura-purple, #a78bfa);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 12px;
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            border-radius: 8px;
+            color: #f3f4f6;
+            font-size: 14px;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--aura-purple, #a78bfa);
+        }
+
+        .filter-group select option {
+            background: #1a1a2e;
+            color: #f3f4f6;
+        }
+
+        .height-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .height-range input {
+            width: 80px;
+            text-align: center;
+        }
+
+        .height-range span {
+            color: #6b7280;
+        }
+
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 6px 14px;
+            background: rgba(167, 139, 250, 0.1);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 20px;
+            color: #d1d5db;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chip:hover {
+            background: rgba(167, 139, 250, 0.2);
+        }
+
+        .chip.selected {
+            background: var(--aura-purple, #a78bfa);
+            color: white;
+            border-color: var(--aura-purple, #a78bfa);
+        }
+
+        .match-slider {
+            width: 100%;
+        }
+
+        .match-slider-value {
+            text-align: center;
+            color: var(--aura-purple, #a78bfa);
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .filter-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-apply {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(167, 139, 250, 0.4);
+        }
+
+        .btn-reset {
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid rgba(167, 139, 250, 0.5);
+            border-radius: 8px;
+            color: #a78bfa;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .btn-reset:hover {
+            background: rgba(167, 139, 250, 0.1);
+        }
+
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(167, 139, 250, 0.1);
+        }
+
+        .active-filter-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(167, 139, 250, 0.2);
+            border-radius: 15px;
+            font-size: 12px;
+            color: #d1d5db;
+        }
+
+        .active-filter-tag .remove {
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .active-filter-tag .remove:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="filters-container">
+        <div class="filters-header">
+            <h1><i class="fas fa-filter"></i> Search Filters</h1>
+            <p style="color: #9ca3af;">Refine your search to find your ideal match</p>
+        </div>
+
+        <!-- Basic Filters -->
+        <div class="filter-section">
+            <div class="filter-section-title">
+                <i class="fas fa-sliders-h"></i> Basic Filters
+            </div>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Age Range</label>
+                    <div class="height-range">
+                        <input type="number" id="minAge" min="18" max="99" placeholder="Min">
+                        <span>to</span>
+                        <input type="number" id="maxAge" min="18" max="99" placeholder="Max">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Distance (km)</label>
+                    <select id="distance">
+                        <option value="10">Within 10 km</option>
+                        <option value="25">Within 25 km</option>
+                        <option value="50" selected>Within 50 km</option>
+                        <option value="100">Within 100 km</option>
+                        <option value="250">Within 250 km</option>
+                        <option value="0">Anywhere</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Minimum Match %</label>
+                    <input type="range" id="minMatch" min="0" max="100" value="0" class="match-slider">
+                    <div class="match-slider-value"><span id="matchValue">Any</span></div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Last Active</label>
+                    <select id="lastActive">
+                        <option value="">Any time</option>
+                        <option value="1">Within 24 hours</option>
+                        <option value="7">Within a week</option>
+                        <option value="30">Within a month</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Physical Attributes -->
+        <div class="filter-section">
+            <div class="filter-section-title">
+                <i class="fas fa-ruler-vertical"></i> Physical Attributes
+            </div>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Height Range</label>
+                    <div class="height-range">
+                        <input type="number" id="minHeight" min="120" max="220" placeholder="Min cm">
+                        <span>to</span>
+                        <input type="number" id="maxHeight" min="120" max="220" placeholder="Max cm">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Body Type</label>
+                    <div class="chip-group" id="bodyTypeChips">
+                        <span class="chip" data-value="THIN">Thin</span>
+                        <span class="chip" data-value="FIT">Fit</span>
+                        <span class="chip" data-value="AVERAGE">Average</span>
+                        <span class="chip" data-value="CURVY">Curvy</span>
+                        <span class="chip" data-value="FULL_FIGURED">Full Figured</span>
+                        <span class="chip" data-value="JACKED">Jacked</span>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Ethnicity</label>
+                    <div class="chip-group" id="ethnicityChips">
+                        <span class="chip" data-value="ASIAN">Asian</span>
+                        <span class="chip" data-value="BLACK">Black</span>
+                        <span class="chip" data-value="HISPANIC_LATINO">Hispanic/Latino</span>
+                        <span class="chip" data-value="INDIAN">Indian</span>
+                        <span class="chip" data-value="MIDDLE_EASTERN">Middle Eastern</span>
+                        <span class="chip" data-value="WHITE">White</span>
+                        <span class="chip" data-value="MIXED">Mixed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lifestyle -->
+        <div class="filter-section">
+            <div class="filter-section-title">
+                <i class="fas fa-heart"></i> Lifestyle & Background
+            </div>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Diet</label>
+                    <div class="chip-group" id="dietChips">
+                        <span class="chip" data-value="OMNIVORE">Omnivore</span>
+                        <span class="chip" data-value="VEGETARIAN">Vegetarian</span>
+                        <span class="chip" data-value="VEGAN">Vegan</span>
+                        <span class="chip" data-value="PESCATARIAN">Pescatarian</span>
+                        <span class="chip" data-value="KOSHER">Kosher</span>
+                        <span class="chip" data-value="HALAL">Halal</span>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Education</label>
+                    <div class="chip-group" id="educationChips">
+                        <span class="chip" data-value="HIGH_SCHOOL">High School</span>
+                        <span class="chip" data-value="BACHELORS">Bachelor's</span>
+                        <span class="chip" data-value="MASTERS">Master's</span>
+                        <span class="chip" data-value="DOCTORATE">Doctorate</span>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Income</label>
+                    <div class="chip-group" id="incomeChips">
+                        <span class="chip" data-value="INCOME_60K_80K">$60k-$80k</span>
+                        <span class="chip" data-value="INCOME_80K_100K">$80k-$100k</span>
+                        <span class="chip" data-value="INCOME_100K_150K">$100k-$150k</span>
+                        <span class="chip" data-value="INCOME_150K_250K">$150k-$250k</span>
+                        <span class="chip" data-value="INCOME_250K_500K">$250k-$500k</span>
+                        <span class="chip" data-value="INCOME_500K_PLUS">$500k+</span>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Zodiac Sign</label>
+                    <div class="chip-group" id="zodiacChips">
+                        <span class="chip" data-value="ARIES">Aries</span>
+                        <span class="chip" data-value="TAURUS">Taurus</span>
+                        <span class="chip" data-value="GEMINI">Gemini</span>
+                        <span class="chip" data-value="CANCER">Cancer</span>
+                        <span class="chip" data-value="LEO">Leo</span>
+                        <span class="chip" data-value="VIRGO">Virgo</span>
+                        <span class="chip" data-value="LIBRA">Libra</span>
+                        <span class="chip" data-value="SCORPIO">Scorpio</span>
+                        <span class="chip" data-value="SAGITTARIUS">Sagittarius</span>
+                        <span class="chip" data-value="CAPRICORN">Capricorn</span>
+                        <span class="chip" data-value="AQUARIUS">Aquarius</span>
+                        <span class="chip" data-value="PISCES">Pisces</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyword Search -->
+        <div class="filter-section">
+            <div class="filter-section-title">
+                <i class="fas fa-search"></i> Keyword Search
+            </div>
+            <div class="filter-group">
+                <label>Search in profiles</label>
+                <input type="text" id="keyword" placeholder="e.g., hiking, travel, music, dogs...">
+            </div>
+        </div>
+
+        <!-- Active Filters Summary -->
+        <div id="activeFilters" class="active-filters" style="display: none;">
+            <strong style="color: #9ca3af; width: 100%; margin-bottom: 8px;">Active Filters:</strong>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="filter-actions">
+            <button class="btn-reset" onclick="resetFilters()">Reset All</button>
+            <button class="btn-apply" onclick="applyFilters()">Apply Filters</button>
+        </div>
+    </div>
+
+    <script>
+        // Selected filters state
+        const selectedFilters = {
+            bodyTypes: new Set(),
+            ethnicities: new Set(),
+            diets: new Set(),
+            educationLevels: new Set(),
+            incomeLevels: new Set(),
+            zodiacSigns: new Set()
+        };
+
+        // Initialize chip click handlers
+        document.querySelectorAll('.chip-group').forEach(group => {
+            group.addEventListener('click', (e) => {
+                if (e.target.classList.contains('chip')) {
+                    e.target.classList.toggle('selected');
+                    const value = e.target.dataset.value;
+                    const groupId = group.id;
+
+                    // Map group to filter set
+                    const filterMap = {
+                        'bodyTypeChips': 'bodyTypes',
+                        'ethnicityChips': 'ethnicities',
+                        'dietChips': 'diets',
+                        'educationChips': 'educationLevels',
+                        'incomeChips': 'incomeLevels',
+                        'zodiacChips': 'zodiacSigns'
+                    };
+
+                    const setName = filterMap[groupId];
+                    if (setName) {
+                        if (e.target.classList.contains('selected')) {
+                            selectedFilters[setName].add(value);
+                        } else {
+                            selectedFilters[setName].delete(value);
+                        }
+                    }
+
+                    updateActiveFilters();
+                }
+            });
+        });
+
+        // Match slider
+        document.getElementById('minMatch').addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('matchValue').textContent = value > 0 ? value + '%+' : 'Any';
+        });
+
+        // Update active filters display
+        function updateActiveFilters() {
+            const container = document.getElementById('activeFilters');
+            const tags = [];
+
+            Object.entries(selectedFilters).forEach(([key, set]) => {
+                set.forEach(value => {
+                    tags.push(`<span class="active-filter-tag">${value.replace(/_/g, ' ')} <span class="remove" onclick="removeFilter('${key}', '${value}')">&times;</span></span>`);
+                });
+            });
+
+            if (tags.length > 0) {
+                container.innerHTML = '<strong style="color: #9ca3af; width: 100%; margin-bottom: 8px;">Active Filters:</strong>' + tags.join('');
+                container.style.display = 'flex';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        // Remove individual filter
+        function removeFilter(setName, value) {
+            selectedFilters[setName].delete(value);
+
+            // Find and deselect the chip
+            document.querySelectorAll('.chip').forEach(chip => {
+                if (chip.dataset.value === value && chip.classList.contains('selected')) {
+                    chip.classList.remove('selected');
+                }
+            });
+
+            updateActiveFilters();
+        }
+
+        // Reset all filters
+        function resetFilters() {
+            // Clear sets
+            Object.keys(selectedFilters).forEach(key => selectedFilters[key].clear());
+
+            // Deselect all chips
+            document.querySelectorAll('.chip.selected').forEach(chip => chip.classList.remove('selected'));
+
+            // Reset form fields
+            document.getElementById('minAge').value = '';
+            document.getElementById('maxAge').value = '';
+            document.getElementById('distance').value = '50';
+            document.getElementById('minMatch').value = 0;
+            document.getElementById('matchValue').textContent = 'Any';
+            document.getElementById('lastActive').value = '';
+            document.getElementById('minHeight').value = '';
+            document.getElementById('maxHeight').value = '';
+            document.getElementById('keyword').value = '';
+
+            updateActiveFilters();
+        }
+
+        // Apply filters and search
+        function applyFilters() {
+            const filters = {
+                preferredMinAge: document.getElementById('minAge').value || null,
+                preferredMaxAge: document.getElementById('maxAge').value || null,
+                distance: parseInt(document.getElementById('distance').value) || 50,
+                minMatchPercent: parseInt(document.getElementById('minMatch').value) || null,
+                minHeightCm: document.getElementById('minHeight').value || null,
+                maxHeightCm: document.getElementById('maxHeight').value || null,
+                bodyTypes: Array.from(selectedFilters.bodyTypes),
+                ethnicities: Array.from(selectedFilters.ethnicities),
+                diets: Array.from(selectedFilters.diets),
+                educationLevels: Array.from(selectedFilters.educationLevels),
+                incomeLevels: Array.from(selectedFilters.incomeLevels),
+                zodiacSigns: Array.from(selectedFilters.zodiacSigns),
+                keyword: document.getElementById('keyword').value || null
+            };
+
+            // Store filters and redirect to search results
+            sessionStorage.setItem('searchFilters', JSON.stringify(filters));
+
+            // Redirect to main search or emit event
+            window.location.href = '/search?filters=applied';
+        }
+    </script>
+</body>
+</html>

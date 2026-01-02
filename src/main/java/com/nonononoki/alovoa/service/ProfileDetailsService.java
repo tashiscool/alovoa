@@ -191,6 +191,16 @@ public class ProfileDetailsService {
     }
 
     /**
+     * Update income level.
+     */
+    @Transactional
+    public UserProfileDetails updateIncome(UserProfileDetails.IncomeLevel income) {
+        UserProfileDetails details = getMyDetails();
+        details.setIncome(income);
+        return detailsRepository.save(details);
+    }
+
+    /**
      * Calculate and update response rate based on messaging behavior.
      */
     @Transactional
@@ -208,5 +218,83 @@ public class ProfileDetailsService {
 
         details.setResponseRate(rate);
         detailsRepository.save(details);
+    }
+
+    /**
+     * Get all available options for profile details dropdowns.
+     */
+    public ProfileDetailOptions getDetailOptions() {
+        return ProfileDetailOptions.builder()
+                .bodyTypes(UserProfileDetails.BodyType.values())
+                .ethnicities(UserProfileDetails.Ethnicity.values())
+                .diets(UserProfileDetails.Diet.values())
+                .petStatuses(UserProfileDetails.PetStatus.values())
+                .educationLevels(UserProfileDetails.EducationLevel.values())
+                .zodiacSigns(UserProfileDetails.ZodiacSign.values())
+                .incomeLevels(UserProfileDetails.IncomeLevel.values())
+                .build();
+    }
+
+    /**
+     * Bulk update all profile details from a DTO.
+     */
+    @Transactional
+    public UserProfileDetails saveAllDetails(ProfileDetailsDto dto) {
+        UserProfileDetails details = getMyDetails();
+
+        if (dto.getHeightCm() != null) details.setHeightCm(dto.getHeightCm());
+        if (dto.getBodyType() != null) {
+            try { details.setBodyType(UserProfileDetails.BodyType.valueOf(dto.getBodyType())); } catch (Exception ignored) {}
+        }
+        if (dto.getEthnicity() != null) {
+            try { details.setEthnicity(UserProfileDetails.Ethnicity.valueOf(dto.getEthnicity())); } catch (Exception ignored) {}
+        }
+        if (dto.getDiet() != null) {
+            try { details.setDiet(UserProfileDetails.Diet.valueOf(dto.getDiet())); } catch (Exception ignored) {}
+        }
+        if (dto.getPets() != null) {
+            try { details.setPets(UserProfileDetails.PetStatus.valueOf(dto.getPets())); } catch (Exception ignored) {}
+        }
+        if (dto.getEducation() != null) {
+            try { details.setEducation(UserProfileDetails.EducationLevel.valueOf(dto.getEducation())); } catch (Exception ignored) {}
+        }
+        if (dto.getZodiacSign() != null) {
+            try { details.setZodiacSign(UserProfileDetails.ZodiacSign.valueOf(dto.getZodiacSign())); } catch (Exception ignored) {}
+        }
+        if (dto.getIncome() != null) {
+            try { details.setIncome(UserProfileDetails.IncomeLevel.valueOf(dto.getIncome())); } catch (Exception ignored) {}
+        }
+        if (dto.getOccupation() != null) details.setOccupation(dto.getOccupation());
+        if (dto.getEmployer() != null) details.setEmployer(dto.getEmployer());
+        if (dto.getLanguages() != null) details.setLanguages(dto.getLanguages());
+
+        return detailsRepository.save(details);
+    }
+
+    @lombok.Builder
+    @lombok.Getter
+    public static class ProfileDetailOptions {
+        private UserProfileDetails.BodyType[] bodyTypes;
+        private UserProfileDetails.Ethnicity[] ethnicities;
+        private UserProfileDetails.Diet[] diets;
+        private UserProfileDetails.PetStatus[] petStatuses;
+        private UserProfileDetails.EducationLevel[] educationLevels;
+        private UserProfileDetails.ZodiacSign[] zodiacSigns;
+        private UserProfileDetails.IncomeLevel[] incomeLevels;
+    }
+
+    @lombok.Data
+    public static class ProfileDetailsDto {
+        private Integer heightCm;
+        private String bodyType;
+        private String ethnicity;
+        private String diet;
+        private String pets;
+        private String education;
+        private String zodiacSign;
+        private String income;
+        private String occupation;
+        private String employer;
+        private String languages;
     }
 }
