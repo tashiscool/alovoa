@@ -45,17 +45,18 @@ jobs:
           --health-retries=5
 
       minio:
-        image: minio/minio:latest
+        image: bitnami/minio:latest
         ports:
           - 9000:9000
         env:
           MINIO_ROOT_USER: aura_test_admin
           MINIO_ROOT_PASSWORD: aura_test_secret
+          MINIO_DEFAULT_BUCKETS: aura-test-media,aura-test-video
         options: >-
-          --health-cmd="curl -f http://localhost:9000/minio/health/live"
+          --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
 
     steps:
       - name: Checkout code
@@ -79,14 +80,10 @@ jobs:
             sleep 2
           done
 
-      - name: Create MinIO buckets
+      - name: Verify MinIO buckets
         run: |
-          # Install MinIO client
-          wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
-          chmod +x mc
-          ./mc alias set aura http://localhost:9000 aura_test_admin aura_test_secret
-          ./mc mb aura/aura-test-media --ignore-existing || true
-          ./mc mb aura/aura-test-video --ignore-existing || true
+          # Buckets are auto-created by bitnami/minio via MINIO_DEFAULT_BUCKETS
+          echo "MinIO buckets should be auto-created: aura-test-media, aura-test-video"
 
       - name: Run Integration Tests
         run: |

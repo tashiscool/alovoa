@@ -39,20 +39,19 @@ jobs:
           --health-retries=5
 
       minio:
-        image: minio/minio:latest
+        image: bitnami/minio:latest
         env:
           MINIO_ROOT_USER: minioadmin
           MINIO_ROOT_PASSWORD: minioadmin
+          MINIO_DEFAULT_BUCKETS: alovoa-test
         ports:
           - 9000:9000
           - 9001:9001
         options: >-
-          --health-cmd="curl -f http://localhost:9000/minio/health/live"
+          --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
-        # MinIO runs in server mode with console
-        # Command is passed via entrypoint in the container
+          --health-retries=10
 
     steps:
       - name: Checkout code
