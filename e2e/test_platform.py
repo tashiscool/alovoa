@@ -681,6 +681,627 @@ class TestCoreDatingFlows(unittest.TestCase):
         print(f"    Reputation View: Status {response.status_code}")
 
 
+# =============================================================================
+# AURA-Specific Feature Tests (Compared to Upstream)
+# =============================================================================
+
+class TestAccountabilitySystem(unittest.TestCase):
+    """
+    E2E Tests for Accountability System
+    Tests: /api/v1/accountability/*
+    Features: Public reporting, evidence submission, feedback system
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = f"{SERVICES['aura-app'].url}/api/v1/accountability"
+        cls.session = requests.Session()
+
+    def test_01_get_report_categories(self):
+        """Test getting available report categories"""
+        response = self.session.get(f"{self.base_url}/categories", timeout=REQUEST_TIMEOUT)
+        # Public endpoint should be accessible
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Report Categories: Status {response.status_code}")
+
+    def test_02_submitted_reports(self):
+        """Test getting user's submitted reports"""
+        response = self.session.get(f"{self.base_url}/reports/submitted", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Submitted Reports: Status {response.status_code}")
+
+    def test_03_received_reports(self):
+        """Test getting reports received about user"""
+        response = self.session.get(f"{self.base_url}/reports/received", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Received Reports: Status {response.status_code}")
+
+    def test_04_report_submission_format(self):
+        """Test report submission endpoint format"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.post(
+            f"{self.base_url}/report",
+            json={
+                "reportedUserUuid": fake_uuid,
+                "category": "BEHAVIOR",
+                "description": "Test report",
+                "severity": "LOW"
+            },
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Report Submission: Status {response.status_code}")
+
+    def test_05_user_feedback_endpoint(self):
+        """Test getting feedback about a user"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.get(f"{self.base_url}/feedback/{fake_uuid}", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    User Feedback: Status {response.status_code}")
+
+
+class TestAssessmentSystem(unittest.TestCase):
+    """
+    E2E Tests for Assessment/Questionnaire System
+    Tests: /assessment/*
+    Features: OKCupid-style questions, progress tracking, match scoring
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = f"{SERVICES['aura-app'].url}/assessment"
+        cls.session = requests.Session()
+
+    def test_01_get_questions_personality(self):
+        """Test getting personality assessment questions"""
+        response = self.session.get(f"{self.base_url}/questions/personality", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Personality Questions: Status {response.status_code}")
+
+    def test_02_get_questions_values(self):
+        """Test getting values assessment questions"""
+        response = self.session.get(f"{self.base_url}/questions/values", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Values Questions: Status {response.status_code}")
+
+    def test_03_get_questions_lifestyle(self):
+        """Test getting lifestyle assessment questions"""
+        response = self.session.get(f"{self.base_url}/questions/lifestyle", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Lifestyle Questions: Status {response.status_code}")
+
+    def test_04_assessment_progress(self):
+        """Test getting assessment progress"""
+        response = self.session.get(f"{self.base_url}/progress", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Assessment Progress: Status {response.status_code}")
+
+    def test_05_assessment_results(self):
+        """Test getting assessment results"""
+        response = self.session.get(f"{self.base_url}/results", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Assessment Results: Status {response.status_code}")
+
+    def test_06_next_question(self):
+        """Test getting next question to answer"""
+        response = self.session.get(f"{self.base_url}/next", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Next Question: Status {response.status_code}")
+
+    def test_07_question_batch(self):
+        """Test getting batch of questions"""
+        response = self.session.get(f"{self.base_url}/batch", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Question Batch: Status {response.status_code}")
+
+    def test_08_assessment_stats(self):
+        """Test getting assessment statistics"""
+        response = self.session.get(f"{self.base_url}/stats", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Assessment Stats: Status {response.status_code}")
+
+    def test_09_match_score_calculation(self):
+        """Test match score calculation endpoint"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.get(f"{self.base_url}/match/{fake_uuid}", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Match Score: Status {response.status_code}")
+
+    def test_10_match_explanation(self):
+        """Test match explanation endpoint"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.get(f"{self.base_url}/match/{fake_uuid}/explain", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Match Explanation: Status {response.status_code}")
+
+
+class TestIntakeAndScaffolding(unittest.TestCase):
+    """
+    E2E Tests for Intake Flow and Profile Scaffolding
+    Tests: /intake/*
+    Features: Video intro, AI analysis, profile scaffolding, encouragement
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = f"{SERVICES['aura-app'].url}/intake"
+        cls.session = requests.Session()
+
+    def test_01_intake_progress(self):
+        """Test getting intake progress"""
+        response = self.session.get(f"{self.base_url}/progress", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Intake Progress: Status {response.status_code}")
+
+    def test_02_core_questions(self):
+        """Test getting core intake questions"""
+        response = self.session.get(f"{self.base_url}/questions", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Core Questions: Status {response.status_code}")
+
+    def test_03_ai_status(self):
+        """Test AI provider status"""
+        response = self.session.get(f"{self.base_url}/ai/status", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    AI Status: Status {response.status_code}")
+
+    def test_04_video_tips(self):
+        """Test getting video recording tips"""
+        response = self.session.get(f"{self.base_url}/video/tips", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Video Tips: Status {response.status_code}")
+
+    def test_05_step_encouragement(self):
+        """Test getting step encouragement"""
+        response = self.session.get(f"{self.base_url}/encouragement/questions", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Step Encouragement: Status {response.status_code}")
+
+    def test_06_life_stats(self):
+        """Test personalized life stats"""
+        response = self.session.get(f"{self.base_url}/life-stats", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Life Stats: Status {response.status_code}")
+
+    def test_07_scaffolding_prompts(self):
+        """Test getting scaffolding prompts"""
+        response = self.session.get(f"{self.base_url}/scaffolding/prompts", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Scaffolding Prompts: Status {response.status_code}")
+
+    def test_08_scaffolding_progress(self):
+        """Test scaffolding progress"""
+        response = self.session.get(f"{self.base_url}/scaffolding/progress", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Scaffolding Progress: Status {response.status_code}")
+
+    def test_09_scaffolded_profile(self):
+        """Test getting scaffolded profile"""
+        response = self.session.get(f"{self.base_url}/scaffolded-profile", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403])
+        print(f"    Scaffolded Profile: Status {response.status_code}")
+
+
+class TestLocationSystem(unittest.TestCase):
+    """
+    E2E Tests for Location and Date Spots
+    Tests: /location/*
+    Features: Location areas, date spots, travel time, privacy-safe location
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = f"{SERVICES['aura-app'].url}/location"
+        cls.session = requests.Session()
+
+    def test_01_location_areas(self):
+        """Test getting user's location areas"""
+        response = self.session.get(f"{self.base_url}/areas", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Location Areas: Status {response.status_code}")
+
+    def test_02_location_preferences(self):
+        """Test getting location preferences"""
+        response = self.session.get(f"{self.base_url}/preferences", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Location Preferences: Status {response.status_code}")
+
+    def test_03_traveling_status(self):
+        """Test traveling status"""
+        response = self.session.get(f"{self.base_url}/traveling", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Traveling Status: Status {response.status_code}")
+
+    def test_04_date_spots(self):
+        """Test getting date spots"""
+        response = self.session.get(f"{self.base_url}/date-spots", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Date Spots: Status {response.status_code}")
+
+    def test_05_safe_date_spots(self):
+        """Test getting safe/well-lit date spots"""
+        response = self.session.get(f"{self.base_url}/date-spots/safe", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Safe Date Spots: Status {response.status_code}")
+
+    def test_06_daytime_date_spots(self):
+        """Test getting daytime date spots"""
+        response = self.session.get(f"{self.base_url}/date-spots/daytime", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Daytime Date Spots: Status {response.status_code}")
+
+    def test_07_budget_date_spots(self):
+        """Test getting budget-friendly date spots"""
+        response = self.session.get(f"{self.base_url}/date-spots/budget", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Budget Date Spots: Status {response.status_code}")
+
+    def test_08_date_spot_by_type(self):
+        """Test getting date spots by type"""
+        response = self.session.get(f"{self.base_url}/date-spots/type/cafe", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Date Spots By Type: Status {response.status_code}")
+
+    def test_09_location_display(self):
+        """Test display location for another user"""
+        response = self.session.get(f"{self.base_url}/display/1", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Location Display: Status {response.status_code}")
+
+    def test_10_location_overlap(self):
+        """Test checking location overlap with match"""
+        response = self.session.get(f"{self.base_url}/overlap/1", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Location Overlap: Status {response.status_code}")
+
+
+class TestMatchingAndReputation(unittest.TestCase):
+    """
+    E2E Tests for Matching and Reputation System
+    Tests: /api/v1/matching/*, /api/v1/reputation/*
+    Features: Daily matches, compatibility, reputation scoring, badges
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = SERVICES['aura-app'].url
+        cls.session = requests.Session()
+
+    def test_01_daily_matches(self):
+        """Test getting daily match recommendations"""
+        response = self.session.get(f"{self.base_url}/api/v1/matching/daily", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Daily Matches: Status {response.status_code}")
+
+    def test_02_compatibility_check(self):
+        """Test compatibility score calculation"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.get(f"{self.base_url}/api/v1/matching/compatibility/{fake_uuid}", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Compatibility Check: Status {response.status_code}")
+
+    def test_03_my_reputation(self):
+        """Test getting own reputation score"""
+        response = self.session.get(f"{self.base_url}/api/v1/reputation/me", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    My Reputation: Status {response.status_code}")
+
+    def test_04_reputation_badges(self):
+        """Test getting reputation badges"""
+        response = self.session.get(f"{self.base_url}/api/v1/reputation/badges", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Reputation Badges: Status {response.status_code}")
+
+    def test_05_reputation_history(self):
+        """Test getting reputation history"""
+        response = self.session.get(f"{self.base_url}/api/v1/reputation/history", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Reputation History: Status {response.status_code}")
+
+
+class TestVideoDates(unittest.TestCase):
+    """
+    E2E Tests for Video Dating System
+    Tests: /api/v1/video-date/*
+    Features: Propose dates, scheduling, feedback, history
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = f"{SERVICES['aura-app'].url}/api/v1/video-date"
+        cls.session = requests.Session()
+
+    def test_01_upcoming_dates(self):
+        """Test getting upcoming video dates"""
+        response = self.session.get(f"{self.base_url}/upcoming", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Upcoming Dates: Status {response.status_code}")
+
+    def test_02_date_proposals(self):
+        """Test getting date proposals"""
+        response = self.session.get(f"{self.base_url}/proposals", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Date Proposals: Status {response.status_code}")
+
+    def test_03_date_history(self):
+        """Test getting video date history"""
+        response = self.session.get(f"{self.base_url}/history", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Date History: Status {response.status_code}")
+
+    def test_04_propose_date_format(self):
+        """Test date proposal endpoint format"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.post(
+            f"{self.base_url}/propose",
+            json={
+                "matchUuid": fake_uuid,
+                "proposedTime": "2026-01-15T19:00:00Z"
+            },
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Propose Date: Status {response.status_code}")
+
+
+class TestVideoVerification(unittest.TestCase):
+    """
+    E2E Tests for Video Verification
+    Tests: /video/*
+    Features: Video intro upload, liveness verification
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = f"{SERVICES['aura-app'].url}/video"
+        cls.session = requests.Session()
+
+    def test_01_verification_status(self):
+        """Test getting verification status"""
+        response = self.session.get(f"{self.base_url}/verification/status", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Verification Status: Status {response.status_code}")
+
+    def test_02_start_verification(self):
+        """Test starting verification"""
+        response = self.session.post(f"{self.base_url}/verification/start", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403])
+        print(f"    Start Verification: Status {response.status_code}")
+
+
+class TestPoliticalAssessment(unittest.TestCase):
+    """
+    E2E Tests for Political/Values Assessment
+    Tests: /api/v1/political-assessment/*
+    Features: Political compass, economic class, reproductive views
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = f"{SERVICES['aura-app'].url}/api/v1/political-assessment"
+        cls.session = requests.Session()
+
+    def test_01_assessment_status(self):
+        """Test getting political assessment status"""
+        response = self.session.get(f"{self.base_url}/status", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Political Status: Status {response.status_code}")
+
+    def test_02_assessment_options(self):
+        """Test getting assessment options"""
+        response = self.session.get(f"{self.base_url}/options", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Political Options: Status {response.status_code}")
+
+    def test_03_class_consciousness_test(self):
+        """Test getting class consciousness test"""
+        response = self.session.get(f"{self.base_url}/class-consciousness-test", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Class Consciousness: Status {response.status_code}")
+
+    def test_04_explanation_prompts(self):
+        """Test getting explanation prompts"""
+        response = self.session.get(f"{self.base_url}/explanation-prompts", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Explanation Prompts: Status {response.status_code}")
+
+
+class TestProfileAndRelationship(unittest.TestCase):
+    """
+    E2E Tests for Profile and Relationship Management
+    Tests: /api/profile/*, /api/v1/relationship/*
+    Features: Profile visitors, relationship status, details
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = SERVICES['aura-app'].url
+        cls.session = requests.Session()
+
+    def test_01_profile_visitors(self):
+        """Test getting profile visitors"""
+        response = self.session.get(f"{self.base_url}/api/profile/visitors", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Profile Visitors: Status {response.status_code}")
+
+    def test_02_recent_visitors(self):
+        """Test getting recent profile visitors"""
+        response = self.session.get(f"{self.base_url}/api/profile/visitors/recent", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Recent Visitors: Status {response.status_code}")
+
+    def test_03_visited_profiles(self):
+        """Test getting profiles user visited"""
+        response = self.session.get(f"{self.base_url}/api/profile/visited", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Visited Profiles: Status {response.status_code}")
+
+    def test_04_profile_details(self):
+        """Test getting profile details"""
+        response = self.session.get(f"{self.base_url}/api/profile/details", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Profile Details: Status {response.status_code}")
+
+    def test_05_profile_details_options(self):
+        """Test getting profile detail options"""
+        response = self.session.get(f"{self.base_url}/api/profile/details/options", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Detail Options: Status {response.status_code}")
+
+    def test_06_relationships(self):
+        """Test getting user relationships"""
+        response = self.session.get(f"{self.base_url}/api/v1/relationship", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Relationships: Status {response.status_code}")
+
+    def test_07_pending_requests(self):
+        """Test getting pending relationship requests"""
+        response = self.session.get(f"{self.base_url}/api/v1/relationship/requests/pending", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Pending Requests: Status {response.status_code}")
+
+    def test_08_sent_requests(self):
+        """Test getting sent relationship requests"""
+        response = self.session.get(f"{self.base_url}/api/v1/relationship/requests/sent", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Sent Requests: Status {response.status_code}")
+
+    def test_09_relationship_types(self):
+        """Test getting relationship types"""
+        response = self.session.get(f"{self.base_url}/api/v1/relationship/types", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Relationship Types: Status {response.status_code}")
+
+
+class TestMatchWindows(unittest.TestCase):
+    """
+    E2E Tests for Match Windows System
+    Tests: /api/v1/match-windows/*
+    Features: Time-limited matching, confirm/decline, dashboard
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = f"{SERVICES['aura-app'].url}/api/v1/match-windows"
+        cls.session = requests.Session()
+
+    def test_01_pending_windows(self):
+        """Test getting pending match windows"""
+        response = self.session.get(f"{self.base_url}/pending", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Pending Windows: Status {response.status_code}")
+
+    def test_02_waiting_windows(self):
+        """Test getting windows waiting for response"""
+        response = self.session.get(f"{self.base_url}/waiting", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Waiting Windows: Status {response.status_code}")
+
+    def test_03_confirmed_windows(self):
+        """Test getting confirmed match windows"""
+        response = self.session.get(f"{self.base_url}/confirmed", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Confirmed Windows: Status {response.status_code}")
+
+    def test_04_pending_count(self):
+        """Test getting pending window count"""
+        response = self.session.get(f"{self.base_url}/pending/count", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Pending Count: Status {response.status_code}")
+
+    def test_05_dashboard(self):
+        """Test getting match windows dashboard"""
+        response = self.session.get(f"{self.base_url}/dashboard", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Windows Dashboard: Status {response.status_code}")
+
+
+class TestEssaysAndPersonality(unittest.TestCase):
+    """
+    E2E Tests for Essays and Personality System
+    Tests: /api/v1/essays/*, /personality/*
+    Features: Profile essays, personality assessment
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = SERVICES['aura-app'].url
+        cls.session = requests.Session()
+
+    def test_01_essays(self):
+        """Test getting user essays"""
+        response = self.session.get(f"{self.base_url}/api/v1/essays", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    User Essays: Status {response.status_code}")
+
+    def test_02_essay_templates(self):
+        """Test getting essay templates"""
+        response = self.session.get(f"{self.base_url}/api/v1/essays/templates", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Essay Templates: Status {response.status_code}")
+
+    def test_03_essay_count(self):
+        """Test getting essay count"""
+        response = self.session.get(f"{self.base_url}/api/v1/essays/count", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Essay Count: Status {response.status_code}")
+
+    def test_04_personality_assessment(self):
+        """Test getting personality assessment"""
+        response = self.session.get(f"{self.base_url}/personality/assessment", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Personality Assessment: Status {response.status_code}")
+
+    def test_05_personality_results(self):
+        """Test getting personality results"""
+        response = self.session.get(f"{self.base_url}/personality/results", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Personality Results: Status {response.status_code}")
+
+
+class TestWaitlistAndVerification(unittest.TestCase):
+    """
+    E2E Tests for Waitlist and General Verification
+    Tests: /api/v1/waitlist/*, /verification/*
+    Features: Waitlist signup, verification status
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = SERVICES['aura-app'].url
+        cls.session = requests.Session()
+
+    def test_01_waitlist_status(self):
+        """Test getting waitlist status"""
+        response = self.session.get(f"{self.base_url}/api/v1/waitlist/status", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Waitlist Status: Status {response.status_code}")
+
+    def test_02_waitlist_count(self):
+        """Test getting waitlist count"""
+        response = self.session.get(f"{self.base_url}/api/v1/waitlist/count", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Waitlist Count: Status {response.status_code}")
+
+    def test_03_waitlist_stats(self):
+        """Test getting waitlist statistics"""
+        response = self.session.get(f"{self.base_url}/api/v1/waitlist/stats", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Waitlist Stats: Status {response.status_code}")
+
+    def test_04_verification_page(self):
+        """Test verification page accessibility"""
+        response = self.session.get(f"{self.base_url}/verification", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Verification Page: Status {response.status_code}")
+
+    def test_05_verification_api_status(self):
+        """Test verification API status"""
+        response = self.session.get(f"{self.base_url}/verification/api/status", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Verification API Status: Status {response.status_code}")
+
+
 class TestIntegrationScenarios(unittest.TestCase):
     """Integration scenarios testing multiple services together"""
 
@@ -818,11 +1439,28 @@ def main():
     suite = unittest.TestSuite()
 
     # Add test classes in order
+    # Core service health
     suite.addTests(loader.loadTestsFromTestCase(TestServiceHealth))
     suite.addTests(loader.loadTestsFromTestCase(TestMediaServiceCapabilities))
     suite.addTests(loader.loadTestsFromTestCase(TestAIServiceCapabilities))
     suite.addTests(loader.loadTestsFromTestCase(TestAuraAppCapabilities))
     suite.addTests(loader.loadTestsFromTestCase(TestCoreDatingFlows))
+
+    # AURA-specific features (vs upstream)
+    suite.addTests(loader.loadTestsFromTestCase(TestAccountabilitySystem))
+    suite.addTests(loader.loadTestsFromTestCase(TestAssessmentSystem))
+    suite.addTests(loader.loadTestsFromTestCase(TestIntakeAndScaffolding))
+    suite.addTests(loader.loadTestsFromTestCase(TestLocationSystem))
+    suite.addTests(loader.loadTestsFromTestCase(TestMatchingAndReputation))
+    suite.addTests(loader.loadTestsFromTestCase(TestVideoDates))
+    suite.addTests(loader.loadTestsFromTestCase(TestVideoVerification))
+    suite.addTests(loader.loadTestsFromTestCase(TestPoliticalAssessment))
+    suite.addTests(loader.loadTestsFromTestCase(TestProfileAndRelationship))
+    suite.addTests(loader.loadTestsFromTestCase(TestMatchWindows))
+    suite.addTests(loader.loadTestsFromTestCase(TestEssaysAndPersonality))
+    suite.addTests(loader.loadTestsFromTestCase(TestWaitlistAndVerification))
+
+    # Integration scenarios
     suite.addTests(loader.loadTestsFromTestCase(TestIntegrationScenarios))
 
     # Run tests
