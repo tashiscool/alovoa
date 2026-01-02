@@ -25,4 +25,4 @@ jobs:
         user: alovoa_test
         password: alovoa_test
     - name: Build with Maven
-      run: mvn --batch-mode --update-snapshots verify
+      run: mvn --batch-mode --update-snapshots verify -Dspring.profiles.active=ci

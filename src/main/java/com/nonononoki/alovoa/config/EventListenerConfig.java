@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -76,11 +76,15 @@ public class EventListenerConfig {
 	private static final Logger logger = LoggerFactory.getLogger(EventListenerConfig.class);
 
 	@EventListener
-	public void handleContextRefresh(ApplicationStartedEvent event) {
-		setDefaultAdmin();
-		setDefaultGenders();
-		setDefaultIntentions();
-		setDefaultUserMiscInfo();
+	public void handleContextRefresh(ApplicationReadyEvent event) {
+		try {
+			setDefaultAdmin();
+			setDefaultGenders();
+			setDefaultIntentions();
+			setDefaultUserMiscInfo();
+		} catch (Exception e) {
+			logger.error("Failed to initialize default data: {}", e.getMessage());
+		}
 	}
 
 	private void setDefaultUserMiscInfo() {
