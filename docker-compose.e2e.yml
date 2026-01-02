@@ -205,6 +205,11 @@ services:
       APP_ADMIN_KEY: e2e_admin_password
       # Disable rate limiting for tests
       BUCKET4J_ENABLED: "false"
+      # OAuth2 dummy credentials (required for app startup, not used in E2E tests)
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: e2e-test-google-client-id
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: e2e-test-google-client-secret
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_ID: e2e-test-facebook-client-id
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_SECRET: e2e-test-facebook-client-secret
     depends_on:
       mariadb:
         condition: service_healthy
