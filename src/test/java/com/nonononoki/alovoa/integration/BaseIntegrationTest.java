@@ -4,14 +4,19 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MariaDBContainer;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+
+import java.time.Duration;
 
 /**
  * Base class for integration tests using Testcontainers.
- * Provides a MariaDB container that starts automatically and
- * configures Spring Boot to use it.
+ * Provides MariaDB and MinIO containers that start automatically
+ * and configure Spring Boot to use them.
  *
  * Usage:
  * <pre>
@@ -20,28 +25,24 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * public class MyIntegrationTest extends BaseIntegrationTest {
  *     @Test
  *     void testSomething() throws Exception {
- *         // test code using real database
+ *         // test code using real database and S3
  *     }
  * }
  * </pre>
  */
 @Testcontainers
-@EnabledIf("shouldRunIntegrationTests")
+@EnabledIf("isDockerAvailable")
 public abstract class BaseIntegrationTest {
 
+    private static final String MINIO_ACCESS_KEY = "minioadmin";
+    private static final String MINIO_SECRET_KEY = "minioadmin";
+    private static final int MINIO_PORT = 9000;
+
     /**
-     * Only run integration tests when:
-     * 1. Docker is available locally
-     * 2. NOT running in GitHub Actions CI (CI env var is set)
-     *
-     * CI has its own service containers, so Testcontainers would conflict.
+     * Run integration tests when Docker is available.
+     * Testcontainers manages all containers (no GitHub Actions service containers needed).
      */
-    static boolean shouldRunIntegrationTests() {
-        // Skip in CI - GitHub Actions sets CI=true
-        if ("true".equals(System.getenv("CI"))) {
-            return false;
-        }
-        // Check if Docker is available locally
+    static boolean isDockerAvailable() {
         try {
             DockerClientFactory.instance().client();
             return true;
@@ -59,11 +60,33 @@ public abstract class BaseIntegrationTest {
             .withUrlParam("useLegacyDatetimeCode", "false")
             .withReuse(true);
 
+    @Container
+    static GenericContainer<?> minioContainer = new GenericContainer<>(DockerImageName.parse("minio/minio:latest"))
+            .withExposedPorts(MINIO_PORT)
+            .withEnv("MINIO_ROOT_USER", MINIO_ACCESS_KEY)
+            .withEnv("MINIO_ROOT_PASSWORD", MINIO_SECRET_KEY)
+            .withCommand("server /data")
+            .waitingFor(new HttpWaitStrategy()
+                    .forPath("/minio/health/live")
+                    .forPort(MINIO_PORT)
+                    .withStartupTimeout(Duration.ofMinutes(2)))
+            .withReuse(true);
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        // Database configuration
         registry.add("spring.datasource.url", mariaDBContainer::getJdbcUrl);
         registry.add("spring.datasource.username", mariaDBContainer::getUsername);
         registry.add("spring.datasource.password", mariaDBContainer::getPassword);
+
+        // S3/MinIO configuration
+        registry.add("app.storage.s3.enabled", () -> "true");
+        registry.add("app.storage.s3.endpoint", () ->
+                String.format("http://%s:%d", minioContainer.getHost(), minioContainer.getMappedPort(MINIO_PORT)));
+        registry.add("app.storage.s3.access-key", () -> MINIO_ACCESS_KEY);
+        registry.add("app.storage.s3.secret-key", () -> MINIO_SECRET_KEY);
+        registry.add("app.storage.s3.bucket", () -> "alovoa-test");
+        registry.add("app.storage.s3.region", () -> "us-east-1");
 
         // Test encryption keys
         registry.add("app.text.key", () -> "bqupWgmhCj3fedLxYdNAy2QFA2bS9XJX");

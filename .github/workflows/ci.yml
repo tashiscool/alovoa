@@ -21,24 +21,7 @@ jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
-
-    services:
-      mariadb:
-        image: mariadb:10.11
-        env:
-          MARIADB_ROOT_PASSWORD: root
-          MARIADB_DATABASE: alovoa_test
-          MARIADB_USER: alovoa_test
-          MARIADB_PASSWORD: alovoa_test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="healthcheck.sh --connect --innodb_initialized"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-      # MinIO is not needed - S3StorageService is mocked in tests
+    # No service containers needed - Testcontainers manages MariaDB and MinIO
 
     steps:
       - name: Checkout code
@@ -60,12 +43,6 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
-      - name: Wait for MariaDB
-        run: |
-          while ! mysqladmin ping -h"127.0.0.1" --silent; do
-            sleep 1
-          done
 
       - name: Build with Maven
         run: mvn -B clean compile -DskipTests
