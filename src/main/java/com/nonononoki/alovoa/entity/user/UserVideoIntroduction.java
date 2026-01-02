@@ -115,6 +115,76 @@ public class UserVideoIntroduction {
         SKIPPED         // User opted for manual entry, no AI analysis
     }
 
+    // ============================================================
+    // PROFILE SCAFFOLDING: Inferred Assessment Scores
+    // Aggregated from all video segments for quick profile creation
+    // ============================================================
+
+    @Lob
+    @Column(name = "inferred_assessment_json", columnDefinition = "TEXT")
+    private String inferredAssessmentJson;
+
+    // Big Five scores (0-100)
+    @Column(name = "inferred_openness")
+    private Double inferredOpenness;
+
+    @Column(name = "inferred_conscientiousness")
+    private Double inferredConscientiousness;
+
+    @Column(name = "inferred_extraversion")
+    private Double inferredExtraversion;
+
+    @Column(name = "inferred_agreeableness")
+    private Double inferredAgreeableness;
+
+    @Column(name = "inferred_neuroticism")
+    private Double inferredNeuroticism;
+
+    // Attachment scores
+    @Column(name = "inferred_attachment_anxiety")
+    private Double inferredAttachmentAnxiety;
+
+    @Column(name = "inferred_attachment_avoidance")
+    private Double inferredAttachmentAvoidance;
+
+    @Column(name = "inferred_attachment_style", length = 30)
+    private String inferredAttachmentStyle;
+
+    // Values scores (0-100)
+    @Column(name = "inferred_values_progressive")
+    private Double inferredValuesProgressive;
+
+    @Column(name = "inferred_values_egalitarian")
+    private Double inferredValuesEgalitarian;
+
+    // Lifestyle scores (0-100)
+    @Column(name = "inferred_lifestyle_social")
+    private Double inferredLifestyleSocial;
+
+    @Column(name = "inferred_lifestyle_health")
+    private Double inferredLifestyleHealth;
+
+    @Column(name = "inferred_lifestyle_work_life")
+    private Double inferredLifestyleWorkLife;
+
+    @Column(name = "inferred_lifestyle_finance")
+    private Double inferredLifestyleFinance;
+
+    // Confidence
+    @Column(name = "overall_inference_confidence")
+    private Double overallInferenceConfidence;
+
+    // Review status
+    @Column(name = "inference_reviewed")
+    private Boolean inferenceReviewed = false;
+
+    @Column(name = "inference_confirmed")
+    private Boolean inferenceConfirmed = false;
+
+    @Column(name = "confirmed_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date confirmedAt;
+
     @PrePersist
     protected void onCreate() {
         if (uuid == null) {
@@ -123,6 +193,45 @@ public class UserVideoIntroduction {
         if (uploadedAt == null) {
             uploadedAt = new Date();
         }
+    }
+
+    /**
+     * Check if inference data is available
+     */
+    public boolean hasInferenceData() {
+        return inferredOpenness != null;
+    }
+
+    /**
+     * Check if inference has been reviewed and confirmed
+     */
+    public boolean isInferenceConfirmed() {
+        return Boolean.TRUE.equals(inferenceConfirmed);
+    }
+
+    /**
+     * Clear all inference data (for re-record)
+     */
+    public void clearInferenceData() {
+        inferredAssessmentJson = null;
+        inferredOpenness = null;
+        inferredConscientiousness = null;
+        inferredExtraversion = null;
+        inferredAgreeableness = null;
+        inferredNeuroticism = null;
+        inferredAttachmentAnxiety = null;
+        inferredAttachmentAvoidance = null;
+        inferredAttachmentStyle = null;
+        inferredValuesProgressive = null;
+        inferredValuesEgalitarian = null;
+        inferredLifestyleSocial = null;
+        inferredLifestyleHealth = null;
+        inferredLifestyleWorkLife = null;
+        inferredLifestyleFinance = null;
+        overallInferenceConfidence = null;
+        inferenceReviewed = false;
+        inferenceConfirmed = false;
+        confirmedAt = null;
     }
 
     /**

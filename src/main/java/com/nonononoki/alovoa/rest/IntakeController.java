@@ -8,6 +8,7 @@ import com.nonononoki.alovoa.model.IntakeStep;
 import com.nonononoki.alovoa.service.AuthService;
 import com.nonononoki.alovoa.service.IntakeEncouragementService;
 import com.nonononoki.alovoa.service.IntakeService;
+import com.nonononoki.alovoa.service.ProfileScaffoldingService;
 import com.nonononoki.alovoa.service.VideoAnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,9 @@ public class IntakeController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private ProfileScaffoldingService scaffoldingService;
 
     /**
      * Get the current user's intake progress with encouraging content.
@@ -299,6 +303,105 @@ public class IntakeController {
             }
 
             return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ============================================================
+    // PROFILE SCAFFOLDING ENDPOINTS
+    // Fast-track users to matchable in ~10 minutes via video intro
+    // ============================================================
+
+    /**
+     * Get available video segment prompts for recording.
+     * Each prompt guides users on what to talk about in their 2-3 minute videos.
+     */
+    @GetMapping("/scaffolding/prompts")
+    public ResponseEntity<?> getScaffoldingPrompts() {
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "prompts", scaffoldingService.getAvailablePrompts(),
+                    "header", Map.of(
+                            "title", "Record your intro videos",
+                            "subtitle", "Just a few short videos to help us understand you better",
+                            "encouragement", "These videos let potential matches get to know the real you!"
+                    )
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Get the user's scaffolding progress.
+     * Shows which segments are complete and what's next.
+     */
+    @GetMapping("/scaffolding/progress")
+    public ResponseEntity<?> getScaffoldingProgress() {
+        try {
+            return ResponseEntity.ok(scaffoldingService.getProgress());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Get the scaffolded profile from video analysis.
+     * Returns AI-inferred scores with confidence indicators for user review.
+     */
+    @GetMapping("/scaffolded-profile")
+    public ResponseEntity<?> getScaffoldedProfile() {
+        try {
+            return ResponseEntity.ok(scaffoldingService.getScaffoldedProfile());
+        } catch (AlovoaException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage(),
+                    "hasProfile", false
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Save user adjustments to the scaffolded profile.
+     * Users can adjust any scores before confirming.
+     */
+    @PostMapping("/scaffolded-profile/adjust")
+    public ResponseEntity<?> adjustScaffoldedProfile(@RequestBody Map<String, Object> adjustments) {
+        try {
+            scaffoldingService.saveAdjustments(adjustments);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Adjustments saved"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Confirm the scaffolded profile.
+     * Creates UserAssessmentProfile and enables matching.
+     */
+    @PostMapping("/scaffolded-profile/confirm")
+    public ResponseEntity<?> confirmScaffoldedProfile() {
+        try {
+            return ResponseEntity.ok(scaffoldingService.confirmScaffoldedProfile());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Re-record video intro.
+     * Clears existing video and inference data for a fresh start.
+     */
+    @PostMapping("/scaffolded-profile/re-record")
+    public ResponseEntity<?> reRecordVideoIntro() {
+        try {
+            return ResponseEntity.ok(scaffoldingService.reRecordVideoIntro());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
