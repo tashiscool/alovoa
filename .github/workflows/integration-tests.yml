@@ -44,19 +44,7 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
-      minio:
-        image: bitnami/minio:latest
-        ports:
-          - 9000:9000
-        env:
-          MINIO_ROOT_USER: aura_test_admin
-          MINIO_ROOT_PASSWORD: aura_test_secret
-          MINIO_DEFAULT_BUCKETS: aura-test-media,aura-test-video
-        options: >-
-          --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
+      # MinIO is not needed - S3StorageService is mocked in tests
 
     steps:
       - name: Checkout code
@@ -80,18 +68,12 @@ jobs:
             sleep 2
           done
 
-      - name: Verify MinIO buckets
-        run: |
-          # Buckets are auto-created by bitnami/minio via MINIO_DEFAULT_BUCKETS
-          echo "MinIO buckets should be auto-created: aura-test-media, aura-test-video"
-
       - name: Run Integration Tests
         run: |
           mvn -B verify -Dspring.profiles.active=ci \
             -Dspring.datasource.url=jdbc:mariadb://localhost:3306/alovoa_test \
             -Dspring.data.redis.host=localhost \
-            -Dspring.data.redis.port=6379 \
-            -Dapp.storage.s3.endpoint=http://localhost:9000
+            -Dspring.data.redis.port=6379
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
