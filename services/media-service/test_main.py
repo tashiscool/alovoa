@@ -308,20 +308,25 @@ class TestFaceVerificationEndpoint:
     def test_verification_no_face_detected(self, sample_image):
         """Test when no face is detected in video frames"""
         mock_deepface.verify.side_effect = Exception("Face not detected")
-        with patch('main.load_image_from_url', new_callable=AsyncMock) as mock_load:
-            with patch('main.extract_video_frames', new_callable=AsyncMock) as mock_frames:
-                mock_load.return_value = sample_image
-                mock_frames.return_value = [sample_image] * 5
-                response = client.post("/verify/face", json={
-                    "user_id": 123,
-                    "profile_image_url": "/media/profile.jpg",
-                    "verification_video_url": "/media/videos/test.mp4",
-                    "session_id": "test-session-123"
-                })
-                assert response.status_code == 200
-                data = response.json()
-                assert data["verified"] == False
-                assert "Could not detect face in video" in data["issues"]
+        try:
+            with patch('main.load_image_from_url', new_callable=AsyncMock) as mock_load:
+                with patch('main.extract_video_frames', new_callable=AsyncMock) as mock_frames:
+                    mock_load.return_value = sample_image
+                    mock_frames.return_value = [sample_image] * 5
+                    response = client.post("/verify/face", json={
+                        "user_id": 123,
+                        "profile_image_url": "/media/profile.jpg",
+                        "verification_video_url": "/media/videos/test.mp4",
+                        "session_id": "test-session-123"
+                    })
+                    assert response.status_code == 200
+                    data = response.json()
+                    assert data["verified"] == False
+                    assert "Could not detect face in video" in data["issues"]
+        finally:
+            # Reset side_effect so it doesn't affect subsequent tests
+            mock_deepface.verify.side_effect = None
+            mock_deepface.verify.return_value = {"distance": 0.2, "threshold": 0.68, "verified": True}
 
     def test_verification_multiple_faces(self, sample_image):
         """Test handling of multiple faces in image"""
@@ -383,26 +388,28 @@ class TestFaceVerificationEndpoint:
 
     def test_verification_successful_match(self, sample_image):
         """Test successful face verification"""
-        mock_deepface.verify.return_value = {"distance": 0.2, "threshold": 0.68, "verified": True}
-        with patch('main.load_image_from_url', new_callable=AsyncMock) as mock_load:
-            with patch('main.extract_video_frames', new_callable=AsyncMock) as mock_frames:
-                with patch('main.detect_liveness', new_callable=AsyncMock) as mock_liveness:
-                    with patch('main.detect_deepfake', new_callable=AsyncMock) as mock_deepfake:
-                        mock_load.return_value = sample_image
-                        mock_frames.return_value = [sample_image] * 5
-                        mock_liveness.return_value = 0.90
-                        mock_deepfake.return_value = 0.90
-                        response = client.post("/verify/face", json={
-                            "user_id": 123,
-                            "profile_image_url": "/media/profile.jpg",
-                            "verification_video_url": "/media/videos/test.mp4",
-                            "session_id": "test-session-123"
-                        })
-                        assert response.status_code == 200
-                        data = response.json()
-                        assert data["face_match_score"] > 0
-                        assert data["liveness_score"] == 90.0
-                        assert data["deepfake_score"] == 90.0
+        # Create a fresh mock for DeepFace.verify to avoid contamination from other tests
+        verify_mock = MagicMock(return_value={"distance": 0.2, "threshold": 0.68, "verified": True})
+        with patch('main.DeepFace.verify', verify_mock):
+            with patch('main.load_image_from_url', new_callable=AsyncMock) as mock_load:
+                with patch('main.extract_video_frames', new_callable=AsyncMock) as mock_frames:
+                    with patch('main.detect_liveness', new_callable=AsyncMock) as mock_liveness:
+                        with patch('main.detect_deepfake', new_callable=AsyncMock) as mock_deepfake:
+                            mock_load.return_value = sample_image
+                            mock_frames.return_value = [sample_image] * 5
+                            mock_liveness.return_value = 0.90
+                            mock_deepfake.return_value = 0.90
+                            response = client.post("/verify/face", json={
+                                "user_id": 123,
+                                "profile_image_url": "/media/profile.jpg",
+                                "verification_video_url": "/media/videos/test.mp4",
+                                "session_id": "test-session-123"
+                            })
+                            assert response.status_code == 200
+                            data = response.json()
+                            assert data["face_match_score"] > 0
+                            assert data["liveness_score"] == 90.0
+                            assert data["deepfake_score"] == 90.0
 
 
 class TestVideoAnalysisEndpoint:
@@ -687,31 +694,33 @@ class TestIntegration:
 
     def test_full_verification_workflow(self, sample_image):
         """Test complete verification workflow from upload to verification"""
-        with patch('main.load_image_from_url', new_callable=AsyncMock) as mock_load:
-            with patch('main.extract_video_frames', new_callable=AsyncMock) as mock_frames:
-                with patch('main.detect_liveness', new_callable=AsyncMock) as mock_liveness:
-                    with patch('main.detect_deepfake', new_callable=AsyncMock) as mock_deepfake:
-                        mock_load.return_value = sample_image
-                        mock_frames.return_value = [sample_image] * 5
-                        mock_liveness.return_value = 0.90
-                        mock_deepfake.return_value = 0.90
-                        mock_deepface.verify.return_value = {"distance": 0.2, "threshold": 0.68, "verified": True}
+        # Create a fresh mock for DeepFace.verify to avoid contamination from other tests
+        verify_mock = MagicMock(return_value={"distance": 0.2, "threshold": 0.68, "verified": True})
+        with patch('main.DeepFace.verify', verify_mock):
+            with patch('main.load_image_from_url', new_callable=AsyncMock) as mock_load:
+                with patch('main.extract_video_frames', new_callable=AsyncMock) as mock_frames:
+                    with patch('main.detect_liveness', new_callable=AsyncMock) as mock_liveness:
+                        with patch('main.detect_deepfake', new_callable=AsyncMock) as mock_deepfake:
+                            mock_load.return_value = sample_image
+                            mock_frames.return_value = [sample_image] * 5
+                            mock_liveness.return_value = 0.90
+                            mock_deepfake.return_value = 0.90
 
-                        # Step 1: Get liveness challenges
-                        challenges_response = client.post("/verify/liveness/challenges", json={"user_id": 123})
-                        assert challenges_response.status_code == 200
-                        session_id = challenges_response.json()["session_id"]
+                            # Step 1: Get liveness challenges
+                            challenges_response = client.post("/verify/liveness/challenges", json={"user_id": 123})
+                            assert challenges_response.status_code == 200
+                            session_id = challenges_response.json()["session_id"]
 
-                        # Step 2: Verify face
-                        verify_response = client.post("/verify/face", json={
-                            "user_id": 123,
-                            "profile_image_url": "/media/profile.jpg",
-                            "verification_video_url": "/media/video.mp4",
-                            "session_id": session_id
-                        })
-                        assert verify_response.status_code == 200
-                        verify_data = verify_response.json()
-                        assert verify_data["face_match_score"] > 0
+                            # Step 2: Verify face
+                            verify_response = client.post("/verify/face", json={
+                                "user_id": 123,
+                                "profile_image_url": "/media/profile.jpg",
+                                "verification_video_url": "/media/video.mp4",
+                                "session_id": session_id
+                            })
+                            assert verify_response.status_code == 200
+                            verify_data = verify_response.json()
+                            assert verify_data["face_match_score"] > 0
 
 
 # Run with: pytest test_main.py -v
