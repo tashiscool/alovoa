@@ -100,11 +100,11 @@ public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void testMinAgeRequirement() throws Exception {
-        // Given - User under minimum age
+        // Given - User under minimum age (app.age.min=16)
         Captcha captcha = captchaService.generate();
         RegisterDto registerDto = createRegisterDto(
             "underage-test" + Tools.MAIL_TEST_DOMAIN,
-            16, // Under 18
+            15, // Under 16 (the configured minimum)
             1,
             captcha
         );

@@ -7,8 +7,6 @@ import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
@@ -17,6 +15,9 @@ import java.time.Duration;
  * Base class for integration tests using Testcontainers.
  * Provides MariaDB and MinIO containers that start automatically
  * and configure Spring Boot to use them.
+ *
+ * Uses singleton containers to ensure they are shared across all test classes
+ * and remain running for the entire test suite.
  *
  * Usage:
  * <pre>
@@ -30,7 +31,6 @@ import java.time.Duration;
  * }
  * </pre>
  */
-@Testcontainers
 @EnabledIf("isDockerAvailable")
 public abstract class BaseIntegrationTest {
 
@@ -51,25 +51,35 @@ public abstract class BaseIntegrationTest {
         }
     }
 
-    @Container
-    static MariaDBContainer<?> mariaDBContainer = new MariaDBContainer<>("mariadb:10.11")
-            .withDatabaseName("alovoa_test")
-            .withUsername("alovoa_test")
-            .withPassword("alovoa_test")
-            .withUrlParam("serverTimezone", "UTC")
-            .withUrlParam("useLegacyDatetimeCode", "false")
-            .withStartupTimeout(Duration.ofMinutes(3));
+    // Singleton containers - started once and shared across all tests
+    // Use static initializer block to start containers once for entire test suite
+    static MariaDBContainer<?> mariaDBContainer;
+    static GenericContainer<?> minioContainer;
 
-    @Container
-    static GenericContainer<?> minioContainer = new GenericContainer<>(DockerImageName.parse("minio/minio:latest"))
-            .withExposedPorts(MINIO_PORT)
-            .withEnv("MINIO_ROOT_USER", MINIO_ACCESS_KEY)
-            .withEnv("MINIO_ROOT_PASSWORD", MINIO_SECRET_KEY)
-            .withCommand("server /data")
-            .waitingFor(new HttpWaitStrategy()
-                    .forPath("/minio/health/live")
-                    .forPort(MINIO_PORT)
-                    .withStartupTimeout(Duration.ofMinutes(2)));
+    static {
+        // Only start containers if Docker is available
+        if (isDockerAvailable()) {
+            mariaDBContainer = new MariaDBContainer<>("mariadb:10.11")
+                    .withDatabaseName("alovoa_test")
+                    .withUsername("alovoa_test")
+                    .withPassword("alovoa_test")
+                    .withUrlParam("serverTimezone", "UTC")
+                    .withUrlParam("useLegacyDatetimeCode", "false")
+                    .withStartupTimeout(Duration.ofMinutes(3));
+            mariaDBContainer.start();
+
+            minioContainer = new GenericContainer<>(DockerImageName.parse("minio/minio:latest"))
+                    .withExposedPorts(MINIO_PORT)
+                    .withEnv("MINIO_ROOT_USER", MINIO_ACCESS_KEY)
+                    .withEnv("MINIO_ROOT_PASSWORD", MINIO_SECRET_KEY)
+                    .withCommand("server /data")
+                    .waitingFor(new HttpWaitStrategy()
+                            .forPath("/minio/health/live")
+                            .forPort(MINIO_PORT)
+                            .withStartupTimeout(Duration.ofMinutes(2)));
+            minioContainer.start();
+        }
+    }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
