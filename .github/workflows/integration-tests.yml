@@ -161,7 +161,7 @@ jobs:
   docker-compose-test:
     name: Docker Compose Integration
     runs-on: ubuntu-latest
-    needs: [java-integration, testcontainers-tests]
+    needs: [testcontainers-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
