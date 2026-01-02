@@ -118,4 +118,28 @@ public class MatchWindowController {
         dashboard.put("pendingCount", windowService.getPendingCount());
         return ResponseEntity.ok(dashboard);
     }
+
+    /**
+     * Send an intro message within the match window (Marriage Machine feature).
+     * This is the "personality leads" feature - send ONE message before matching.
+     * Like OKCupid's original open messaging, but limited to match window.
+     */
+    @PostMapping("/{uuid}/intro-message")
+    public ResponseEntity<?> sendIntroMessage(
+            @PathVariable UUID uuid,
+            @RequestBody Map<String, String> payload) {
+        try {
+            String message = payload.get("message");
+            if (message == null || message.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Message cannot be empty"));
+            }
+            if (message.length() > 500) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Message too long (max 500 characters)"));
+            }
+            MatchWindow window = windowService.sendIntroMessage(uuid, message.trim());
+            return ResponseEntity.ok(Map.of("success", true, "window", window));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

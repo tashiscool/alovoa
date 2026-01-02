@@ -697,11 +697,11 @@ public class UserService {
         graphics2D.dispose();
         image = scaledImage;
 
-        // image to b64
+        // image to b64 - Use PNG for broader platform compatibility
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        final String fileType = "webp";
+        final String fileType = "png";
         ImageIO.write(image, fileType, bos);
-        return new AbstractMap.SimpleEntry<>(bos.toByteArray(), MediaService.MEDIA_TYPE_IMAGE_WEBP);
+        return new AbstractMap.SimpleEntry<>(bos.toByteArray(), "image/png");
     }
 
     public void likeUser(UUID uuid, String message) throws AlovoaException {

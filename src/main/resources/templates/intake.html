@@ -455,6 +455,103 @@
         animation: bounceIn 0.5s ease;
     }
 
+    /* OKCupid-style Importance Selector (Marriage Machine feature) */
+    .importance-section {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--aura-gray-200);
+    }
+
+    .importance-label {
+        font-weight: 600;
+        color: var(--aura-gray-700);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .importance-label i {
+        color: var(--aura-primary);
+    }
+
+    .importance-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .importance-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--aura-gray-200);
+        border-radius: var(--aura-radius);
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--aura-gray-600);
+        min-width: 80px;
+    }
+
+    .importance-btn:hover {
+        border-color: var(--aura-primary);
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    .importance-btn.selected {
+        border-color: var(--aura-primary);
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(168, 85, 247, 0.1));
+        color: var(--aura-primary);
+    }
+
+    .importance-btn.mandatory {
+        border-color: var(--aura-gray-200);
+    }
+
+    .importance-btn.mandatory:hover {
+        border-color: var(--aura-danger);
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .importance-btn.mandatory.selected {
+        border-color: var(--aura-danger);
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+        color: var(--aura-danger);
+    }
+
+    .importance-icon {
+        font-size: 1.25rem;
+    }
+
+    .importance-hint {
+        margin-top: 0.75rem;
+        font-size: 0.8125rem;
+        color: var(--aura-gray-500);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .importance-hint i {
+        color: var(--aura-primary);
+    }
+
+    @media (max-width: 640px) {
+        .importance-options {
+            justify-content: center;
+        }
+
+        .importance-btn {
+            flex: 1 1 calc(33% - 0.5rem);
+            min-width: unset;
+        }
+    }
+
     @keyframes pulse {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.7; }
@@ -568,6 +665,9 @@
         renderCurrentQuestion();
     }
 
+    // Store importance for each question (OKCupid-style)
+    let questionImportance = {};
+
     function renderCurrentQuestion() {
         const question = questions[currentQuestionIndex];
         document.getElementById('current-question').textContent = currentQuestionIndex + 1;
@@ -584,6 +684,49 @@
             });
         }
 
+        // Get current importance selection (default: 'somewhat')
+        const currentImportance = questionImportance[question.id] || 'somewhat';
+
+        // OKCupid-style importance selector (Marriage Machine feature)
+        const importanceHtml = `
+            <div class="importance-section">
+                <div class="importance-label">
+                    <i class="fas fa-star"></i> How important is this to you?
+                </div>
+                <div class="importance-options">
+                    <button class="importance-btn ${currentImportance === 'irrelevant' ? 'selected' : ''}"
+                            onclick="setImportance(${question.id}, 'irrelevant')" title="Skip this for matching">
+                        <span class="importance-icon">🤷</span>
+                        <span>Irrelevant</span>
+                    </button>
+                    <button class="importance-btn ${currentImportance === 'a_little' ? 'selected' : ''}"
+                            onclick="setImportance(${question.id}, 'a_little')" title="Nice to align, not crucial">
+                        <span class="importance-icon">👍</span>
+                        <span>A Little</span>
+                    </button>
+                    <button class="importance-btn ${currentImportance === 'somewhat' ? 'selected' : ''}"
+                            onclick="setImportance(${question.id}, 'somewhat')" title="I prefer alignment">
+                        <span class="importance-icon">💭</span>
+                        <span>Somewhat</span>
+                    </button>
+                    <button class="importance-btn ${currentImportance === 'very' ? 'selected' : ''}"
+                            onclick="setImportance(${question.id}, 'very')" title="Strong preference">
+                        <span class="importance-icon">💪</span>
+                        <span>Very</span>
+                    </button>
+                    <button class="importance-btn mandatory ${currentImportance === 'mandatory' ? 'selected' : ''}"
+                            onclick="setImportance(${question.id}, 'mandatory')" title="Dealbreaker - must align">
+                        <span class="importance-icon">🚫</span>
+                        <span>Dealbreaker</span>
+                    </button>
+                </div>
+                <div class="importance-hint">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="importance-hint-text">Questions marked "Dealbreaker" will filter out incompatible matches.</span>
+                </div>
+            </div>
+        `;
+
         document.getElementById('questions-container').innerHTML = `
             <div class="question-card">
                 <div class="question-category" style="font-size: 0.875rem; color: var(--aura-primary); margin-bottom: 0.5rem;">
@@ -591,6 +734,7 @@
                 </div>
                 <div class="question-text">${question.text}</div>
                 <div class="answer-options">${optionsHtml}</div>
+                ${importanceHtml}
             </div>
         `;
 
@@ -599,6 +743,11 @@
         document.getElementById('next-question').innerHTML = currentQuestionIndex === questions.length - 1
             ? '<i class="fas fa-check"></i> Submit'
             : 'Next <i class="fas fa-arrow-right"></i>';
+    }
+
+    function setImportance(questionId, level) {
+        questionImportance[questionId] = level;
+        renderCurrentQuestion();
     }
 
     function selectAnswer(questionId, optionIndex) {
@@ -624,9 +773,11 @@
     });
 
     async function submitAnswers() {
+        // Build submissions with OKCupid-style importance (Marriage Machine feature)
         const submissions = Object.entries(answers).map(([questionId, optionIndex]) => ({
-            questionId: parseInt(questionId),
-            selectedOption: optionIndex
+            questionId: questionId.toString(),
+            numericResponse: optionIndex + 1, // Convert to 1-based for Likert scale
+            importance: questionImportance[questionId] || 'somewhat'
         }));
 
         try {

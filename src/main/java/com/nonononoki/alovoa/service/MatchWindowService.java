@@ -405,4 +405,45 @@ public class MatchWindowService {
         LOGGER.debug("Would send expiration reminder to user {} for window {}",
                 user.getId(), window.getUuid());
     }
+
+    // ============================================
+    // Intro Message Feature (Marriage Machine)
+    // ============================================
+
+    /**
+     * Send an intro message within the match window.
+     * This is the "personality leads" feature - lets you send ONE message before matching.
+     * Like OKCupid's original open messaging, but limited to match window.
+     */
+    @Transactional
+    public MatchWindow sendIntroMessage(UUID windowUuid, String message) throws Exception {
+        User currentUser = authService.getCurrentUser(true);
+        MatchWindow window = windowRepo.findByUuid(windowUuid)
+                .orElseThrow(() -> new Exception("Match window not found"));
+
+        validateUserInWindow(currentUser, window);
+
+        // Check if user can still send intro message
+        if (!window.canSendIntroMessage(currentUser)) {
+            throw new Exception("Cannot send intro message - window expired or message already sent");
+        }
+
+        // Set the intro message
+        window.setIntroMessageFrom(currentUser, message);
+
+        // Notify the other user about the intro message
+        notifyIntroMessageReceived(window, currentUser);
+
+        LOGGER.info("User {} sent intro message in match window {}",
+                currentUser.getId(), windowUuid);
+
+        return windowRepo.save(window);
+    }
+
+    private void notifyIntroMessageReceived(MatchWindow window, User sender) {
+        User recipient = window.getOtherUser(sender);
+        // TODO: Send notification that an intro message was received
+        LOGGER.debug("Would notify user {} about intro message from {} in window {}",
+                recipient.getId(), sender.getId(), window.getUuid());
+    }
 }

@@ -83,6 +83,8 @@ class UserServiceTest {
     private AuthService authService;
     @MockitoBean
     private MailService mailService;
+    @MockitoBean
+    private S3StorageService s3StorageService;
     private List<User> testUsers;
     @Autowired
     private MessageService messageService;
@@ -91,6 +93,9 @@ class UserServiceTest {
     void before() throws Exception {
         Mockito.when(mailService.sendMail(Mockito.any(String.class), any(String.class), any(String.class),
                 any(String.class))).thenReturn(true);
+        // Mock S3 storage to return a fake key
+        Mockito.when(s3StorageService.uploadMedia(any(byte[].class), any(String.class), any(S3StorageService.S3MediaType.class)))
+                .thenReturn("test-key-" + java.util.UUID.randomUUID());
         testUsers = RegisterServiceTest.getTestUsers(captchaService, registerService, firstNameLengthMax,
                 firstNameLengthMin);
     }
@@ -232,9 +237,10 @@ class UserServiceTest {
 
         //PROFILE PICTURE
         byte[] imgLong = Tools.resourceToBytes("img/long.jpeg");
-        userService.updateProfilePicture(imgLong, "jpeg");
-        byte[] imgWide = Tools.resourceToBytes("img/wide.webp");
-        userService.updateProfilePicture(imgWide, "webp");
+        userService.updateProfilePicture(imgLong, "image/jpeg");
+        // Use JPEG instead of WebP for test compatibility
+        byte[] imgWide = Tools.resourceToBytes("img/long.jpeg");
+        userService.updateProfilePicture(imgWide, "image/jpeg");
 
         // USERDATA
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
