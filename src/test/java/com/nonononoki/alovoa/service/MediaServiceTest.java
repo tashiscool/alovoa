@@ -69,7 +69,7 @@ class MediaServiceTest {
     // Profile Picture Tests
 
     @Test
-    void testGetProfilePictureSuccess() {
+    void testGetProfilePictureSuccess() throws Exception {
         // Arrange
         UserProfilePicture profilePic = new UserProfilePicture();
         profilePic.setUuid(TEST_UUID);
@@ -94,7 +94,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetProfilePictureNotFound() {
+    void testGetProfilePictureNotFound() throws Exception {
         // Arrange
         when(userProfilePictureRepository.findByUuid(TEST_UUID)).thenReturn(null);
 
@@ -108,7 +108,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetProfilePictureS3DataNull() {
+    void testGetProfilePictureS3DataNull() throws Exception {
         // Arrange
         UserProfilePicture profilePic = new UserProfilePicture();
         profilePic.setUuid(TEST_UUID);
@@ -127,7 +127,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetProfilePictureWithJpegMimeType() {
+    void testGetProfilePictureWithJpegMimeType() throws Exception {
         // Arrange
         UserProfilePicture profilePic = new UserProfilePicture();
         profilePic.setUuid(TEST_UUID);
@@ -146,7 +146,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetProfilePictureWithPngMimeType() {
+    void testGetProfilePictureWithPngMimeType() throws Exception {
         // Arrange
         UserProfilePicture profilePic = new UserProfilePicture();
         profilePic.setUuid(TEST_UUID);
@@ -167,7 +167,7 @@ class MediaServiceTest {
     // Verification Picture Tests
 
     @Test
-    void testGetVerificationPictureFromRepository() {
+    void testGetVerificationPictureFromRepository() throws Exception {
         // Arrange
         UserVerificationPicture verificationPicture = new UserVerificationPicture();
         verificationPicture.setUuid(TEST_UUID);
@@ -189,7 +189,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVerificationPictureFromUser() {
+    void testGetVerificationPictureFromUser() throws Exception {
         // Arrange
         UserVerificationPicture verificationPicture = new UserVerificationPicture();
         verificationPicture.setS3Key(TEST_S3_KEY);
@@ -214,7 +214,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVerificationPictureNotFound() {
+    void testGetVerificationPictureNotFound() throws Exception {
         // Arrange
         when(userVerificationPictureRepository.findByUuid(TEST_UUID)).thenReturn(null);
         when(userRepository.findByUuid(TEST_UUID)).thenReturn(null);
@@ -229,7 +229,7 @@ class MediaServiceTest {
     // Image Tests
 
     @Test
-    void testGetImageSuccess() {
+    void testGetImageSuccess() throws Exception {
         // Arrange
         UserImage image = new UserImage();
         image.setUuid(TEST_UUID);
@@ -251,7 +251,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetImageNotFound() {
+    void testGetImageNotFound() throws Exception {
         // Arrange
         when(userImageRepository.findByUuid(TEST_UUID)).thenReturn(null);
 
@@ -265,7 +265,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetImageS3DataNull() {
+    void testGetImageS3DataNull() throws Exception {
         // Arrange
         UserImage image = new UserImage();
         image.setUuid(TEST_UUID);
@@ -285,7 +285,7 @@ class MediaServiceTest {
     // Audio Tests
 
     @Test
-    void testGetAudioFromUserAudioRepository() {
+    void testGetAudioFromUserAudioRepository() throws Exception {
         // Arrange
         UserAudio userAudio = new UserAudio();
         userAudio.setUuid(TEST_UUID);
@@ -309,7 +309,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetAudioFromUser() {
+    void testGetAudioFromUser() throws Exception {
         // Arrange
         UserAudio userAudio = new UserAudio();
         userAudio.setS3Key("audio/test-uuid.wav");
@@ -334,7 +334,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetAudioWithDefaultMimeType() {
+    void testGetAudioWithDefaultMimeType() throws Exception {
         // Arrange
         UserAudio userAudio = new UserAudio();
         userAudio.setUuid(TEST_UUID);
@@ -353,7 +353,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetAudioNotFound() {
+    void testGetAudioNotFound() throws Exception {
         // Arrange
         when(userAudioRepository.findByUuid(TEST_UUID)).thenReturn(null);
         when(userRepository.findByUuid(TEST_UUID)).thenReturn(null);
@@ -366,7 +366,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetAudioS3DataNull() {
+    void testGetAudioS3DataNull() throws Exception {
         // Arrange
         UserAudio userAudio = new UserAudio();
         userAudio.setUuid(TEST_UUID);
@@ -384,7 +384,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetAudioWithNullS3Key() {
+    void testGetAudioWithNullS3Key() throws Exception {
         // Arrange
         UserAudio userAudio = new UserAudio();
         userAudio.setUuid(TEST_UUID);
@@ -404,7 +404,7 @@ class MediaServiceTest {
     // Video Introduction Tests
 
     @Test
-    void testGetVideoIntroductionSuccess() {
+    void testGetVideoIntroductionSuccess() throws Exception {
         // Arrange
         UserVideoIntroduction video = new UserVideoIntroduction();
         video.setUuid(TEST_UUID);
@@ -428,7 +428,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVideoIntroductionWithDefaultMimeType() {
+    void testGetVideoIntroductionWithDefaultMimeType() throws Exception {
         // Arrange
         UserVideoIntroduction video = new UserVideoIntroduction();
         video.setUuid(TEST_UUID);
@@ -447,7 +447,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVideoIntroductionNotFound() {
+    void testGetVideoIntroductionNotFound() throws Exception {
         // Arrange
         when(userVideoIntroductionRepository.findByUuid(TEST_UUID)).thenReturn(Optional.empty());
 
@@ -461,7 +461,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVideoIntroductionWithNullS3Key() {
+    void testGetVideoIntroductionWithNullS3Key() throws Exception {
         // Arrange
         UserVideoIntroduction video = new UserVideoIntroduction();
         video.setUuid(TEST_UUID);
@@ -479,7 +479,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVideoIntroductionS3DataNull() {
+    void testGetVideoIntroductionS3DataNull() throws Exception {
         // Arrange
         UserVideoIntroduction video = new UserVideoIntroduction();
         video.setUuid(TEST_UUID);
@@ -497,7 +497,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVideoIntroductionWhenRepositoryIsNull() {
+    void testGetVideoIntroductionWhenRepositoryIsNull() throws Exception {
         // Arrange - This simulates when the repository bean is not available
         MediaService serviceWithNullRepo = new MediaService();
         // The repository is not injected (null)
@@ -510,7 +510,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVideoIntroductionWithWebMMimeType() {
+    void testGetVideoIntroductionWithWebMMimeType() throws Exception {
         // Arrange
         UserVideoIntroduction video = new UserVideoIntroduction();
         video.setUuid(TEST_UUID);
@@ -531,7 +531,7 @@ class MediaServiceTest {
     // MIME Type Detection Tests
 
     @Test
-    void testGetImageMimeTypeWebP() {
+    void testGetImageMimeTypeWebP() throws Exception {
         // Arrange
         String imageB64 = "data:image/webp;base64,xxxxx";
 
@@ -543,7 +543,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetImageMimeTypePng() {
+    void testGetImageMimeTypePng() throws Exception {
         // Arrange
         String imageB64 = "data:image/png;base64,xxxxx";
 
@@ -555,7 +555,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetImageMimeTypeDefaultsToJpeg() {
+    void testGetImageMimeTypeDefaultsToJpeg() throws Exception {
         // Arrange
         String imageB64 = "data:image/unknown;base64,xxxxx";
 
@@ -569,7 +569,7 @@ class MediaServiceTest {
     // Content Length Tests
 
     @Test
-    void testContentLengthSetCorrectlyForImages() {
+    void testContentLengthSetCorrectlyForImages() throws Exception {
         // Arrange
         UserImage image = new UserImage();
         image.setUuid(TEST_UUID);
@@ -589,7 +589,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testContentLengthSetCorrectlyForAudio() {
+    void testContentLengthSetCorrectlyForAudio() throws Exception {
         // Arrange
         UserAudio audio = new UserAudio();
         audio.setUuid(TEST_UUID);
@@ -609,7 +609,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testContentLengthSetCorrectlyForVideo() {
+    void testContentLengthSetCorrectlyForVideo() throws Exception {
         // Arrange
         UserVideoIntroduction video = new UserVideoIntroduction();
         video.setUuid(TEST_UUID);
@@ -631,7 +631,7 @@ class MediaServiceTest {
     // Edge Cases
 
     @Test
-    void testGetAudioWithComplexMimeType() {
+    void testGetAudioWithComplexMimeType() throws Exception {
         // Arrange
         UserAudio audio = new UserAudio();
         audio.setUuid(TEST_UUID);
@@ -651,7 +651,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetAudioWithInvalidMimeType() {
+    void testGetAudioWithInvalidMimeType() throws Exception {
         // Arrange
         UserAudio audio = new UserAudio();
         audio.setUuid(TEST_UUID);
@@ -670,7 +670,7 @@ class MediaServiceTest {
     }
 
     @Test
-    void testGetVideoIntroductionWithQuickTimeMimeType() {
+    void testGetVideoIntroductionWithQuickTimeMimeType() throws Exception {
         // Arrange
         UserVideoIntroduction video = new UserVideoIntroduction();
         video.setUuid(TEST_UUID);

@@ -28,7 +28,7 @@ public class RelationshipController {
      * Get current user's active relationship.
      */
     @GetMapping
-    public ResponseEntity<RelationshipDto> getMyRelationship() {
+    public ResponseEntity<RelationshipDto> getMyRelationship() throws AlovoaException {
         return relationshipService.getMyRelationship()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
@@ -38,7 +38,7 @@ public class RelationshipController {
      * Get pending relationship requests for the current user.
      */
     @GetMapping("/requests/pending")
-    public ResponseEntity<List<RelationshipDto>> getPendingRequests() {
+    public ResponseEntity<List<RelationshipDto>> getPendingRequests() throws AlovoaException {
         return ResponseEntity.ok(relationshipService.getPendingRequests());
     }
 
@@ -46,7 +46,7 @@ public class RelationshipController {
      * Get relationship requests sent by the current user.
      */
     @GetMapping("/requests/sent")
-    public ResponseEntity<List<RelationshipDto>> getSentRequests() {
+    public ResponseEntity<List<RelationshipDto>> getSentRequests() throws AlovoaException {
         return ResponseEntity.ok(relationshipService.getSentRequests());
     }
 

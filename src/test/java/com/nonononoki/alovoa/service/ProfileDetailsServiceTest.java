@@ -77,7 +77,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Get or create profile details")
     void testGetOrCreateProfileDetails() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         UserProfileDetails details = profileDetailsService.getOrCreateProfileDetails();
@@ -90,7 +90,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update height in centimeters")
     void testUpdateHeight() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         UserProfileDetails details = profileDetailsService.updateHeight(175);
@@ -100,9 +100,9 @@ class ProfileDetailsServiceTest {
 
     @Test
     @DisplayName("Height validation - minimum")
-    void testHeightMinimum() {
+    void testHeightMinimum() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         assertThrows(AlovoaException.class, () -> {
@@ -112,9 +112,9 @@ class ProfileDetailsServiceTest {
 
     @Test
     @DisplayName("Height validation - maximum")
-    void testHeightMaximum() {
+    void testHeightMaximum() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         assertThrows(AlovoaException.class, () -> {
@@ -126,7 +126,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update body type")
     void testUpdateBodyType() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         for (BodyType bodyType : BodyType.values()) {
@@ -139,7 +139,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update ethnicity")
     void testUpdateEthnicity() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         for (Ethnicity ethnicity : Ethnicity.values()) {
@@ -152,7 +152,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update diet")
     void testUpdateDiet() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         for (Diet diet : Diet.values()) {
@@ -165,12 +165,12 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update education level")
     void testUpdateEducation() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         for (EducationLevel education : EducationLevel.values()) {
             UserProfileDetails details = profileDetailsService.updateEducation(education);
-            assertEquals(education, details.getEducationLevel());
+            assertEquals(education, details.getEducation());
         }
     }
 
@@ -178,7 +178,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update income level")
     void testUpdateIncome() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         for (IncomeLevel income : IncomeLevel.values()) {
@@ -189,7 +189,7 @@ class ProfileDetailsServiceTest {
 
     @Test
     @DisplayName("All income levels exist including high brackets")
-    void testIncomeLevelsExist() {
+    void testIncomeLevelsExist() throws Exception {
         // Verify all expected income levels exist
         assertNotNull(IncomeLevel.LESS_THAN_20K);
         assertNotNull(IncomeLevel.INCOME_20K_40K);
@@ -209,18 +209,18 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update zodiac sign")
     void testUpdateZodiac() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         for (ZodiacSign zodiac : ZodiacSign.values()) {
-            UserProfileDetails details = profileDetailsService.updateZodiac(zodiac);
+            UserProfileDetails details = profileDetailsService.updateZodiacSign(zodiac);
             assertEquals(zodiac, details.getZodiacSign());
         }
     }
 
     @Test
     @DisplayName("All zodiac signs exist")
-    void testAllZodiacSigns() {
+    void testAllZodiacSigns() throws Exception {
         assertEquals(12, ZodiacSign.values().length);
 
         assertNotNull(ZodiacSign.ARIES);
@@ -241,10 +241,10 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update occupation")
     void testUpdateOccupation() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
-        UserProfileDetails details = profileDetailsService.updateOccupation("Software Engineer");
+        UserProfileDetails details = profileDetailsService.updateOccupation("Software Engineer", null);
         assertEquals("Software Engineer", details.getOccupation());
     }
 
@@ -252,10 +252,10 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update employer")
     void testUpdateEmployer() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
-        UserProfileDetails details = profileDetailsService.updateEmployer("Anthropic");
+        UserProfileDetails details = profileDetailsService.updateOccupation(null, "Anthropic");
         assertEquals("Anthropic", details.getEmployer());
     }
 
@@ -263,7 +263,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update languages")
     void testUpdateLanguages() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         UserProfileDetails details = profileDetailsService.updateLanguages("English, Spanish, French");
@@ -274,21 +274,21 @@ class ProfileDetailsServiceTest {
     @DisplayName("Update has pets")
     void testUpdateHasPets() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         UserProfileDetails details = profileDetailsService.updateHasPets(true);
-        assertTrue(details.getHasPets());
+        assertEquals(UserProfileDetails.PetStatus.HAS_PETS, details.getPets());
 
         details = profileDetailsService.updateHasPets(false);
-        assertFalse(details.getHasPets());
+        assertEquals(UserProfileDetails.PetStatus.NO_PETS_LIKES_THEM, details.getPets());
     }
 
     @Test
     @DisplayName("Update pet details")
     void testUpdatePetDetails() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         profileDetailsService.updateHasPets(true);
@@ -301,7 +301,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Clear profile detail field")
     void testClearField() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         // Set height then clear it
@@ -315,7 +315,7 @@ class ProfileDetailsServiceTest {
     @DisplayName("Profile details persist across calls")
     void testDetailsPersistence() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
         profileDetailsService.updateHeight(175);
@@ -336,26 +336,26 @@ class ProfileDetailsServiceTest {
         User user2 = testUsers.get(1);
 
         // Update user1's details
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
         profileDetailsService.updateHeight(170);
         profileDetailsService.updateBodyType(BodyType.THIN);
 
         // Update user2's details
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user2);
         profileDetailsService.updateHeight(185);
         profileDetailsService.updateBodyType(BodyType.CURVY);
 
         // Verify user1's details
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
         UserProfileDetails details1 = profileDetailsService.getOrCreateProfileDetails();
         assertEquals(170, details1.getHeightCm());
         assertEquals(BodyType.THIN, details1.getBodyType());
 
         // Verify user2's details
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user2);
         UserProfileDetails details2 = profileDetailsService.getOrCreateProfileDetails();
         assertEquals(185, details2.getHeightCm());
@@ -364,7 +364,7 @@ class ProfileDetailsServiceTest {
 
     @Test
     @DisplayName("Body type enum values")
-    void testBodyTypeValues() {
+    void testBodyTypeValues() throws Exception {
         assertNotNull(BodyType.THIN);
         assertNotNull(BodyType.FIT);
         assertNotNull(BodyType.AVERAGE);
@@ -377,7 +377,7 @@ class ProfileDetailsServiceTest {
 
     @Test
     @DisplayName("Diet enum values")
-    void testDietValues() {
+    void testDietValues() throws Exception {
         assertNotNull(Diet.OMNIVORE);
         assertNotNull(Diet.VEGETARIAN);
         assertNotNull(Diet.VEGAN);
@@ -391,7 +391,7 @@ class ProfileDetailsServiceTest {
 
     @Test
     @DisplayName("Ethnicity enum values")
-    void testEthnicityValues() {
+    void testEthnicityValues() throws Exception {
         assertNotNull(Ethnicity.ASIAN);
         assertNotNull(Ethnicity.BLACK);
         assertNotNull(Ethnicity.HISPANIC_LATINO);
@@ -408,14 +408,14 @@ class ProfileDetailsServiceTest {
 
     @Test
     @DisplayName("Education level enum values")
-    void testEducationLevelValues() {
+    void testEducationLevelValues() throws Exception {
         assertNotNull(EducationLevel.HIGH_SCHOOL);
         assertNotNull(EducationLevel.SOME_COLLEGE);
         assertNotNull(EducationLevel.ASSOCIATES);
         assertNotNull(EducationLevel.BACHELORS);
         assertNotNull(EducationLevel.MASTERS);
         assertNotNull(EducationLevel.DOCTORATE);
-        assertNotNull(EducationLevel.PROFESSIONAL);
+        // PROFESSIONAL removed - use OTHER or RATHER_NOT_SAY instead
         assertNotNull(EducationLevel.TRADE_SCHOOL);
         assertNotNull(EducationLevel.OTHER);
 

@@ -54,7 +54,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaProfileImage() {
+    void testUploadMediaProfileImage() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
@@ -77,7 +77,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaGalleryImage() {
+    void testUploadMediaGalleryImage() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
@@ -93,7 +93,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaAudio() {
+    void testUploadMediaAudio() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
@@ -112,7 +112,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaVideo() {
+    void testUploadMediaVideo() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
@@ -131,7 +131,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaVerificationPicture() {
+    void testUploadMediaVerificationPicture() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
@@ -147,7 +147,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaWithUnknownMimeType() {
+    void testUploadMediaWithUnknownMimeType() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
@@ -163,7 +163,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaWhenS3Disabled() {
+    void testUploadMediaWhenS3Disabled() throws Exception {
         // Arrange
         ReflectionTestUtils.setField(s3StorageService, "s3Enabled", false);
 
@@ -175,7 +175,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaFailure() {
+    void testUploadMediaFailure() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenThrow(S3Exception.builder().message("Upload failed").build());
@@ -187,7 +187,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDownloadMediaFromMediaBucket() {
+    void testDownloadMediaFromMediaBucket() throws Exception {
         // Arrange
         String s3Key = "profile/test-uuid.webp";
         ResponseBytes<GetObjectResponse> responseBytes = mock(ResponseBytes.class);
@@ -208,7 +208,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDownloadMediaFromVideoBucket() {
+    void testDownloadMediaFromVideoBucket() throws Exception {
         // Arrange
         String s3Key = "video/test-uuid.mp4";
         ResponseBytes<GetObjectResponse> responseBytes = mock(ResponseBytes.class);
@@ -228,7 +228,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDownloadMediaNotFound() {
+    void testDownloadMediaNotFound() throws Exception {
         // Arrange
         String s3Key = "profile/nonexistent.webp";
         when(s3Client.getObjectAsBytes(any(GetObjectRequest.class)))
@@ -242,7 +242,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDownloadMediaWithNullKey() {
+    void testDownloadMediaWithNullKey() throws Exception {
         // Act
         byte[] result = s3StorageService.downloadMedia(null);
 
@@ -252,7 +252,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDownloadMediaWithEmptyKey() {
+    void testDownloadMediaWithEmptyKey() throws Exception {
         // Act
         byte[] result = s3StorageService.downloadMedia("");
 
@@ -262,7 +262,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDownloadMediaWhenS3Disabled() {
+    void testDownloadMediaWhenS3Disabled() throws Exception {
         // Arrange
         ReflectionTestUtils.setField(s3StorageService, "s3Enabled", false);
 
@@ -273,7 +273,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDownloadMediaConnectionError() {
+    void testDownloadMediaConnectionError() throws Exception {
         // Arrange
         when(s3Client.getObjectAsBytes(any(GetObjectRequest.class)))
                 .thenThrow(S3Exception.builder().message("Connection error").build());
@@ -285,7 +285,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDeleteMediaFromMediaBucket() {
+    void testDeleteMediaFromMediaBucket() throws Exception {
         // Arrange
         String s3Key = "profile/test-uuid.webp";
         when(s3Client.deleteObject(any(DeleteObjectRequest.class)))
@@ -302,7 +302,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDeleteMediaFromVideoBucket() {
+    void testDeleteMediaFromVideoBucket() throws Exception {
         // Arrange
         String s3Key = "video/test-uuid.mp4";
         when(s3Client.deleteObject(any(DeleteObjectRequest.class)))
@@ -318,7 +318,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDeleteMediaWithNullKey() {
+    void testDeleteMediaWithNullKey() throws Exception {
         // Act
         s3StorageService.deleteMedia(null);
 
@@ -327,7 +327,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDeleteMediaWithEmptyKey() {
+    void testDeleteMediaWithEmptyKey() throws Exception {
         // Act
         s3StorageService.deleteMedia("");
 
@@ -336,7 +336,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDeleteMediaWhenS3Disabled() {
+    void testDeleteMediaWhenS3Disabled() throws Exception {
         // Arrange
         ReflectionTestUtils.setField(s3StorageService, "s3Enabled", false);
 
@@ -348,7 +348,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testDeleteMediaFailure() {
+    void testDeleteMediaFailure() throws Exception {
         // Arrange
         when(s3Client.deleteObject(any(DeleteObjectRequest.class)))
                 .thenThrow(S3Exception.builder().message("Delete failed").build());
@@ -400,7 +400,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testGetPresignedUrlWithNullKey() {
+    void testGetPresignedUrlWithNullKey() throws Exception {
         // Act
         String result = s3StorageService.getPresignedUrl(null, Duration.ofHours(1));
 
@@ -410,7 +410,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testGetPresignedUrlWithEmptyKey() {
+    void testGetPresignedUrlWithEmptyKey() throws Exception {
         // Act
         String result = s3StorageService.getPresignedUrl("", Duration.ofHours(1));
 
@@ -420,7 +420,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testGetPresignedUrlWhenS3Disabled() {
+    void testGetPresignedUrlWhenS3Disabled() throws Exception {
         // Arrange
         ReflectionTestUtils.setField(s3StorageService, "s3Enabled", false);
 
@@ -431,7 +431,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testGetPresignedUrlFailure() {
+    void testGetPresignedUrlFailure() throws Exception {
         // Arrange
         when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
                 .thenThrow(S3Exception.builder().message("Presign failed").build());
@@ -443,7 +443,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testIsEnabledWhenEnabled() {
+    void testIsEnabledWhenEnabled() throws Exception {
         // Arrange
         ReflectionTestUtils.setField(s3StorageService, "s3Enabled", true);
         ReflectionTestUtils.setField(s3StorageService, "s3Client", s3Client);
@@ -456,7 +456,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testIsEnabledWhenDisabled() {
+    void testIsEnabledWhenDisabled() throws Exception {
         // Arrange
         ReflectionTestUtils.setField(s3StorageService, "s3Enabled", false);
 
@@ -468,7 +468,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testIsEnabledWhenClientIsNull() {
+    void testIsEnabledWhenClientIsNull() throws Exception {
         // Arrange
         ReflectionTestUtils.setField(s3StorageService, "s3Enabled", true);
         ReflectionTestUtils.setField(s3StorageService, "s3Client", null);
@@ -481,7 +481,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaWithDifferentImageFormats() {
+    void testUploadMediaWithDifferentImageFormats() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
@@ -506,7 +506,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaWithDifferentAudioFormats() {
+    void testUploadMediaWithDifferentAudioFormats() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
@@ -523,7 +523,7 @@ class S3StorageServiceTest {
     }
 
     @Test
-    void testUploadMediaWithDifferentVideoFormats() {
+    void testUploadMediaWithDifferentVideoFormats() throws Exception {
         // Arrange
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());

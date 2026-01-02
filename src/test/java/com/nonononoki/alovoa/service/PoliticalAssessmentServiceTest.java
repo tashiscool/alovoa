@@ -82,7 +82,7 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testGetOrCreateAssessment_NewAssessment() {
+    void testGetOrCreateAssessment_NewAssessment() throws Exception {
         User user = testUsers.get(0);
 
         UserPoliticalAssessment assessment = assessmentService.getOrCreateAssessment(user);
@@ -95,7 +95,7 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testGetOrCreateAssessment_ExistingAssessment() {
+    void testGetOrCreateAssessment_ExistingAssessment() throws Exception {
         User user = testUsers.get(0);
 
         UserPoliticalAssessment first = assessmentService.getOrCreateAssessment(user);
@@ -107,14 +107,14 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testSubmitEconomicClass_WorkingClass() {
+    void testSubmitEconomicClass_WorkingClass() throws Exception {
         User user = testUsers.get(0);
 
         UserPoliticalAssessment assessment = assessmentService.submitEconomicClass(
                 user,
                 IncomeBracket.BRACKET_50K_75K,
                 IncomeSource.WAGES_SALARY,
-                WealthBracket.UNDER_50K,
+                WealthBracket.BRACKET_10K_50K,
                 false,  // doesn't own rental properties
                 false,  // doesn't employ others
                 false   // doesn't live off capital
@@ -125,14 +125,14 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testSubmitEconomicClass_CapitalClass() {
+    void testSubmitEconomicClass_CapitalClass() throws Exception {
         User user = testUsers.get(0);
 
         UserPoliticalAssessment assessment = assessmentService.submitEconomicClass(
                 user,
-                IncomeBracket.BRACKET_500K_PLUS,
-                IncomeSource.CAPITAL_GAINS,
-                WealthBracket.BRACKET_10M_PLUS,
+                IncomeBracket.BRACKET_500K_1M,
+                IncomeSource.INVESTMENTS_DIVIDENDS,
+                WealthBracket.OVER_10M,
                 true,   // owns rental properties
                 true,   // employs others
                 true    // lives off capital
@@ -143,12 +143,12 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testSubmitPoliticalValues() {
+    void testSubmitPoliticalValues() throws Exception {
         User user = testUsers.get(0);
 
         // First submit economic class
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
 
         // Then political values
         UserPoliticalAssessment assessment = assessmentService.submitPoliticalValues(
@@ -170,15 +170,15 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testCompleteAssessment_WorkingClassProgressive_Approved() {
+    void testCompleteAssessment_WorkingClassProgressive_Approved() throws Exception {
         User user = testUsers.get(0);
 
         // Complete all steps
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         assessmentService.submitPoliticalValues(user, PoliticalOrientation.PROGRESSIVE,
                 5, 5, 5, 5, 1, 2, null);
-        assessmentService.submitReproductiveView(user, ReproductiveRightsView.FULLY_PRO_CHOICE);
+        assessmentService.submitReproductiveView(user, ReproductiveRightsView.FULL_BODILY_AUTONOMY);
 
         UserPoliticalAssessment assessment = assessmentService.completeAssessment(user);
 
@@ -187,12 +187,12 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testCompleteAssessment_CapitalClassConservative_Rejected() {
+    void testCompleteAssessment_CapitalClassConservative_Rejected() throws Exception {
         User user = testUsers.get(0);
 
         // Capital class conservative
-        assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_500K_PLUS,
-                IncomeSource.CAPITAL_GAINS, WealthBracket.BRACKET_10M_PLUS, true, true, true);
+        assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_500K_1M,
+                IncomeSource.INVESTMENTS_DIVIDENDS, WealthBracket.OVER_10M, true, true, true);
         assessmentService.submitPoliticalValues(user, PoliticalOrientation.CONSERVATIVE,
                 1, 1, 1, 1, 5, 5, null);
 
@@ -204,12 +204,12 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testCompleteAssessment_WorkingClassConservative_NeedsExplanation() {
+    void testCompleteAssessment_WorkingClassConservative_NeedsExplanation() throws Exception {
         User user = testUsers.get(0);
 
         // Working class conservative
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         assessmentService.submitPoliticalValues(user, PoliticalOrientation.CONSERVATIVE,
                 2, 2, 2, 2, 4, 5, null);
 
@@ -220,12 +220,12 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testSubmitConservativeExplanation() {
+    void testSubmitConservativeExplanation() throws Exception {
         User user = testUsers.get(0);
 
         // Setup: working class conservative needs explanation
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         assessmentService.submitPoliticalValues(user, PoliticalOrientation.CONSERVATIVE,
                 2, 2, 2, 2, 4, 5, null);
         assessmentService.completeAssessment(user);
@@ -240,12 +240,12 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testSubmitConservativeExplanation_NotRequired() {
+    void testSubmitConservativeExplanation_NotRequired() throws Exception {
         User user = testUsers.get(0);
 
         // Progressive user doesn't need explanation
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         assessmentService.submitPoliticalValues(user, PoliticalOrientation.PROGRESSIVE,
                 5, 5, 5, 5, 1, 2, null);
         assessmentService.completeAssessment(user);
@@ -255,12 +255,12 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testReviewConservativeExplanation_Approved() {
+    void testReviewConservativeExplanation_Approved() throws Exception {
         User user = testUsers.get(0);
 
         // Setup and submit explanation
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         assessmentService.submitPoliticalValues(user, PoliticalOrientation.CONSERVATIVE,
                 2, 2, 2, 2, 4, 5, null);
         assessmentService.completeAssessment(user);
@@ -278,11 +278,11 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testReviewConservativeExplanation_Rejected() {
+    void testReviewConservativeExplanation_Rejected() throws Exception {
         User user = testUsers.get(0);
 
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         assessmentService.submitPoliticalValues(user, PoliticalOrientation.CONSERVATIVE,
                 2, 2, 2, 2, 4, 5, null);
         assessmentService.completeAssessment(user);
@@ -298,14 +298,14 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testCanAccessMatching_NoAssessment() {
+    void testCanAccessMatching_NoAssessment() throws Exception {
         User user = testUsers.get(0);
 
         assertFalse(assessmentService.canAccessMatching(user));
     }
 
     @Test
-    void testGetGateStatusMessage() {
+    void testGetGateStatusMessage() throws Exception {
         User user = testUsers.get(0);
 
         // No assessment
@@ -319,13 +319,13 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testGetEconomicCompatibility() {
+    void testGetEconomicCompatibility() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
         // Both progressive
         assessmentService.submitEconomicClass(user1, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         assessmentService.submitPoliticalValues(user1, PoliticalOrientation.PROGRESSIVE,
                 5, 5, 5, 5, 1, 2, null);
 
@@ -341,7 +341,7 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testGetEconomicCompatibility_NoAssessment() {
+    void testGetEconomicCompatibility_NoAssessment() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -352,7 +352,7 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testGetClassConsciousnessQuestions() {
+    void testGetClassConsciousnessQuestions() throws Exception {
         List<Map<String, Object>> questions = assessmentService.getClassConsciousnessQuestions();
 
         assertNotNull(questions);
@@ -367,7 +367,7 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testSubmitClassConsciousnessTest() {
+    void testSubmitClassConsciousnessTest() throws Exception {
         User user = testUsers.get(0);
 
         Map<String, Integer> answers = Map.of(
@@ -388,7 +388,7 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testSubmitReproductiveView_MaleForcedBirth() {
+    void testSubmitReproductiveView_MaleForcedBirth() throws Exception {
         User user = testUsers.get(0);
         // Set male gender
         Gender maleGender = genderRepo.findById(1L).orElse(null);
@@ -401,7 +401,7 @@ class PoliticalAssessmentServiceTest {
         userRepo.save(user);
 
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
 
         UserPoliticalAssessment assessment = assessmentService.submitReproductiveView(user,
                 ReproductiveRightsView.FORCED_BIRTH);
@@ -412,21 +412,21 @@ class PoliticalAssessmentServiceTest {
     }
 
     @Test
-    void testSubmitReproductiveView_NonForcedBirth() {
+    void testSubmitReproductiveView_NonForcedBirth() throws Exception {
         User user = testUsers.get(0);
 
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
 
         UserPoliticalAssessment assessment = assessmentService.submitReproductiveView(user,
-                ReproductiveRightsView.FULLY_PRO_CHOICE);
+                ReproductiveRightsView.FULL_BODILY_AUTONOMY);
 
         assertNotNull(assessment);
         assertEquals(VasectomyStatus.NOT_APPLICABLE, assessment.getVasectomyStatus());
     }
 
     @Test
-    void testAcknowledgeVasectomyRequirement() {
+    void testAcknowledgeVasectomyRequirement() throws Exception {
         User user = testUsers.get(0);
 
         // Set male gender
@@ -440,7 +440,7 @@ class PoliticalAssessmentServiceTest {
         userRepo.save(user);
 
         assessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         assessmentService.submitReproductiveView(user, ReproductiveRightsView.FORCED_BIRTH);
 
         // Decline to verify

@@ -1,7 +1,7 @@
 package com.nonononoki.alovoa.service;
 
 import com.nonononoki.alovoa.entity.CompatibilityScore;
-import com.nonononoki.alovoa.entity.Conversation;
+import com.nonononoki.alovoa.entity.user.Conversation;
 import com.nonononoki.alovoa.entity.MatchWindow;
 import com.nonononoki.alovoa.entity.MatchWindow.WindowStatus;
 import com.nonononoki.alovoa.entity.User;
@@ -211,7 +211,7 @@ class MatchWindowServiceTest {
         User userB = testUsers.get(1);
 
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         MatchWindow confirmed = matchWindowService.confirmInterest(window.getUuid());
 
@@ -229,11 +229,11 @@ class MatchWindowServiceTest {
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
 
         // User A confirms
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         matchWindowService.confirmInterest(window.getUuid());
 
         // User B confirms
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userB);
+        Mockito.doReturn(userB).when(authService).getCurrentUser(true);
         MatchWindow confirmed = matchWindowService.confirmInterest(window.getUuid());
 
         assertTrue(confirmed.isUserAConfirmed());
@@ -251,10 +251,10 @@ class MatchWindowServiceTest {
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
 
         // Both users confirm
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         matchWindowService.confirmInterest(window.getUuid());
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userB);
+        Mockito.doReturn(userB).when(authService).getCurrentUser(true);
         MatchWindow confirmed = matchWindowService.confirmInterest(window.getUuid());
 
         assertNotNull(confirmed.getConversation());
@@ -275,7 +275,7 @@ class MatchWindowServiceTest {
         window.setExpiresAt(new Date(System.currentTimeMillis() - 1000));
         matchWindowRepo.save(window);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         Exception exception = assertThrows(Exception.class, () -> {
             matchWindowService.confirmInterest(window.getUuid());
@@ -291,7 +291,7 @@ class MatchWindowServiceTest {
         User userC = testUsers.get(2);
 
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userC);
+        Mockito.doReturn(userC).when(authService).getCurrentUser(true);
 
         Exception exception = assertThrows(Exception.class, () -> {
             matchWindowService.confirmInterest(window.getUuid());
@@ -310,7 +310,7 @@ class MatchWindowServiceTest {
         User userB = testUsers.get(1);
 
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         MatchWindow declined = matchWindowService.declineMatch(window.getUuid());
 
@@ -323,7 +323,7 @@ class MatchWindowServiceTest {
         User userB = testUsers.get(1);
 
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userB);
+        Mockito.doReturn(userB).when(authService).getCurrentUser(true);
 
         MatchWindow declined = matchWindowService.declineMatch(window.getUuid());
 
@@ -342,7 +342,7 @@ class MatchWindowServiceTest {
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
         Date originalExpiry = window.getExpiresAt();
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         MatchWindow extended = matchWindowService.requestExtension(window.getUuid());
 
@@ -361,7 +361,7 @@ class MatchWindowServiceTest {
         User userB = testUsers.get(1);
 
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         // First extension works
         matchWindowService.requestExtension(window.getUuid());
@@ -385,7 +385,7 @@ class MatchWindowServiceTest {
         window.setExpiresAt(new Date(System.currentTimeMillis() - 1000));
         matchWindowRepo.save(window);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         Exception exception = assertThrows(Exception.class, () -> {
             matchWindowService.requestExtension(window.getUuid());
@@ -408,7 +408,7 @@ class MatchWindowServiceTest {
         matchWindowService.createWindow(userA, userB, 0.85);
         matchWindowService.createWindow(userA, userC, 0.90);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         List<MatchWindow> pending = matchWindowService.getPendingDecisions();
 
@@ -422,7 +422,7 @@ class MatchWindowServiceTest {
 
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         // Should have 1 pending
         assertEquals(1, matchWindowService.getPendingDecisions().size());
@@ -442,7 +442,7 @@ class MatchWindowServiceTest {
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
 
         // User A confirms
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         matchWindowService.confirmInterest(window.getUuid());
 
         // User A should see it in waiting matches
@@ -450,7 +450,7 @@ class MatchWindowServiceTest {
         assertEquals(1, waiting.size());
 
         // User B should not see it in waiting (they haven't confirmed yet)
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userB);
+        Mockito.doReturn(userB).when(authService).getCurrentUser(true);
         assertEquals(0, matchWindowService.getWaitingMatches().size());
     }
 
@@ -462,17 +462,17 @@ class MatchWindowServiceTest {
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
 
         // Both confirm
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         matchWindowService.confirmInterest(window.getUuid());
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userB);
+        Mockito.doReturn(userB).when(authService).getCurrentUser(true);
         matchWindowService.confirmInterest(window.getUuid());
 
         // Both should see it in confirmed
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         assertEquals(1, matchWindowService.getConfirmedMatches().size());
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userB);
+        Mockito.doReturn(userB).when(authService).getCurrentUser(true);
         assertEquals(1, matchWindowService.getConfirmedMatches().size());
     }
 
@@ -482,7 +482,7 @@ class MatchWindowServiceTest {
         User userB = testUsers.get(1);
         User userC = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
 
         // Initially 0
         assertEquals(0, matchWindowService.getPendingCount());
@@ -560,7 +560,7 @@ class MatchWindowServiceTest {
         MatchWindow window = matchWindowService.createWindow(userA, userB, 0.85);
 
         // User A confirms
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         matchWindowService.confirmInterest(window.getUuid());
 
         // Expire the window

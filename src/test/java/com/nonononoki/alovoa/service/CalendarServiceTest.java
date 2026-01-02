@@ -1,7 +1,7 @@
 package com.nonononoki.alovoa.service;
 
-import com.nonononoki.alovoa.entity.Conversation;
 import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.entity.user.Conversation;
 import com.nonononoki.alovoa.entity.VideoDate;
 import com.nonononoki.alovoa.entity.VideoDate.DateStatus;
 import com.nonononoki.alovoa.entity.user.UserCalendarSettings;
@@ -9,7 +9,7 @@ import com.nonononoki.alovoa.entity.user.UserCalendarSettings.CalendarProvider;
 import com.nonononoki.alovoa.repo.ConversationRepository;
 import com.nonononoki.alovoa.repo.UserCalendarSettingsRepository;
 import com.nonononoki.alovoa.repo.UserRepository;
-import com.nonononoki.alovoa.repo.VideoDatRepository;
+import com.nonononoki.alovoa.repo.VideoDateRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class CalendarServiceTest {
     private UserCalendarSettingsRepository settingsRepo;
 
     @Autowired
-    private VideoDatRepository videoDatRepo;
+    private VideoDateRepository videoDatRepo;
 
     @Autowired
     private RegisterService registerService;
@@ -94,9 +94,9 @@ class CalendarServiceTest {
     // ============================================
 
     @Test
-    void testGetSettings_CreatesNewIfNotExists() {
+    void testGetSettings_CreatesNewIfNotExists() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Should not exist initially
         assertFalse(settingsRepo.findByUser(user).isPresent());
@@ -115,9 +115,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGetSettings_ReturnsExistingSettings() {
+    void testGetSettings_ReturnsExistingSettings() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create settings manually
         UserCalendarSettings created = new UserCalendarSettings();
@@ -136,9 +136,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testUpdateSettings_Success() {
+    void testUpdateSettings_Success() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setGoogleCalendarEnabled(true);
@@ -160,9 +160,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testUpdateSettings_CreatesIfNotExists() {
+    void testUpdateSettings_CreatesIfNotExists() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Verify no settings exist
         assertFalse(settingsRepo.findByUser(user).isPresent());
@@ -184,18 +184,18 @@ class CalendarServiceTest {
     // ============================================
 
     @Test
-    void testHasAnyCalendarEnabled_AllDisabled() {
+    void testHasAnyCalendarEnabled_AllDisabled() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings settings = calendarService.getSettings();
         assertFalse(settings.hasAnyCalendarEnabled());
     }
 
     @Test
-    void testHasAnyCalendarEnabled_GoogleEnabled() {
+    void testHasAnyCalendarEnabled_GoogleEnabled() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setGoogleCalendarEnabled(true);
@@ -205,9 +205,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGetPrimaryProvider_Google() {
+    void testGetPrimaryProvider_Google() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setGoogleCalendarEnabled(true);
@@ -217,9 +217,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGetPrimaryProvider_Apple() {
+    void testGetPrimaryProvider_Apple() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setAppleCalendarEnabled(true);
@@ -229,9 +229,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGetPrimaryProvider_Outlook() {
+    void testGetPrimaryProvider_Outlook() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setOutlookCalendarEnabled(true);
@@ -241,9 +241,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGetPrimaryProvider_GoogleTakesPrecedence() {
+    void testGetPrimaryProvider_GoogleTakesPrecedence() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setGoogleCalendarEnabled(true);
@@ -255,9 +255,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGetPrimaryProvider_NoneEnabled() {
+    void testGetPrimaryProvider_NoneEnabled() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings settings = calendarService.getSettings();
 
@@ -269,7 +269,7 @@ class CalendarServiceTest {
     // ============================================
 
     @Test
-    void testAddDateToCalendar_NoCalendarEnabled() {
+    void testAddDateToCalendar_NoCalendarEnabled() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -281,12 +281,12 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testAddDateToCalendar_GoogleEnabled() {
+    void testAddDateToCalendar_GoogleEnabled() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
         // Enable Google Calendar
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setGoogleCalendarEnabled(true);
         calendarService.updateSettings(updates);
@@ -304,12 +304,12 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testAddDateToCalendar_AppleEnabled() {
+    void testAddDateToCalendar_AppleEnabled() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
         // Enable Apple Calendar
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setAppleCalendarEnabled(true);
         calendarService.updateSettings(updates);
@@ -327,12 +327,12 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testAddDateToCalendar_OutlookEnabled() {
+    void testAddDateToCalendar_OutlookEnabled() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
         // Enable Outlook Calendar
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setOutlookCalendarEnabled(true);
         calendarService.updateSettings(updates);
@@ -350,12 +350,12 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testAddDateToCalendar_UserBSyncsCorrectly() {
+    void testAddDateToCalendar_UserBSyncsCorrectly() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
         // Enable Google Calendar for user B
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userB);
+        Mockito.doReturn(userB).when(authService).getCurrentUser(true);
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setGoogleCalendarEnabled(true);
         calendarService.updateSettings(updates);
@@ -378,7 +378,7 @@ class CalendarServiceTest {
     // ============================================
 
     @Test
-    void testGenerateICalFile_BasicStructure() {
+    void testGenerateICalFile_BasicStructure() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -395,7 +395,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGenerateICalFile_ContainsEventDetails() {
+    void testGenerateICalFile_ContainsEventDetails() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -413,7 +413,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGenerateICalFile_ContainsReminders() {
+    void testGenerateICalFile_ContainsReminders() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -429,12 +429,12 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGenerateICalFile_WithShowMatchNameEnabled() {
+    void testGenerateICalFile_WithShowMatchNameEnabled() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
         // Enable showing match name
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(userA);
+        Mockito.doReturn(userA).when(authService).getCurrentUser(true);
         UserCalendarSettings updates = new UserCalendarSettings();
         updates.setShowMatchName(true);
         calendarService.updateSettings(updates);
@@ -448,7 +448,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGenerateICalFile_WithShowMatchNameDisabled() {
+    void testGenerateICalFile_WithShowMatchNameDisabled() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -463,7 +463,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGenerateICalFile_EscapesSpecialCharacters() {
+    void testGenerateICalFile_EscapesSpecialCharacters() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -477,7 +477,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGenerateICalFile_UniqueUID() {
+    void testGenerateICalFile_UniqueUID() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -495,7 +495,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGenerateICalFile_CorrectDuration() {
+    void testGenerateICalFile_CorrectDuration() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -517,9 +517,9 @@ class CalendarServiceTest {
     // ============================================
 
     @Test
-    void testDefaultReminderMinutes_DefaultValue() {
+    void testDefaultReminderMinutes_DefaultValue() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings settings = calendarService.getSettings();
 
@@ -527,9 +527,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testAutoAddDates_DefaultValue() {
+    void testAutoAddDates_DefaultValue() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings settings = calendarService.getSettings();
 
@@ -537,9 +537,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testShowMatchName_DefaultValue() {
+    void testShowMatchName_DefaultValue() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserCalendarSettings settings = calendarService.getSettings();
 
@@ -551,7 +551,7 @@ class CalendarServiceTest {
     // ============================================
 
     @Test
-    void testGenerateICalFile_UsesUTCTimezone() {
+    void testGenerateICalFile_UsesUTCTimezone() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 
@@ -565,7 +565,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void testGenerateICalFile_CorrectDateFormat() {
+    void testGenerateICalFile_CorrectDateFormat() throws Exception {
         User userA = testUsers.get(0);
         User userB = testUsers.get(1);
 

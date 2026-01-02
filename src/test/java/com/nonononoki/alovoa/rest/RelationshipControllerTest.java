@@ -96,7 +96,7 @@ class RelationshipControllerTest {
     @DisplayName("GET /api/v1/relationship - No content when no relationship")
     void testGetMyRelationshipEmpty() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/api/v1/relationship"))
                 .andExpect(status().isNoContent());
@@ -119,7 +119,7 @@ class RelationshipControllerTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> request = new HashMap<>();
         request.put("partnerUuid", user2.getUuid().toString());
@@ -146,7 +146,7 @@ class RelationshipControllerTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> request = new HashMap<>();
         request.put("partnerUuid", user2.getUuid().toString());
@@ -168,7 +168,7 @@ class RelationshipControllerTest {
         User user2 = testUsers.get(1);
 
         // User1 sends request
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> sendRequest = new HashMap<>();
         sendRequest.put("partnerUuid", user2.getUuid().toString());
@@ -184,7 +184,7 @@ class RelationshipControllerTest {
                 sendResult.getResponse().getContentAsString(), RelationshipDto.class);
 
         // User2 accepts
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/api/v1/relationship/" + sentDto.getUuid() + "/accept"))
                 .andExpect(status().isOk())
@@ -198,7 +198,7 @@ class RelationshipControllerTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> sendRequest = new HashMap<>();
         sendRequest.put("partnerUuid", user2.getUuid().toString());
@@ -213,7 +213,7 @@ class RelationshipControllerTest {
         RelationshipDto sentDto = objectMapper.readValue(
                 sendResult.getResponse().getContentAsString(), RelationshipDto.class);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/api/v1/relationship/" + sentDto.getUuid() + "/decline"))
                 .andExpect(status().isOk());
@@ -226,7 +226,7 @@ class RelationshipControllerTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> sendRequest = new HashMap<>();
         sendRequest.put("partnerUuid", user2.getUuid().toString());
@@ -253,7 +253,7 @@ class RelationshipControllerTest {
         User user2 = testUsers.get(1);
 
         // User1 sends request to user2
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> sendRequest = new HashMap<>();
         sendRequest.put("partnerUuid", user2.getUuid().toString());
@@ -265,7 +265,7 @@ class RelationshipControllerTest {
                 .andExpect(status().isOk());
 
         // User2 checks pending requests
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/api/v1/relationship/requests/pending"))
                 .andExpect(status().isOk())
@@ -280,7 +280,7 @@ class RelationshipControllerTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> sendRequest = new HashMap<>();
         sendRequest.put("partnerUuid", user2.getUuid().toString());
@@ -305,7 +305,7 @@ class RelationshipControllerTest {
         User user2 = testUsers.get(1);
 
         // Create and accept relationship
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> sendRequest = new HashMap<>();
         sendRequest.put("partnerUuid", user2.getUuid().toString());
@@ -320,7 +320,7 @@ class RelationshipControllerTest {
         RelationshipDto sentDto = objectMapper.readValue(
                 sendResult.getResponse().getContentAsString(), RelationshipDto.class);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/api/v1/relationship/" + sentDto.getUuid() + "/accept"))
                 .andExpect(status().isOk());
 
@@ -343,7 +343,7 @@ class RelationshipControllerTest {
         User user2 = testUsers.get(1);
 
         // Create and accept relationship
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Map<String, Object> sendRequest = new HashMap<>();
         sendRequest.put("partnerUuid", user2.getUuid().toString());
@@ -358,7 +358,7 @@ class RelationshipControllerTest {
         RelationshipDto sentDto = objectMapper.readValue(
                 sendResult.getResponse().getContentAsString(), RelationshipDto.class);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/api/v1/relationship/" + sentDto.getUuid() + "/accept"))
                 .andExpect(status().isOk());
 

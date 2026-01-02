@@ -9,7 +9,7 @@ import com.nonononoki.alovoa.entity.user.ReportEvidence.EvidenceType;
 import com.nonononoki.alovoa.entity.user.ReportEvidence.VerificationMethod;
 import com.nonononoki.alovoa.entity.user.UserAccountabilityReport;
 import com.nonononoki.alovoa.entity.user.UserAccountabilityReport.*;
-import com.nonononoki.alovoa.entity.user.UserBehaviorEvent.BehaviorType;
+import com.nonononoki.alovoa.entity.user.UserBehaviorEvent;
 import com.nonononoki.alovoa.repo.ConversationRepository;
 import com.nonononoki.alovoa.repo.MessageRepository;
 import com.nonononoki.alovoa.repo.ReportEvidenceRepository;
@@ -211,7 +211,7 @@ public class AccountabilityService {
         UserAccountabilityReport report = evidence.getReport();
 
         // Only verify if report is from a match
-        if (!report.getFromMatch() || report.getConversationId() == null) {
+        if (!report.isFromMatch() || report.getConversationId() == null) {
             evidence.setVerificationMethod(VerificationMethod.NONE);
             evidenceRepo.save(evidence);
             return;
@@ -324,7 +324,7 @@ public class AccountabilityService {
 
         // Impact reputation of the subject
         if (report.getReputationImpact() != null) {
-            BehaviorType behaviorType = mapCategoryToBehaviorType(report.getCategory());
+            UserBehaviorEvent.BehaviorType behaviorType = mapCategoryToBehaviorType(report.getCategory());
             reputationService.recordBehavior(
                 report.getSubject(),
                 behaviorType,
@@ -446,7 +446,7 @@ public class AccountabilityService {
             // Reporter may be making false reports - impact their reputation
             reputationService.recordBehavior(
                 report.getReporter(),
-                BehaviorType.MISREPRESENTATION,
+                UserBehaviorEvent.BehaviorType.MISREPRESENTATION,
                 null,
                 Map.of("reason", "Multiple flagged accountability reports")
             );
@@ -578,16 +578,16 @@ public class AccountabilityService {
         };
     }
 
-    private BehaviorType mapCategoryToBehaviorType(AccountabilityCategory category) {
+    private UserBehaviorEvent.BehaviorType mapCategoryToBehaviorType(AccountabilityCategory category) {
         return switch (category) {
-            case GHOSTING -> BehaviorType.GHOSTING;
-            case DISHONESTY -> BehaviorType.MISREPRESENTATION;
-            case DISRESPECT -> BehaviorType.INAPPROPRIATE_CONTENT;
-            case HARASSMENT -> BehaviorType.REPORT_UPHELD;
-            case MANIPULATION -> BehaviorType.REPORT_UPHELD;
-            case BOUNDARY_VIOLATION -> BehaviorType.REPORT_UPHELD;
-            case DATE_NO_SHOW -> BehaviorType.NO_SHOW;
-            case POSITIVE_EXPERIENCE -> BehaviorType.POSITIVE_FEEDBACK;
+            case GHOSTING -> UserBehaviorEvent.BehaviorType.GHOSTING;
+            case DISHONESTY -> UserBehaviorEvent.BehaviorType.MISREPRESENTATION;
+            case DISRESPECT -> UserBehaviorEvent.BehaviorType.INAPPROPRIATE_CONTENT;
+            case HARASSMENT -> UserBehaviorEvent.BehaviorType.REPORT_UPHELD;
+            case MANIPULATION -> UserBehaviorEvent.BehaviorType.REPORT_UPHELD;
+            case BOUNDARY_VIOLATION -> UserBehaviorEvent.BehaviorType.REPORT_UPHELD;
+            case DATE_NO_SHOW -> UserBehaviorEvent.BehaviorType.NO_SHOW;
+            case POSITIVE_EXPERIENCE -> UserBehaviorEvent.BehaviorType.POSITIVE_FEEDBACK;
         };
     }
 

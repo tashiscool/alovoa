@@ -3,6 +3,7 @@ package com.nonononoki.alovoa.rest;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserProfileDetails;
 import com.nonononoki.alovoa.entity.user.UserProfileVisit;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.service.AuthService;
 import com.nonononoki.alovoa.service.ProfileDetailsService;
 import com.nonononoki.alovoa.service.ProfileVisitService;
@@ -42,7 +43,7 @@ public class ProfileController {
     @GetMapping("/visitors")
     public ResponseEntity<Map<String, Object>> getVisitors(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size) throws AlovoaException {
 
         Page<UserProfileVisit> visitors = visitService.getMyVisitors(page, size);
 
@@ -62,7 +63,7 @@ public class ProfileController {
      */
     @GetMapping("/visitors/recent")
     public ResponseEntity<Map<String, Object>> getRecentVisitors(
-            @RequestParam(defaultValue = "7") int days) {
+            @RequestParam(defaultValue = "7") int days) throws AlovoaException {
 
         List<UserProfileVisit> visitors = visitService.getRecentVisitors(days);
         long totalCount = visitService.getTotalVisitorCount();
@@ -85,7 +86,7 @@ public class ProfileController {
     @GetMapping("/visited")
     public ResponseEntity<Map<String, Object>> getVisitedProfiles(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size) throws AlovoaException {
 
         Page<UserProfileVisit> visited = visitService.getMyVisitedProfiles(page, size);
 
@@ -108,7 +109,7 @@ public class ProfileController {
      * Get current user's profile details.
      */
     @GetMapping("/details")
-    public ResponseEntity<Map<String, Object>> getMyDetails() {
+    public ResponseEntity<Map<String, Object>> getMyDetails() throws AlovoaException {
         UserProfileDetails details = detailsService.getMyDetails();
         return ResponseEntity.ok(mapDetailsToDto(details));
     }
@@ -117,7 +118,7 @@ public class ProfileController {
      * Update profile details.
      */
     @PostMapping("/details")
-    public ResponseEntity<Map<String, Object>> updateDetails(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> updateDetails(@RequestBody Map<String, Object> request) throws AlovoaException {
         Integer heightCm = request.containsKey("heightCm") ?
                 ((Number) request.get("heightCm")).intValue() : null;
 
@@ -164,7 +165,7 @@ public class ProfileController {
      * Update height in imperial (feet/inches).
      */
     @PostMapping("/details/height-imperial")
-    public ResponseEntity<Map<String, Object>> updateHeightImperial(@RequestBody Map<String, Integer> request) {
+    public ResponseEntity<Map<String, Object>> updateHeightImperial(@RequestBody Map<String, Integer> request) throws AlovoaException {
         int feet = request.get("feet");
         int inches = request.get("inches");
         UserProfileDetails updated = detailsService.updateHeightImperial(feet, inches);

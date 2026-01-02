@@ -127,7 +127,7 @@ class MessageServiceTest {
     @Test
     void testSendMessage_Success() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         String messageContent = "Hello, this is a test message!";
         int initialMessageCount = testConversation.getMessages().size();
@@ -150,7 +150,7 @@ class MessageServiceTest {
     @Test
     void testSendMessage_WithURL_AllowedFormattingEnabled() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         String messageWithURL = "Check this out: https://example.com";
 
@@ -163,9 +163,9 @@ class MessageServiceTest {
     }
 
     @Test
-    void testSendMessage_ConversationNotFound() {
+    void testSendMessage_ConversationNotFound() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         assertThrows(AlovoaException.class, () -> {
             messageService.send(999999L, "Test message");
@@ -173,9 +173,9 @@ class MessageServiceTest {
     }
 
     @Test
-    void testSendMessage_UserNotInConversation() {
+    void testSendMessage_UserNotInConversation() throws Exception {
         User nonParticipant = testUsers.get(2); // User3 is not in the conversation
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(nonParticipant);
+        Mockito.doReturn(nonParticipant).when(authService).getCurrentUser(true);
 
         assertThrows(AlovoaException.class, () -> {
             messageService.send(testConversation.getId(), "Test message");
@@ -183,9 +183,9 @@ class MessageServiceTest {
     }
 
     @Test
-    void testSendMessage_MessageTooLong() {
+    void testSendMessage_MessageTooLong() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         String tooLongMessage = "a".repeat(maxMessageSize + 1);
 
@@ -197,7 +197,7 @@ class MessageServiceTest {
     @Test
     void testSendMessage_ContentBlocked() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         // Mock moderation service to block content
         Mockito.when(moderationService.moderateContent(any(String.class), any(User.class), any(String.class)))
@@ -212,7 +212,7 @@ class MessageServiceTest {
     void testSendMessage_RecipientBlockedSender() throws Exception {
         User sender = testUsers.get(0);
         User recipient = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         // Recipient blocks sender
         blockUser(recipient, sender);
@@ -226,7 +226,7 @@ class MessageServiceTest {
     void testSendMessage_SenderBlockedRecipient() throws Exception {
         User sender = testUsers.get(0);
         User recipient = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         // Sender blocks recipient
         blockUser(sender, recipient);
@@ -240,7 +240,7 @@ class MessageServiceTest {
     void testSendMessage_EmailNotificationSent() throws Exception {
         User sender = testUsers.get(0);
         User recipient = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         // Enable email notifications for recipient
         recipient.getUserSettings().setEmailChat(true);
@@ -257,7 +257,7 @@ class MessageServiceTest {
     @Test
     void testSendMessage_MaxConversationMessagesLimit() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         // Fill conversation with max messages + some extra
         for (int i = 0; i < maxConvoMessages + 5; i++) {
@@ -273,7 +273,7 @@ class MessageServiceTest {
     @Test
     void testSendMessage_UpdatesConversationLastUpdated() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         Date beforeSend = new Date();
         Thread.sleep(10); // Small delay to ensure timestamp difference
@@ -296,11 +296,11 @@ class MessageServiceTest {
         User recipient = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         // Recipient marks conversation as read
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(recipient);
+        Mockito.doReturn(recipient).when(authService).getCurrentUser(true);
         messageService.markConversationAsRead(recipient, testConversation.getId());
 
         // Verify message is marked as read
@@ -309,7 +309,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void testMarkConversationAsRead_ConversationNotFound() {
+    void testMarkConversationAsRead_ConversationNotFound() throws Exception {
         User user = testUsers.get(0);
 
         assertThrows(AlovoaException.class, () -> {
@@ -318,7 +318,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void testMarkConversationAsRead_UserNotInConversation() {
+    void testMarkConversationAsRead_UserNotInConversation() throws Exception {
         User nonParticipant = testUsers.get(2);
 
         assertThrows(AlovoaException.class, () -> {
@@ -332,7 +332,7 @@ class MessageServiceTest {
         User recipient = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
@@ -368,7 +368,7 @@ class MessageServiceTest {
         User recipient = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
@@ -384,7 +384,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void testMarkConversationAsDelivered_ConversationNotFound() {
+    void testMarkConversationAsDelivered_ConversationNotFound() throws Exception {
         User user = testUsers.get(0);
 
         assertThrows(AlovoaException.class, () -> {
@@ -393,7 +393,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void testMarkConversationAsDelivered_UserNotInConversation() {
+    void testMarkConversationAsDelivered_UserNotInConversation() throws Exception {
         User nonParticipant = testUsers.get(2);
 
         assertThrows(AlovoaException.class, () -> {
@@ -411,7 +411,7 @@ class MessageServiceTest {
         User reactor = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
@@ -439,7 +439,7 @@ class MessageServiceTest {
         User reactor = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
@@ -462,7 +462,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void testAddReaction_MessageNotFound() {
+    void testAddReaction_MessageNotFound() throws Exception {
         User reactor = testUsers.get(1);
 
         assertThrows(AlovoaException.class, () -> {
@@ -476,7 +476,7 @@ class MessageServiceTest {
         User nonParticipant = testUsers.get(2);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
@@ -494,7 +494,7 @@ class MessageServiceTest {
         User reactor = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
@@ -522,7 +522,7 @@ class MessageServiceTest {
         User reactor = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
@@ -535,7 +535,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void testRemoveReaction_MessageNotFound() {
+    void testRemoveReaction_MessageNotFound() throws Exception {
         User reactor = testUsers.get(1);
 
         assertThrows(AlovoaException.class, () -> {
@@ -549,7 +549,7 @@ class MessageServiceTest {
         User nonParticipant = testUsers.get(2);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         messageService.send(testConversation.getId(), "Test message");
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
@@ -568,7 +568,7 @@ class MessageServiceTest {
     @Test
     void testUpdateCheckedDate_FirstTime() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
         Date lastChecked = messageService.updateCheckedDate(testConversation);
@@ -589,7 +589,7 @@ class MessageServiceTest {
     @Test
     void testUpdateCheckedDate_SubsequentCheck() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
 

@@ -29,7 +29,7 @@ class AdminResourceTest {
 	void test() throws Exception {
 		User adminUser = userRepo.findById(1L).get();
 		Mockito.when(authService.getCurrentUser()).thenReturn(adminUser);
-		Mockito.when(authService.getCurrentUser(true)).thenReturn(adminUser);
+		Mockito.doReturn(adminUser).when(authService).getCurrentUser(true);
 		adminResource.admin();
 	}
 }

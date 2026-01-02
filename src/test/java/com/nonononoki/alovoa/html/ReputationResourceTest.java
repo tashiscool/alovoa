@@ -87,7 +87,7 @@ class ReputationResourceTest {
     @Test
     void testReputation_NewUser() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         ModelAndView mav = reputationResource.reputation();
 
@@ -103,7 +103,7 @@ class ReputationResourceTest {
     @Test
     void testReputation_WithScores() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create reputation score
         UserReputationScore score = new UserReputationScore();
@@ -130,7 +130,7 @@ class ReputationResourceTest {
     @Test
     void testReputation_WithRecentActivity() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create reputation score
         UserReputationScore score = new UserReputationScore();
@@ -170,7 +170,7 @@ class ReputationResourceTest {
     @Test
     void testReputation_BadgesEarned() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create reputation with achievements
         UserReputationScore score = new UserReputationScore();

@@ -83,7 +83,7 @@ class ProfileVisitServiceTest {
     // ============================================
 
     @Test
-    void testRecordVisit_NewVisit_ShouldCreateNewRecord() {
+    void testRecordVisit_NewVisit_ShouldCreateNewRecord() throws Exception {
         User visitor = testUsers.get(0);
         User visitedUser = testUsers.get(1);
 
@@ -130,7 +130,7 @@ class ProfileVisitServiceTest {
     }
 
     @Test
-    void testRecordVisit_SelfVisit_ShouldNotRecord() {
+    void testRecordVisit_SelfVisit_ShouldNotRecord() throws Exception {
         User user = testUsers.get(0);
 
         long countBefore = visitRepository.count();
@@ -142,7 +142,7 @@ class ProfileVisitServiceTest {
     }
 
     @Test
-    void testRecordVisit_MultipleVisitors_ShouldTrackSeparately() {
+    void testRecordVisit_MultipleVisitors_ShouldTrackSeparately() throws Exception {
         User visitedUser = testUsers.get(0);
         User visitor1 = testUsers.get(1);
         User visitor2 = testUsers.get(2);
@@ -159,12 +159,12 @@ class ProfileVisitServiceTest {
     // ============================================
 
     @Test
-    void testGetMyVisitors_ShouldReturnPagedResults() {
+    void testGetMyVisitors_ShouldReturnPagedResults() throws Exception {
         User currentUser = testUsers.get(0);
         User visitor1 = testUsers.get(1);
         User visitor2 = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
 
         // Record visits
         profileVisitService.recordVisit(visitor1, currentUser);
@@ -181,12 +181,12 @@ class ProfileVisitServiceTest {
     }
 
     @Test
-    void testGetMyVisitors_ShouldOrderByMostRecent() throws InterruptedException {
+    void testGetMyVisitors_ShouldOrderByMostRecent() throws Exception {
         User currentUser = testUsers.get(0);
         User visitor1 = testUsers.get(1);
         User visitor2 = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
 
         // Record first visit
         profileVisitService.recordVisit(visitor1, currentUser);
@@ -204,12 +204,12 @@ class ProfileVisitServiceTest {
     }
 
     @Test
-    void testGetMyVisitors_Pagination_ShouldWork() {
+    void testGetMyVisitors_Pagination_ShouldWork() throws Exception {
         User currentUser = testUsers.get(0);
         User visitor1 = testUsers.get(1);
         User visitor2 = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
 
         profileVisitService.recordVisit(visitor1, currentUser);
         profileVisitService.recordVisit(visitor2, currentUser);
@@ -224,12 +224,12 @@ class ProfileVisitServiceTest {
     }
 
     @Test
-    void testGetMyVisitedProfiles_ShouldReturnProfilesIVisited() {
+    void testGetMyVisitedProfiles_ShouldReturnProfilesIVisited() throws Exception {
         User currentUser = testUsers.get(0);
         User visitedUser1 = testUsers.get(1);
         User visitedUser2 = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
 
         // Current user visits other profiles
         profileVisitService.recordVisit(currentUser, visitedUser1);
@@ -249,12 +249,12 @@ class ProfileVisitServiceTest {
     // ============================================
 
     @Test
-    void testGetRecentVisitors_ShouldReturnVisitorsFromLastNDays() {
+    void testGetRecentVisitors_ShouldReturnVisitorsFromLastNDays() throws Exception {
         User currentUser = testUsers.get(0);
         User visitor1 = testUsers.get(1);
         User visitor2 = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
 
         // Create a visit
         profileVisitService.recordVisit(visitor1, currentUser);
@@ -276,12 +276,12 @@ class ProfileVisitServiceTest {
     }
 
     @Test
-    void testGetRecentVisitorCount_ShouldCountCorrectly() {
+    void testGetRecentVisitorCount_ShouldCountCorrectly() throws Exception {
         User currentUser = testUsers.get(0);
         User visitor1 = testUsers.get(1);
         User visitor2 = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
 
         // Recent visit
         profileVisitService.recordVisit(visitor1, currentUser);
@@ -306,12 +306,12 @@ class ProfileVisitServiceTest {
     // ============================================
 
     @Test
-    void testGetTotalVisitorCount_ShouldCountAllUniqueVisitors() {
+    void testGetTotalVisitorCount_ShouldCountAllUniqueVisitors() throws Exception {
         User currentUser = testUsers.get(0);
         User visitor1 = testUsers.get(1);
         User visitor2 = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
 
         profileVisitService.recordVisit(visitor1, currentUser);
         profileVisitService.recordVisit(visitor2, currentUser);
@@ -329,7 +329,7 @@ class ProfileVisitServiceTest {
     // ============================================
 
     @Test
-    void testHasVisited_WhenVisited_ShouldReturnTrue() {
+    void testHasVisited_WhenVisited_ShouldReturnTrue() throws Exception {
         User visitor = testUsers.get(0);
         User visitedUser = testUsers.get(1);
 
@@ -340,7 +340,7 @@ class ProfileVisitServiceTest {
     }
 
     @Test
-    void testHasVisited_WhenNotVisited_ShouldReturnFalse() {
+    void testHasVisited_WhenNotVisited_ShouldReturnFalse() throws Exception {
         User visitor = testUsers.get(0);
         User visitedUser = testUsers.get(1);
 
@@ -353,7 +353,7 @@ class ProfileVisitServiceTest {
     // ============================================
 
     @Test
-    void testCleanupOldVisits_ShouldDeleteOldRecords() {
+    void testCleanupOldVisits_ShouldDeleteOldRecords() throws Exception {
         User visitor = testUsers.get(0);
         User visitedUser = testUsers.get(1);
 
@@ -388,7 +388,7 @@ class ProfileVisitServiceTest {
     }
 
     @Test
-    void testCleanupOldVisits_ShouldNotDeleteRecentVisits() {
+    void testCleanupOldVisits_ShouldNotDeleteRecentVisits() throws Exception {
         User visitor = testUsers.get(0);
         User visitedUser = testUsers.get(1);
 

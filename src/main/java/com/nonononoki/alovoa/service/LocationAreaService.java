@@ -1,6 +1,7 @@
 package com.nonononoki.alovoa.service;
 
 import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.entity.user.UserLocationArea;
 import com.nonononoki.alovoa.entity.user.UserLocationPreferences;
 import com.nonononoki.alovoa.entity.user.UserTravelingMode;
@@ -48,7 +49,7 @@ public class LocationAreaService {
     /**
      * Get all location areas for current user.
      */
-    public List<UserLocationArea> getMyAreas() {
+    public List<UserLocationArea> getMyAreas() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return areaRepo.findByUserOrderByDisplayOrderAsc(user);
     }
@@ -165,7 +166,7 @@ public class LocationAreaService {
     /**
      * Get location preferences for current user.
      */
-    public UserLocationPreferences getMyPreferences() {
+    public UserLocationPreferences getMyPreferences() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return prefsRepo.findByUser(user)
                 .orElseGet(() -> createDefaultPreferences(user));
@@ -178,7 +179,7 @@ public class LocationAreaService {
     public UserLocationPreferences updatePreferences(
             int maxTravelMinutes,
             boolean requireAreaOverlap,
-            boolean showExceptionalMatches) {
+            boolean showExceptionalMatches) throws AlovoaException {
 
         User user = authService.getCurrentUser(true);
         UserLocationPreferences prefs = prefsRepo.findByUser(user)
@@ -195,7 +196,7 @@ public class LocationAreaService {
      * Set "moving to" location.
      */
     @Transactional
-    public UserLocationPreferences setMovingTo(String city, String state, Date movingDate) {
+    public UserLocationPreferences setMovingTo(String city, String state, Date movingDate) throws AlovoaException {
         User user = authService.getCurrentUser(true);
         UserLocationPreferences prefs = prefsRepo.findByUser(user)
                 .orElseGet(() -> createDefaultPreferences(user));
@@ -253,7 +254,7 @@ public class LocationAreaService {
      * Disable traveling mode.
      */
     @Transactional
-    public void disableTravelingMode() {
+    public void disableTravelingMode() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         travelingRepo.findByUser(user).ifPresent(tm -> {
             tm.setActive(false);
@@ -264,7 +265,7 @@ public class LocationAreaService {
     /**
      * Get current traveling mode.
      */
-    public Optional<UserTravelingMode> getMyTravelingMode() {
+    public Optional<UserTravelingMode> getMyTravelingMode() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return travelingRepo.findByUser(user);
     }

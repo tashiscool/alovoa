@@ -81,7 +81,7 @@ class VideoVerificationResourceTest {
     @Test
     void testVideoVerification_NotStarted() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         ModelAndView mav = videoVerificationResource.videoVerification();
 
@@ -94,7 +94,7 @@ class VideoVerificationResourceTest {
     @Test
     void testVideoVerification_Pending() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create pending verification
         UserVideoVerification verification = new UserVideoVerification();
@@ -113,7 +113,7 @@ class VideoVerificationResourceTest {
     @Test
     void testVideoVerification_Verified() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create completed verification
         UserVideoVerification verification = new UserVideoVerification();
@@ -136,22 +136,22 @@ class VideoVerificationResourceTest {
     @Test
     void testVideoVerification_Rejected() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
-        // Create rejected verification
+        // Create failed verification
         UserVideoVerification verification = new UserVideoVerification();
         verification.setUser(user);
-        verification.setStatus(VerificationStatus.REJECTED);
+        verification.setStatus(VerificationStatus.FAILED);
         verification.setCreatedAt(new Date());
         verification.setFaceMatchScore(0.45);  // Below threshold
-        verification.setRejectionReason("Face match score below threshold");
+        verification.setFailureReason("Face match score below threshold");
         verificationRepo.save(verification);
 
         ModelAndView mav = videoVerificationResource.videoVerification();
 
         assertNotNull(mav);
         assertFalse((Boolean) mav.getModel().get("verified"));
-        assertEquals(VerificationStatus.REJECTED.name(), mav.getModel().get("status"));
-        assertTrue(mav.getModel().containsKey("rejectionReason"));
+        assertEquals(VerificationStatus.FAILED.name(), mav.getModel().get("status"));
+        assertTrue(mav.getModel().containsKey("failureReason"));
     }
 }

@@ -8,7 +8,9 @@ public class AlovoaException extends Exception {
 	private static final long serialVersionUID = 3421165817331537192L;
 	
 	public static final String MAX_MEDIA_SIZE_EXCEEDED = "max_media_size_exceeded";
-	
+	public static final String USER_NOT_FOUND = "user_not_found";
+	public static final String USER_BLOCKED = "user_blocked";
+
 	public AlovoaException(String errorMessage) {
         super(errorMessage);
     }

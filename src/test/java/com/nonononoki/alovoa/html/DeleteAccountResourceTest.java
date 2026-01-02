@@ -72,7 +72,7 @@ class DeleteAccountResourceTest {
 	@Test
 	void test() throws Exception {
 		Mockito.when(authService.getCurrentUser()).thenReturn(testUsers.get(0));
-		Mockito.when(authService.getCurrentUser(true)).thenReturn(testUsers.get(0));
+		Mockito.doReturn(testUsers.get(0));
 		deleteAccountResource.deleteAccount("tokenString");
 	}
 }

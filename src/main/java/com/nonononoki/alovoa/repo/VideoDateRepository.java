@@ -1,6 +1,6 @@
 package com.nonononoki.alovoa.repo;
 
-import com.nonononoki.alovoa.entity.Conversation;
+import com.nonononoki.alovoa.entity.user.Conversation;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.VideoDate;
 import org.springframework.data.jpa.repository.JpaRepository;

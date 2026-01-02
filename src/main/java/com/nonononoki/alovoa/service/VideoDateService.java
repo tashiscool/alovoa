@@ -1,7 +1,7 @@
 package com.nonononoki.alovoa.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nonononoki.alovoa.entity.Conversation;
+import com.nonononoki.alovoa.entity.user.Conversation;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.VideoDate;
 import com.nonononoki.alovoa.entity.VideoDate.DateStatus;
@@ -36,6 +36,9 @@ public class VideoDateService {
 
     @Autowired
     private ConversationRepository conversationRepo;
+
+    @Autowired
+    private com.nonononoki.alovoa.repo.UserRepository userRepo;
 
     @Autowired
     private ReputationService reputationService;
@@ -311,7 +314,7 @@ public class VideoDateService {
 
     private boolean isUserInConversation(User user, Conversation conversation) {
         return conversation.getUsers().stream()
-                .anyMatch(cu -> cu.getUser().getId().equals(user.getId()));
+                .anyMatch(u -> u.getId().equals(user.getId()));
     }
 
     private boolean isUserInVideoDate(User user, VideoDate videoDate) {
@@ -321,7 +324,6 @@ public class VideoDateService {
 
     private User getOtherUser(User user, Conversation conversation) {
         return conversation.getUsers().stream()
-                .map(cu -> cu.getUser())
                 .filter(u -> !u.getId().equals(user.getId()))
                 .findFirst()
                 .orElse(null);
@@ -389,5 +391,92 @@ public class VideoDateService {
                         Map.of("rating", rating));
             }
         }
+    }
+
+    /**
+     * Convenience method for scheduling a video date by participant UUID.
+     * Creates or finds a conversation between users first.
+     */
+    public VideoDate scheduleDate(String participantUuid, Date scheduledTime, int durationMinutes) throws Exception {
+        User initiator = authService.getCurrentUser(true);
+        User participant = userRepo.findOptionalByUuid(UUID.fromString(participantUuid))
+                .orElseThrow(() -> new Exception("Participant not found"));
+
+        if (scheduledTime.before(new Date())) {
+            throw new Exception("Cannot schedule video date in the past");
+        }
+
+        // Find or create conversation
+        Conversation conversation = conversationRepo.findByUsers(initiator.getId(), participant.getId())
+                .orElseGet(() -> {
+                    Conversation newConv = new Conversation();
+                    newConv.getUsers().add(initiator);
+                    newConv.getUsers().add(participant);
+                    return conversationRepo.save(newConv);
+                });
+
+        // Create video date
+        VideoDate videoDate = new VideoDate();
+        videoDate.setConversation(conversation);
+        videoDate.setUserA(initiator);
+        videoDate.setUserB(participant);
+        videoDate.setScheduledAt(scheduledTime);
+        videoDate.setDurationSeconds(durationMinutes * 60);
+        videoDate.setStatus(VideoDate.DateStatus.SCHEDULED);
+
+        return videoDateRepo.save(videoDate);
+    }
+
+    /**
+     * Convenience method: Accept a video date proposal.
+     */
+    public VideoDate acceptDate(String videoDateId) throws Exception {
+        Long id = Long.parseLong(videoDateId);
+        VideoDate videoDate = videoDateRepo.findById(id)
+                .orElseThrow(() -> new Exception("Video date not found"));
+        respondToProposal(id, true, videoDate.getScheduledAt());
+        return videoDateRepo.findById(id).orElseThrow();
+    }
+
+    /**
+     * Convenience method: Decline a video date proposal.
+     */
+    public VideoDate declineDate(String videoDateId, String reason) throws Exception {
+        Long id = Long.parseLong(videoDateId);
+        respondToProposal(id, false, null);
+        VideoDate videoDate = videoDateRepo.findById(id).orElseThrow();
+        videoDate.setStatus(DateStatus.CANCELLED);
+        return videoDateRepo.save(videoDate);
+    }
+
+    /**
+     * Convenience method: Cancel a video date.
+     */
+    public VideoDate cancelDate(String videoDateId, String reason) throws Exception {
+        Long id = Long.parseLong(videoDateId);
+        VideoDate videoDate = videoDateRepo.findById(id)
+                .orElseThrow(() -> new Exception("Video date not found"));
+        videoDate.setStatus(DateStatus.CANCELLED);
+        return videoDateRepo.save(videoDate);
+    }
+
+    /**
+     * Convenience method: Reschedule a video date.
+     */
+    public VideoDate rescheduleDate(String videoDateId, Date newTime) throws Exception {
+        Long id = Long.parseLong(videoDateId);
+        VideoDate videoDate = videoDateRepo.findById(id)
+                .orElseThrow(() -> new Exception("Video date not found"));
+        videoDate.setScheduledAt(newTime);
+        videoDate.setStatus(DateStatus.SCHEDULED);
+        return videoDateRepo.save(videoDate);
+    }
+
+    /**
+     * Convenience method: Complete a video date.
+     */
+    public VideoDate completeDate(String videoDateId) throws Exception {
+        endVideoDate(Long.parseLong(videoDateId));
+        return videoDateRepo.findById(Long.parseLong(videoDateId)).orElseThrow();
     }
 }

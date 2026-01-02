@@ -2,6 +2,7 @@ package com.nonononoki.alovoa.service;
 
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserProfileDetails;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.repo.UserProfileDetailsRepository;
 import com.nonononoki.alovoa.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class ProfileDetailsService {
     /**
      * Get profile details for the current user.
      */
-    public UserProfileDetails getMyDetails() {
+    public UserProfileDetails getMyDetails() throws AlovoaException {
         User currentUser = authService.getCurrentUser(true);
         return getOrCreateDetails(currentUser);
     }
@@ -59,7 +60,7 @@ public class ProfileDetailsService {
      * Update height (in cm).
      */
     @Transactional
-    public UserProfileDetails updateHeight(Integer heightCm) {
+    public UserProfileDetails updateHeight(Integer heightCm) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setHeightCm(heightCm);
         return detailsRepository.save(details);
@@ -69,7 +70,7 @@ public class ProfileDetailsService {
      * Update height from feet/inches.
      */
     @Transactional
-    public UserProfileDetails updateHeightImperial(int feet, int inches) {
+    public UserProfileDetails updateHeightImperial(int feet, int inches) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setHeightFromImperial(feet, inches);
         return detailsRepository.save(details);
@@ -79,7 +80,7 @@ public class ProfileDetailsService {
      * Update body type.
      */
     @Transactional
-    public UserProfileDetails updateBodyType(UserProfileDetails.BodyType bodyType) {
+    public UserProfileDetails updateBodyType(UserProfileDetails.BodyType bodyType) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setBodyType(bodyType);
         return detailsRepository.save(details);
@@ -89,7 +90,7 @@ public class ProfileDetailsService {
      * Update ethnicity.
      */
     @Transactional
-    public UserProfileDetails updateEthnicity(UserProfileDetails.Ethnicity ethnicity) {
+    public UserProfileDetails updateEthnicity(UserProfileDetails.Ethnicity ethnicity) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setEthnicity(ethnicity);
         return detailsRepository.save(details);
@@ -99,7 +100,7 @@ public class ProfileDetailsService {
      * Update diet.
      */
     @Transactional
-    public UserProfileDetails updateDiet(UserProfileDetails.Diet diet) {
+    public UserProfileDetails updateDiet(UserProfileDetails.Diet diet) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setDiet(diet);
         return detailsRepository.save(details);
@@ -109,7 +110,7 @@ public class ProfileDetailsService {
      * Update pet status.
      */
     @Transactional
-    public UserProfileDetails updatePets(UserProfileDetails.PetStatus pets, String petDetails) {
+    public UserProfileDetails updatePets(UserProfileDetails.PetStatus pets, String petDetails) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setPets(pets);
         details.setPetDetails(petDetails);
@@ -120,7 +121,7 @@ public class ProfileDetailsService {
      * Update education level.
      */
     @Transactional
-    public UserProfileDetails updateEducation(UserProfileDetails.EducationLevel education) {
+    public UserProfileDetails updateEducation(UserProfileDetails.EducationLevel education) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setEducation(education);
         return detailsRepository.save(details);
@@ -130,7 +131,7 @@ public class ProfileDetailsService {
      * Update occupation and employer.
      */
     @Transactional
-    public UserProfileDetails updateOccupation(String occupation, String employer) {
+    public UserProfileDetails updateOccupation(String occupation, String employer) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setOccupation(occupation);
         details.setEmployer(employer);
@@ -141,7 +142,7 @@ public class ProfileDetailsService {
      * Update languages (comma-separated).
      */
     @Transactional
-    public UserProfileDetails updateLanguages(String languages) {
+    public UserProfileDetails updateLanguages(String languages) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setLanguages(languages);
         return detailsRepository.save(details);
@@ -151,7 +152,7 @@ public class ProfileDetailsService {
      * Update zodiac sign.
      */
     @Transactional
-    public UserProfileDetails updateZodiacSign(UserProfileDetails.ZodiacSign zodiacSign) {
+    public UserProfileDetails updateZodiacSign(UserProfileDetails.ZodiacSign zodiacSign) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setZodiacSign(zodiacSign);
         return detailsRepository.save(details);
@@ -172,7 +173,7 @@ public class ProfileDetailsService {
             String occupation,
             String employer,
             String languages,
-            UserProfileDetails.ZodiacSign zodiacSign) {
+            UserProfileDetails.ZodiacSign zodiacSign) throws AlovoaException {
 
         UserProfileDetails details = getMyDetails();
         if (heightCm != null) details.setHeightCm(heightCm);
@@ -194,9 +195,37 @@ public class ProfileDetailsService {
      * Update income level.
      */
     @Transactional
-    public UserProfileDetails updateIncome(UserProfileDetails.IncomeLevel income) {
+    public UserProfileDetails updateIncome(UserProfileDetails.IncomeLevel income) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
         details.setIncome(income);
+        return detailsRepository.save(details);
+    }
+
+    /**
+     * Get or create profile details for current user (convenience method for tests).
+     */
+    @Transactional
+    public UserProfileDetails getOrCreateProfileDetails() throws AlovoaException {
+        return getMyDetails();
+    }
+
+    /**
+     * Update whether user has pets.
+     */
+    @Transactional
+    public UserProfileDetails updateHasPets(boolean hasPets) throws AlovoaException {
+        UserProfileDetails details = getMyDetails();
+        details.setPets(hasPets ? UserProfileDetails.PetStatus.HAS_PETS : UserProfileDetails.PetStatus.NO_PETS_LIKES_THEM);
+        return detailsRepository.save(details);
+    }
+
+    /**
+     * Update pet details description.
+     */
+    @Transactional
+    public UserProfileDetails updatePetDetails(String petDetails) throws AlovoaException {
+        UserProfileDetails details = getMyDetails();
+        details.setPetDetails(petDetails);
         return detailsRepository.save(details);
     }
 
@@ -239,7 +268,7 @@ public class ProfileDetailsService {
      * Bulk update all profile details from a DTO.
      */
     @Transactional
-    public UserProfileDetails saveAllDetails(ProfileDetailsDto dto) {
+    public UserProfileDetails saveAllDetails(ProfileDetailsDto dto) throws AlovoaException {
         UserProfileDetails details = getMyDetails();
 
         if (dto.getHeightCm() != null) details.setHeightCm(dto.getHeightCm());

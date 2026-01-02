@@ -20,4 +20,7 @@ public class RegisterDto {
 	
 	private boolean termsConditions;
 	private boolean privacy;
+	
+	private Long captchaId;
+	private String captchaText;
 }

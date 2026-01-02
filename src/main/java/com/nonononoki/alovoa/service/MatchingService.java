@@ -584,42 +584,21 @@ public class MatchingService {
             return 0.0;
         }
 
-        // Parse dealbreaker flags and check for conflicts
-        try {
-            Map<String, Object> flagsA = objectMapper.readValue(a.getDealbreakerFlags(),
-                    new TypeReference<Map<String, Object>>() {});
-            Map<String, Object> flagsB = objectMapper.readValue(b.getDealbreakerFlags(),
-                    new TypeReference<Map<String, Object>>() {});
+        Integer flagsA = a.getDealbreakerFlags();
+        Integer flagsB = b.getDealbreakerFlags();
 
-            int conflicts = 0;
-            int totalChecks = 0;
+        // Use bitwise XOR to find conflicting flags
+        // Each bit position represents a different dealbreaker preference
+        int xorResult = flagsA ^ flagsB;
 
-            // Check for opposing values on key dealbreakers
-            for (String key : flagsA.keySet()) {
-                if (flagsB.containsKey(key)) {
-                    totalChecks++;
-                    Object valA = flagsA.get(key);
-                    Object valB = flagsB.get(key);
-                    if (valA instanceof Boolean && valB instanceof Boolean) {
-                        // For boolean flags, same value is good, opposite is bad
-                        if (!valA.equals(valB)) {
-                            conflicts++;
-                        }
-                    } else if (valA instanceof Number && valB instanceof Number) {
-                        // For numeric values, large difference is bad
-                        double diff = Math.abs(((Number) valA).doubleValue() - ((Number) valB).doubleValue());
-                        if (diff > 50) { // Assuming 0-100 scale
-                            conflicts++;
-                        }
-                    }
-                }
-            }
+        // Count the number of conflicting bits
+        int conflictingBits = Integer.bitCount(xorResult);
 
-            if (totalChecks > 0) {
-                return (conflicts * 100.0) / totalChecks;
-            }
-        } catch (JsonProcessingException e) {
-            LOGGER.debug("Error parsing dealbreaker flags", e);
+        // Count total bits set in either profile (active dealbreakers)
+        int totalBits = Integer.bitCount(flagsA | flagsB);
+
+        if (totalBits > 0) {
+            return (conflictingBits * 100.0) / totalBits;
         }
 
         return 0.0;

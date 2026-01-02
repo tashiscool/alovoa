@@ -34,7 +34,7 @@ class ToolsTest {
 //			&& user2.getIntention().getText().equals(user1.getIntention().getText());
 
     @Test
-    void testUsersCompatible() {
+    void testUsersCompatible() throws Exception {
         User user1 = new User("test@test.com");
         User user2 = new User("test2@test.com");
 
@@ -106,7 +106,7 @@ class ToolsTest {
     }
 
     @Test
-    void testMinMaxAgePreferences() {
+    void testMinMaxAgePreferences() throws Exception {
         User user1 = new User("test@test.com");
 
         UserDates userDates1 = new UserDates();
@@ -132,7 +132,7 @@ class ToolsTest {
     }
 
     @Test
-    void testLargeNumberToString() {
+    void testLargeNumberToString() throws Exception {
         assertEquals("1.23B", Tools.largeNumberToString(1230000000));
         assertEquals("12.34M", Tools.largeNumberToString(12340000));
         assertEquals("1K", Tools.largeNumberToString(1000));

@@ -37,7 +37,7 @@ public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
     private AuthService authService;
 
     @Test
-    void testDatabaseConnectionWorks() {
+    void testDatabaseConnectionWorks() throws Exception {
         // Verify database is accessible and admin user exists
         long userCount = userRepository.count();
         assertTrue(userCount >= 1, "At least admin user should exist");

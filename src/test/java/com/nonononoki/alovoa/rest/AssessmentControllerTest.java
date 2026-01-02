@@ -85,7 +85,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/questions/{category} - Get questions by valid category")
     void testGetQuestionsByCategory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/questions/BIG_FIVE"))
                 .andExpect(status().isOk())
@@ -97,7 +97,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/questions/{category} - Invalid category returns error")
     void testGetQuestionsByInvalidCategory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/questions/INVALID_CATEGORY"))
                 .andExpect(status().isBadRequest())
@@ -111,7 +111,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/progress - Get assessment progress")
     void testGetAssessmentProgress() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/progress"))
                 .andExpect(status().isOk())
@@ -123,7 +123,7 @@ class AssessmentControllerTest {
     @DisplayName("POST /assessment/submit - Submit responses successfully")
     void testSubmitResponses() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
         responses.add(new AssessmentResponseDto("Q1", 3));
@@ -140,7 +140,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/results - Get assessment results")
     void testGetAssessmentResults() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/results"))
                 .andExpect(status().isOk())
@@ -152,7 +152,7 @@ class AssessmentControllerTest {
     @DisplayName("POST /assessment/reset - Reset all assessments")
     void testResetAllAssessments() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/assessment/reset"))
                 .andExpect(status().isOk());
@@ -163,7 +163,7 @@ class AssessmentControllerTest {
     @DisplayName("POST /assessment/reset - Reset specific category")
     void testResetSpecificCategory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/assessment/reset")
                         .param("category", "BIG_FIVE"))
@@ -175,7 +175,7 @@ class AssessmentControllerTest {
     @DisplayName("POST /assessment/reset - Invalid category returns error")
     void testResetInvalidCategory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/assessment/reset")
                         .param("category", "INVALID"))
@@ -191,7 +191,7 @@ class AssessmentControllerTest {
         User adminUser = testUsers.get(0);
         adminUser.setAdmin(true);
         userRepo.save(adminUser);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(adminUser);
+        Mockito.doReturn(adminUser).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/assessment/admin/reload-questions"))
                 .andExpect(status().isOk())
@@ -206,7 +206,7 @@ class AssessmentControllerTest {
         User user = testUsers.get(0);
         user.setAdmin(false);
         userRepo.save(user);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/assessment/admin/reload-questions"))
                 .andExpect(status().isForbidden())
@@ -219,7 +219,7 @@ class AssessmentControllerTest {
     void testCalculateMatch() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/match/" + user2.getUuid()))
                 .andExpect(status().isOk());
@@ -231,7 +231,7 @@ class AssessmentControllerTest {
     void testGetMatchExplanation() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/match/" + user2.getUuid() + "/explain"))
                 .andExpect(status().isOk());
@@ -242,7 +242,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/next - Get next unanswered question")
     void testGetNextQuestion() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/next"))
                 .andExpect(status().isOk());
@@ -253,7 +253,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/next - Get next question for specific category")
     void testGetNextQuestionByCategory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/next")
                         .param("category", "VALUES"))
@@ -265,7 +265,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/batch - Get batch of unanswered questions")
     void testGetNextQuestionBatch() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/batch")
                         .param("limit", "5"))
@@ -277,7 +277,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/batch - Limit is capped at 50")
     void testGetNextQuestionBatchMaxLimit() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/batch")
                         .param("limit", "100"))
@@ -289,7 +289,7 @@ class AssessmentControllerTest {
     @DisplayName("POST /assessment/validate - Validate answer")
     void testValidateAnswer() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         AssessmentResponseDto response = new AssessmentResponseDto();
         response.setQuestionId("Q1");
@@ -306,7 +306,7 @@ class AssessmentControllerTest {
     @DisplayName("POST /assessment/answer - Submit single answer")
     void testSubmitSingleAnswer() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         AssessmentResponseDto response = new AssessmentResponseDto();
         response.setQuestionId("Q1");
@@ -324,7 +324,7 @@ class AssessmentControllerTest {
     @DisplayName("GET /assessment/stats - Get question bank statistics")
     void testGetQuestionBankStats() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/assessment/stats"))
                 .andExpect(status().isOk())

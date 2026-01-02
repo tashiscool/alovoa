@@ -104,7 +104,7 @@ public class AssessmentController {
     public ResponseEntity<?> calculateMatch(@PathVariable String userUuid) {
         try {
             User currentUser = authService.getCurrentUser(true);
-            User matchUser = userRepository.findByUuid(UUID.fromString(userUuid))
+            User matchUser = userRepository.findOptionalByUuid(UUID.fromString(userUuid))
                     .orElseThrow(() -> new Exception("User not found"));
 
             Map<String, Object> result = assessmentService.calculateOkCupidMatch(currentUser, matchUser);
@@ -118,7 +118,7 @@ public class AssessmentController {
     public ResponseEntity<?> getMatchExplanation(@PathVariable String userUuid) {
         try {
             User currentUser = authService.getCurrentUser(true);
-            User matchUser = userRepository.findByUuid(UUID.fromString(userUuid))
+            User matchUser = userRepository.findOptionalByUuid(UUID.fromString(userUuid))
                     .orElseThrow(() -> new Exception("User not found"));
 
             Map<String, Object> result = assessmentService.getMatchExplanation(currentUser, matchUser);

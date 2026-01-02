@@ -43,7 +43,7 @@ public class AccountabilityController {
             User reporter = authService.getCurrentUser(true);
 
             UUID subjectUuid = UUID.fromString((String) request.get("subjectUuid"));
-            User subject = userRepo.findByUuid(subjectUuid)
+            User subject = userRepo.findOptionalByUuid(subjectUuid)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
             AccountabilityCategory category =
@@ -204,7 +204,7 @@ public class AccountabilityController {
     public ResponseEntity<?> getUserFeedback(@PathVariable UUID userUuid) {
         try {
             User viewer = authService.getCurrentUser(true);
-            User subject = userRepo.findByUuid(userUuid)
+            User subject = userRepo.findOptionalByUuid(userUuid)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
             List<UserAccountabilityReport> feedback =

@@ -1,6 +1,6 @@
 package com.nonononoki.alovoa.service;
 
-import com.nonononoki.alovoa.entity.Message;
+import com.nonononoki.alovoa.entity.user.Message;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.VideoDate;
 import com.nonononoki.alovoa.entity.VideoDate.DateStatus;

@@ -85,7 +85,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/propose - Proposes video date successfully")
     void testProposeVideoDate() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Date proposedTime = new Date();
         Map<String, Object> mockResult = Map.of(
@@ -111,7 +111,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/propose - Handles exception when proposing")
     void testProposeVideoDateException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.when(videoDateService.proposeVideoDate(anyLong(), any(Date.class)))
                 .thenThrow(new RuntimeException("Conversation not found"));
@@ -128,7 +128,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/respond - Accepts proposal")
     void testRespondToProposalAccept() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "id", 1L,
@@ -150,7 +150,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/respond - Declines proposal")
     void testRespondToProposalDecline() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "id", 1L,
@@ -172,7 +172,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/respond - Responds with counter-proposal")
     void testRespondToProposalWithCounterTime() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "id", 1L,
@@ -195,7 +195,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/start - Starts video date")
     void testStartVideoDate() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "id", 1L,
@@ -217,7 +217,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/start - Handles exception when starting")
     void testStartVideoDateException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.when(videoDateService.startVideoDate(1L))
                 .thenThrow(new RuntimeException("Video date not confirmed"));
@@ -232,7 +232,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/end - Ends video date")
     void testEndVideoDate() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "id", 1L,
@@ -254,7 +254,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/feedback - Submits feedback")
     void testSubmitFeedback() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> feedback = new HashMap<>();
         feedback.put("rating", 5);
@@ -282,7 +282,7 @@ class VideoDateControllerTest {
     @DisplayName("GET /api/v1/video-date/upcoming - Returns upcoming dates")
     void testGetUpcomingDates() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "dates", List.of(
@@ -305,7 +305,7 @@ class VideoDateControllerTest {
     @DisplayName("GET /api/v1/video-date/proposals - Returns pending proposals")
     void testGetPendingProposals() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "proposals", List.of(
@@ -327,7 +327,7 @@ class VideoDateControllerTest {
     @DisplayName("GET /api/v1/video-date/history - Returns date history")
     void testGetDateHistory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "history", List.of(
@@ -350,7 +350,7 @@ class VideoDateControllerTest {
     @DisplayName("GET /api/v1/video-date/upcoming - Handles service exception")
     void testGetUpcomingDatesException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.when(videoDateService.getUpcomingDates())
                 .thenThrow(new RuntimeException("Database error"));
@@ -365,7 +365,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/respond - Handles exception when responding")
     void testRespondToProposalException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.when(videoDateService.respondToProposal(anyLong(), anyBoolean(), any()))
                 .thenThrow(new RuntimeException("Proposal already responded"));
@@ -381,7 +381,7 @@ class VideoDateControllerTest {
     @DisplayName("POST /api/v1/video-date/{id}/feedback - Handles exception when submitting feedback")
     void testSubmitFeedbackException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> feedback = new HashMap<>();
         feedback.put("rating", 5);

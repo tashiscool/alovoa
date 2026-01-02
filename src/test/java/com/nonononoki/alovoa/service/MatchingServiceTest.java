@@ -6,6 +6,7 @@ import com.nonononoki.alovoa.entity.user.UserDailyMatchLimit;
 import com.nonononoki.alovoa.entity.user.UserPersonalityProfile;
 import com.nonononoki.alovoa.entity.user.UserPoliticalAssessment;
 import com.nonononoki.alovoa.entity.user.UserPoliticalAssessment.*;
+import com.nonononoki.alovoa.model.CompatibilityExplanationDto;
 import com.nonononoki.alovoa.repo.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,7 +98,7 @@ class MatchingServiceTest {
     @Test
     void testGetDailyMatches_NoAssessment() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> result = matchingService.getDailyMatches();
 
@@ -110,7 +111,7 @@ class MatchingServiceTest {
     @Test
     void testGetDailyMatches_AssessmentNotApproved() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create assessment but don't complete it
         politicalAssessmentService.getOrCreateAssessment(user);
@@ -124,7 +125,7 @@ class MatchingServiceTest {
     @Test
     void testGetDailyMatches_Approved() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Complete assessment with approval
         setupApprovedAssessment(user);
@@ -141,7 +142,7 @@ class MatchingServiceTest {
     @Test
     void testGetDailyMatches_DailyLimitReached() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         setupApprovedAssessment(user);
 
@@ -165,7 +166,7 @@ class MatchingServiceTest {
     void testGetCompatibilityExplanation() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         // Create compatibility score
         CompatibilityScore score = new CompatibilityScore();
@@ -180,44 +181,41 @@ class MatchingServiceTest {
         score.setGrowthScore(85.0);
         compatibilityRepo.save(score);
 
-        Map<String, Object> result = matchingService.getCompatibilityExplanation(user2.getUuid().toString());
+        CompatibilityExplanationDto result = matchingService.getCompatibilityExplanation(user2.getUuid().toString());
 
         assertNotNull(result);
-        assertEquals(75.0, result.get("overallScore"));
-        assertTrue(result.containsKey("breakdown"));
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> breakdown = (Map<String, Object>) result.get("breakdown");
-        assertEquals(80.0, breakdown.get("values"));
-        assertEquals(70.0, breakdown.get("lifestyle"));
-        assertEquals(75.0, breakdown.get("personality"));
+        assertEquals(75.0, result.getOverallScore());
+        assertNotNull(result.getDimensionScores());
+        assertEquals(80.0, result.getDimensionScores().get("values"));
+        assertEquals(70.0, result.getDimensionScores().get("lifestyle"));
+        assertEquals(75.0, result.getDimensionScores().get("personality"));
     }
 
     @Test
     void testGetCompatibilityExplanation_CalculateNew() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         // Setup personality profiles
         setupPersonalityProfile(user1);
         setupPersonalityProfile(user2);
 
         // No existing compatibility - should calculate
-        Map<String, Object> result = matchingService.getCompatibilityExplanation(user2.getUuid().toString());
+        CompatibilityExplanationDto result = matchingService.getCompatibilityExplanation(user2.getUuid().toString());
 
         assertNotNull(result);
-        assertTrue(result.containsKey("overallScore"));
-        assertTrue(result.containsKey("breakdown"));
+        assertNotNull(result.getOverallScore());
+        assertNotNull(result.getDimensionScores());
 
         // Should have created a compatibility record
         assertTrue(compatibilityRepo.findByUserAAndUserB(user1, user2).isPresent());
     }
 
     @Test
-    void testGetCompatibilityExplanation_UserNotFound() {
+    void testGetCompatibilityExplanation_UserNotFound() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         assertThrows(Exception.class, () ->
                 matchingService.getCompatibilityExplanation("00000000-0000-0000-0000-000000000000"));
@@ -226,7 +224,7 @@ class MatchingServiceTest {
     @Test
     void testDailyLimitCreation() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         setupApprovedAssessment(user);
 
@@ -245,7 +243,7 @@ class MatchingServiceTest {
     void testPersonalityBasedCompatibility() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         // Setup similar personality profiles
         UserPersonalityProfile profile1 = new UserPersonalityProfile();
@@ -268,14 +266,13 @@ class MatchingServiceTest {
         profile2.setAssessmentCompletedAt(new Date());
         personalityRepo.save(profile2);
 
-        Map<String, Object> result = matchingService.getCompatibilityExplanation(user2.getUuid().toString());
+        CompatibilityExplanationDto result = matchingService.getCompatibilityExplanation(user2.getUuid().toString());
 
         assertNotNull(result);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> breakdown = (Map<String, Object>) result.get("breakdown");
+        assertNotNull(result.getDimensionScores());
 
         // Similar personalities should have high compatibility
-        Double personalityScore = (Double) breakdown.get("personality");
+        Double personalityScore = result.getDimensionScores().get("personality");
         assertTrue(personalityScore > 70);
     }
 
@@ -283,7 +280,7 @@ class MatchingServiceTest {
     void testEconomicValuesIntegration() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         // Setup approved assessments with economic values
         setupApprovedAssessment(user1);
@@ -298,14 +295,13 @@ class MatchingServiceTest {
         assessment2.setEconomicValuesScore(80.0);  // Similar values
         politicalAssessmentRepo.save(assessment2);
 
-        Map<String, Object> result = matchingService.getCompatibilityExplanation(user2.getUuid().toString());
+        CompatibilityExplanationDto result = matchingService.getCompatibilityExplanation(user2.getUuid().toString());
 
         assertNotNull(result);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> breakdown = (Map<String, Object>) result.get("breakdown");
+        assertNotNull(result.getDimensionScores());
 
         // Similar economic values should have high compatibility
-        Double valuesScore = (Double) breakdown.get("values");
+        Double valuesScore = result.getDimensionScores().get("values");
         assertNotNull(valuesScore);
         assertTrue(valuesScore > 90);  // Very similar (only 5 point difference)
     }
@@ -313,11 +309,11 @@ class MatchingServiceTest {
     @Test
     void testRejectedUserCannotMatch() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Setup rejected assessment (capital class conservative)
-        politicalAssessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_500K_PLUS,
-                IncomeSource.CAPITAL_GAINS, WealthBracket.BRACKET_10M_PLUS, true, true, true);
+        politicalAssessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_500K_1M,
+                IncomeSource.INVESTMENTS_DIVIDENDS, WealthBracket.OVER_10M, true, true, true);
         politicalAssessmentService.submitPoliticalValues(user, PoliticalOrientation.CONSERVATIVE,
                 1, 1, 1, 1, 5, 5, null);
         politicalAssessmentService.completeAssessment(user);
@@ -332,10 +328,10 @@ class MatchingServiceTest {
 
     private void setupApprovedAssessment(User user) {
         politicalAssessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
-                IncomeSource.WAGES_SALARY, WealthBracket.UNDER_50K, false, false, false);
+                IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         politicalAssessmentService.submitPoliticalValues(user, PoliticalOrientation.PROGRESSIVE,
                 5, 5, 5, 5, 1, 2, null);
-        politicalAssessmentService.submitReproductiveView(user, ReproductiveRightsView.FULLY_PRO_CHOICE);
+        politicalAssessmentService.submitReproductiveView(user, ReproductiveRightsView.FULL_BODILY_AUTONOMY);
         politicalAssessmentService.completeAssessment(user);
     }
 

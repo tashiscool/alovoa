@@ -1185,7 +1185,7 @@ public class UserService {
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
 
         User currentUser = authService.getCurrentUser(true);
-        User targetUser = userRepo.findByUuid(uuid).orElseThrow(() -> new AlovoaException(AlovoaException.USER_NOT_FOUND));
+        User targetUser = userRepo.findOptionalByUuid(uuid).orElseThrow(() -> new AlovoaException(AlovoaException.USER_NOT_FOUND));
 
         // Check if user is blocked
         if (currentUser.getBlockedUsers() != null) {

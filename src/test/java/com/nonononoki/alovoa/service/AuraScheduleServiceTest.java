@@ -1,7 +1,7 @@
 package com.nonononoki.alovoa.service;
 
-import com.nonononoki.alovoa.entity.Conversation;
 import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.entity.user.Conversation;
 import com.nonononoki.alovoa.entity.VideoDate;
 import com.nonononoki.alovoa.entity.user.UserDailyMatchLimit;
 import com.nonononoki.alovoa.entity.user.UserDates;
@@ -97,7 +97,7 @@ class AuraScheduleServiceTest {
     // ====================
 
     @Test
-    void testExpireOldProposals_ExpiredProposal() {
+    void testExpireOldProposals_ExpiredProposal() throws Exception {
         // Set proposal expiry hours to 48 (default)
         ReflectionTestUtils.setField(auraScheduleService, "proposalExpiryHours", 48);
 
@@ -131,7 +131,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testExpireOldProposals_NoExpiredProposals() {
+    void testExpireOldProposals_NoExpiredProposals() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -147,7 +147,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testExpireOldProposals_OnlyExpiresProposedStatus() {
+    void testExpireOldProposals_OnlyExpiresProposedStatus() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -175,7 +175,7 @@ class AuraScheduleServiceTest {
     // ====================
 
     @Test
-    void testHandleMissedVideoDates_ScheduledDateMissed() {
+    void testHandleMissedVideoDates_ScheduledDateMissed() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -191,7 +191,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testHandleMissedVideoDates_AcceptedDateMissed() {
+    void testHandleMissedVideoDates_AcceptedDateMissed() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -207,7 +207,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testHandleMissedVideoDates_RecentDateNotMissed() {
+    void testHandleMissedVideoDates_RecentDateNotMissed() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -227,7 +227,7 @@ class AuraScheduleServiceTest {
     // ====================
 
     @Test
-    void testRecalculateTrustLevels_UpdatesChangedLevels() {
+    void testRecalculateTrustLevels_UpdatesChangedLevels() throws Exception {
         User user = testUsers.get(0);
 
         // Create reputation score that should be VERIFIED
@@ -253,7 +253,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testRecalculateTrustLevels_RestrictedDueToReports() {
+    void testRecalculateTrustLevels_RestrictedDueToReports() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -273,7 +273,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testRecalculateTrustLevels_NewMemberDueToAccountAge() {
+    void testRecalculateTrustLevels_NewMemberDueToAccountAge() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -302,7 +302,7 @@ class AuraScheduleServiceTest {
     // ====================
 
     @Test
-    void testCleanOldMatchLimits_DeletesOldEntries() {
+    void testCleanOldMatchLimits_DeletesOldEntries() throws Exception {
         User user = testUsers.get(0);
 
         // Create old match limit (40 days ago)
@@ -329,7 +329,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testCleanOldMatchLimits_NoOldEntries() {
+    void testCleanOldMatchLimits_NoOldEntries() throws Exception {
         User user = testUsers.get(0);
 
         // Create recent match limit
@@ -351,7 +351,7 @@ class AuraScheduleServiceTest {
     // ====================
 
     @Test
-    void testExpireVerificationSessions_ExpiresPendingSessions() {
+    void testExpireVerificationSessions_ExpiresPendingSessions() throws Exception {
         User user = testUsers.get(0);
 
         // Create old pending verification (2 hours ago)
@@ -368,7 +368,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testExpireVerificationSessions_DoesNotExpireRecentSessions() {
+    void testExpireVerificationSessions_DoesNotExpireRecentSessions() throws Exception {
         User user = testUsers.get(0);
 
         // Create recent pending verification (30 minutes ago)
@@ -385,7 +385,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testExpireVerificationSessions_OnlyExpiresPendingStatus() {
+    void testExpireVerificationSessions_OnlyExpiresPendingStatus() throws Exception {
         User user = testUsers.get(0);
 
         // Create old verified session (should not be expired)
@@ -406,7 +406,7 @@ class AuraScheduleServiceTest {
     // ====================
 
     @Test
-    void testApplyInactivityDecay_DecaysInactiveUser30to60Days() {
+    void testApplyInactivityDecay_DecaysInactiveUser30to60Days() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -434,7 +434,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testApplyInactivityDecay_DecaysInactiveUser60to90Days() {
+    void testApplyInactivityDecay_DecaysInactiveUser60to90Days() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -462,7 +462,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testApplyInactivityDecay_DecaysInactiveUserOver90Days() {
+    void testApplyInactivityDecay_DecaysInactiveUserOver90Days() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -490,7 +490,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testApplyInactivityDecay_DoesNotDecayActiveUsers() {
+    void testApplyInactivityDecay_DoesNotDecayActiveUsers() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -518,7 +518,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testApplyInactivityDecay_EnforcesFloor() {
+    void testApplyInactivityDecay_EnforcesFloor() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -546,7 +546,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testApplyInactivityDecay_HandlesNullDatesGracefully() {
+    void testApplyInactivityDecay_HandlesNullDatesGracefully() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -567,7 +567,7 @@ class AuraScheduleServiceTest {
     }
 
     @Test
-    void testApplyInactivityDecay_HandlesNullActiveDateGracefully() {
+    void testApplyInactivityDecay_HandlesNullActiveDateGracefully() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore score = new UserReputationScore();
@@ -597,7 +597,7 @@ class AuraScheduleServiceTest {
     // ====================
 
     @Test
-    void testDetectGhostingBehavior_RunsWithoutError() {
+    void testDetectGhostingBehavior_RunsWithoutError() throws Exception {
         // Ghosting detection is currently simplified, just ensure it doesn't throw
         assertDoesNotThrow(() -> auraScheduleService.detectGhostingBehavior());
     }

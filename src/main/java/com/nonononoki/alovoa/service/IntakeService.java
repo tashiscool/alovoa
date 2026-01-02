@@ -504,7 +504,7 @@ public class IntakeService {
         }
 
         // Use existing UserAudio entity pattern from UserService
-        userService.updateAudio(user, audio.getBytes(), contentType);
+        userService.updateAudio(audio.getBytes(), contentType);
 
         // Update progress
         UserIntakeProgress progress = getOrCreateProgress(user);

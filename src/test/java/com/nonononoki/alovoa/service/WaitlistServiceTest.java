@@ -58,7 +58,7 @@ class WaitlistServiceTest {
     // ============================================
 
     @Test
-    void testSignup_BasicSignup_Success() {
+    void testSignup_BasicSignup_Success() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "test@example.com",
                 Gender.WOMAN,
@@ -84,7 +84,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSignup_DuplicateEmail_ReturnsExisting() {
+    void testSignup_DuplicateEmail_ReturnsExisting() throws Exception {
         // First signup
         WaitlistEntry entry1 = waitlistService.signup(
                 "duplicate@example.com",
@@ -111,7 +111,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSignup_EmailNormalization_LowerCase() {
+    void testSignup_EmailNormalization_LowerCase() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "Test@EXAMPLE.COM",
                 Gender.MAN,
@@ -124,7 +124,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSignup_ManPriority_NoBonus() {
+    void testSignup_ManPriority_NoBonus() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "man@example.com",
                 Gender.MAN,
@@ -137,7 +137,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSignup_WomanPriority_GetsBonus() {
+    void testSignup_WomanPriority_GetsBonus() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "woman@example.com",
                 Gender.WOMAN,
@@ -150,7 +150,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSignup_UtmTracking_SavesParams() {
+    void testSignup_UtmTracking_SavesParams() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "utm@example.com",
                 Gender.NONBINARY,
@@ -174,7 +174,7 @@ class WaitlistServiceTest {
     // ============================================
 
     @Test
-    void testSignup_WithValidReferral_BoostsReferrer() {
+    void testSignup_WithValidReferral_BoostsReferrer() throws Exception {
         // Create referrer
         WaitlistEntry referrer = waitlistService.signup(
                 "referrer@example.com",
@@ -207,7 +207,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSignup_WithInvalidReferral_NoBoost() {
+    void testSignup_WithInvalidReferral_NoBoost() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "test@example.com",
                 Gender.MAN,
@@ -222,7 +222,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSignup_ReferralCodeCaseInsensitive() {
+    void testSignup_ReferralCodeCaseInsensitive() throws Exception {
         // Create referrer
         WaitlistEntry referrer = waitlistService.signup(
                 "referrer@example.com",
@@ -253,7 +253,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testGetReferralCount() {
+    void testGetReferralCount() throws Exception {
         // Create referrer
         WaitlistEntry referrer = waitlistService.signup(
                 "referrer@example.com",
@@ -288,7 +288,7 @@ class WaitlistServiceTest {
     // ============================================
 
     @Test
-    void testGetPositionInLine_SingleEntry() {
+    void testGetPositionInLine_SingleEntry() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "first@example.com",
                 Gender.MAN,
@@ -366,7 +366,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testGetPositionInLine_InvitedStatus_ReturnsZero() {
+    void testGetPositionInLine_InvitedStatus_ReturnsZero() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "invited@example.com",
                 Gender.MAN,
@@ -387,7 +387,7 @@ class WaitlistServiceTest {
     // ============================================
 
     @Test
-    void testSendInviteBatch_SendsToTopPriority() {
+    void testSendInviteBatch_SendsToTopPriority() throws Exception {
         // Create 5 entries
         for (int i = 0; i < 5; i++) {
             waitlistService.signup(
@@ -415,13 +415,13 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSendInviteBatch_EmptyWaitlist_ReturnsEmpty() {
+    void testSendInviteBatch_EmptyWaitlist_ReturnsEmpty() throws Exception {
         List<WaitlistEntry> invited = waitlistService.sendInviteBatch(10);
         assertTrue(invited.isEmpty());
     }
 
     @Test
-    void testMarkRegistered() {
+    void testMarkRegistered() throws Exception {
         WaitlistEntry entry = waitlistService.signup(
                 "register@example.com",
                 Gender.WOMAN,
@@ -443,7 +443,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testMarkRegistered_EmailNormalization() {
+    void testMarkRegistered_EmailNormalization() throws Exception {
         waitlistService.signup(
                 "register@example.com",
                 Gender.WOMAN,
@@ -464,7 +464,7 @@ class WaitlistServiceTest {
     // ============================================
 
     @Test
-    void testGetMarketStatus_NotReady() {
+    void testGetMarketStatus_NotReady() throws Exception {
         // Add some users but not enough
         for (int i = 0; i < 50; i++) {
             waitlistService.signup(
@@ -488,7 +488,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testGetMarketStatus_ReadyToOpen() {
+    void testGetMarketStatus_ReadyToOpen() throws Exception {
         // Add 200 women
         for (int i = 0; i < 200; i++) {
             waitlistService.signup(
@@ -524,7 +524,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testGetAllMarketStats() {
+    void testGetAllMarketStats() throws Exception {
         // Add entries to multiple markets
         waitlistService.signup("dc@example.com", Gender.WOMAN, Seeking.MEN, Location.DC, null, null, null, null, null);
         waitlistService.signup("arlington@example.com", Gender.WOMAN, Seeking.MEN, Location.ARLINGTON, null, null, null, null, null);
@@ -545,7 +545,7 @@ class WaitlistServiceTest {
     // ============================================
 
     @Test
-    void testGetStats_Empty() {
+    void testGetStats_Empty() throws Exception {
         Map<String, Object> stats = waitlistService.getStats();
 
         assertEquals(0L, stats.get("total"));
@@ -555,7 +555,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testGetStats_WithEntries() {
+    void testGetStats_WithEntries() throws Exception {
         // Create entries with different statuses
         WaitlistEntry entry1 = waitlistService.signup("pending@example.com", Gender.WOMAN, Seeking.MEN, Location.DC, null, null, null, null, null);
 
@@ -592,7 +592,7 @@ class WaitlistServiceTest {
     // ============================================
 
     @Test
-    void testGetByEmail() {
+    void testGetByEmail() throws Exception {
         waitlistService.signup("test@example.com", Gender.WOMAN, Seeking.MEN, Location.DC, null, null, null, null, null);
 
         Optional<WaitlistEntry> entry = waitlistService.getByEmail("test@example.com");
@@ -601,13 +601,13 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testGetByEmail_NotFound() {
+    void testGetByEmail_NotFound() throws Exception {
         Optional<WaitlistEntry> entry = waitlistService.getByEmail("notfound@example.com");
         assertFalse(entry.isPresent());
     }
 
     @Test
-    void testGetByInviteCode() {
+    void testGetByInviteCode() throws Exception {
         WaitlistEntry created = waitlistService.signup("test@example.com", Gender.WOMAN, Seeking.MEN, Location.DC, null, null, null, null, null);
         String inviteCode = created.getInviteCode();
 
@@ -617,7 +617,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testGetByInviteCode_CaseInsensitive() {
+    void testGetByInviteCode_CaseInsensitive() throws Exception {
         WaitlistEntry created = waitlistService.signup("test@example.com", Gender.WOMAN, Seeking.MEN, Location.DC, null, null, null, null, null);
         String inviteCode = created.getInviteCode();
 
@@ -631,7 +631,7 @@ class WaitlistServiceTest {
     // ============================================
 
     @Test
-    void testSendMarketOpeningInvites_MarketNotReady() {
+    void testSendMarketOpeningInvites_MarketNotReady() throws Exception {
         // Add only a few users
         for (int i = 0; i < 10; i++) {
             waitlistService.signup("user" + i + "@example.com", Gender.WOMAN, Seeking.MEN, Location.DC, null, null, null, null, null);
@@ -643,7 +643,7 @@ class WaitlistServiceTest {
     }
 
     @Test
-    void testSendMarketOpeningInvites_WomenGetPriorityInBatch() {
+    void testSendMarketOpeningInvites_WomenGetPriorityInBatch() throws Exception {
         // Create ready market
         for (int i = 0; i < 200; i++) {
             waitlistService.signup("woman" + i + "@example.com", Gender.WOMAN, Seeking.MEN, Location.DC, null, null, null, null, null);

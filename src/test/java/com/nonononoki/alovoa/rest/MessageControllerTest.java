@@ -119,7 +119,7 @@ class MessageControllerTest {
     @DisplayName("POST /message/send/{convoId} - Send message successfully")
     void testSendMessage() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         String messageContent = "Hello, this is a test message!";
         int initialMessageCount = testConversation.getMessages().size();
@@ -140,7 +140,7 @@ class MessageControllerTest {
     @DisplayName("POST /message/send/{convoId} - Conversation not found returns error")
     void testSendMessageConversationNotFound() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/message/send/999999")
                         .contentType("text/plain")
@@ -153,7 +153,7 @@ class MessageControllerTest {
     @DisplayName("POST /message/send/{convoId} - User not in conversation returns error")
     void testSendMessageUserNotInConversation() throws Exception {
         User nonParticipant = testUsers.get(2);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(nonParticipant);
+        Mockito.doReturn(nonParticipant).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
@@ -169,14 +169,14 @@ class MessageControllerTest {
         User recipient = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Test message"))
                 .andExpect(status().isOk());
 
         // Recipient marks as read
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(recipient);
+        Mockito.doReturn(recipient).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/read/" + testConversation.getId()))
                 .andExpect(status().isOk());
 
@@ -190,7 +190,7 @@ class MessageControllerTest {
     @DisplayName("POST /message/read/{conversationId} - Conversation not found returns error")
     void testMarkAsReadConversationNotFound() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/message/read/999999"))
                 .andExpect(status().isBadRequest());
@@ -204,7 +204,7 @@ class MessageControllerTest {
         User recipient = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Test message"))
@@ -215,7 +215,7 @@ class MessageControllerTest {
         Assertions.assertNull(message.getDeliveredAt());
 
         // Recipient marks as delivered
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(recipient);
+        Mockito.doReturn(recipient).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/delivered/" + testConversation.getId()))
                 .andExpect(status().isOk());
 
@@ -233,7 +233,7 @@ class MessageControllerTest {
         User reactor = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Test message"))
@@ -244,7 +244,7 @@ class MessageControllerTest {
         Long messageId = message.getId();
 
         // Reactor adds a reaction
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(reactor);
+        Mockito.doReturn(reactor).when(authService).getCurrentUser(true);
         String emoji = "❤️";
 
         mockMvc.perform(post("/message/" + messageId + "/react")
@@ -261,7 +261,7 @@ class MessageControllerTest {
     @DisplayName("POST /message/{messageId}/react - Message not found returns error")
     void testAddReactionMessageNotFound() throws Exception {
         User reactor = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(reactor);
+        Mockito.doReturn(reactor).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/message/999999/react")
                         .contentType("text/plain")
@@ -277,7 +277,7 @@ class MessageControllerTest {
         User nonParticipant = testUsers.get(2);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Test message"))
@@ -287,7 +287,7 @@ class MessageControllerTest {
         Message message = testConversation.getMessages().get(testConversation.getMessages().size() - 1);
 
         // Non-participant tries to react
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(nonParticipant);
+        Mockito.doReturn(nonParticipant).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/" + message.getId() + "/react")
                         .contentType("text/plain")
                         .content("❤️"))
@@ -302,7 +302,7 @@ class MessageControllerTest {
         User reactor = testUsers.get(1);
 
         // Sender sends a message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Test message"))
@@ -313,7 +313,7 @@ class MessageControllerTest {
         Long messageId = message.getId();
 
         // Reactor adds a reaction
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(reactor);
+        Mockito.doReturn(reactor).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/" + messageId + "/react")
                         .contentType("text/plain")
                         .content("❤️"))
@@ -332,7 +332,7 @@ class MessageControllerTest {
     @DisplayName("DELETE /message/{messageId}/react - Message not found returns error")
     void testRemoveReactionMessageNotFound() throws Exception {
         User reactor = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(reactor);
+        Mockito.doReturn(reactor).when(authService).getCurrentUser(true);
 
         mockMvc.perform(delete("/message/999999/react"))
                 .andExpect(status().isBadRequest());
@@ -346,7 +346,7 @@ class MessageControllerTest {
         User recipient = testUsers.get(1);
 
         // Sender sends several messages
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         for (int i = 1; i <= 3; i++) {
             mockMvc.perform(post("/message/send/" + testConversation.getId())
                             .contentType("text/plain")
@@ -355,7 +355,7 @@ class MessageControllerTest {
         }
 
         // Recipient gets messages
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(recipient);
+        Mockito.doReturn(recipient).when(authService).getCurrentUser(true);
         mockMvc.perform(get("/message/get-messages/" + testConversation.getId() + "/1"))
                 .andExpect(status().isOk());
     }
@@ -365,7 +365,7 @@ class MessageControllerTest {
     @DisplayName("GET /message/get-messages/{convoId}/{first} - Conversation not found returns error")
     void testGetMessagesConversationNotFound() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/message/get-messages/999999/1"))
                 .andExpect(status().isBadRequest());
@@ -376,7 +376,7 @@ class MessageControllerTest {
     @DisplayName("GET /message/get-messages/{convoId}/{first} - User not in conversation returns error")
     void testGetMessagesUserNotInConversation() throws Exception {
         User nonParticipant = testUsers.get(2);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(nonParticipant);
+        Mockito.doReturn(nonParticipant).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/message/get-messages/" + testConversation.getId() + "/1"))
                 .andExpect(status().isBadRequest());
@@ -393,7 +393,7 @@ class MessageControllerTest {
         blockUser(user2, user1);
 
         // User1 tries to get messages
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         mockMvc.perform(get("/message/get-messages/" + testConversation.getId() + "/1"))
                 .andExpect(status().isBadRequest());
     }
@@ -409,7 +409,7 @@ class MessageControllerTest {
         blockUser(recipient, sender);
 
         // Sender tries to send message
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Test message"))
@@ -421,7 +421,7 @@ class MessageControllerTest {
     @DisplayName("POST /message/send/{convoId} - Content moderation blocks message")
     void testSendMessageContentBlocked() throws Exception {
         User sender = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(sender);
+        Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
         // Mock moderation service to block content
         Mockito.when(moderationService.moderateContent(any(String.class), any(User.class), any(String.class)))

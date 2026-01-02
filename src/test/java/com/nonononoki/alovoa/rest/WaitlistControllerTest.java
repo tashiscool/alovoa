@@ -267,7 +267,7 @@ class WaitlistControllerTest {
         adminUser.setAdmin(true);
         userRepo.save(adminUser);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(adminUser);
+        Mockito.doReturn(adminUser).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/api/v1/waitlist/stats"))
                 .andExpect(status().isOk());
@@ -281,7 +281,7 @@ class WaitlistControllerTest {
         regularUser.setAdmin(false);
         userRepo.save(regularUser);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(regularUser);
+        Mockito.doReturn(regularUser).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/api/v1/waitlist/stats"))
                 .andExpect(status().isBadRequest());

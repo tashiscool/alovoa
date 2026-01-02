@@ -230,7 +230,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <languageIn>ECMASCRIPT_2016</languageIn>
+                    <languageIn>ECMASCRIPT_2020</languageIn>
                     <resourcesSets>
                         <resourcesSet>
                             <inputDir>${project.build.directory}/classes/static/js</inputDir>

@@ -80,7 +80,7 @@ class PersonalityResourceTest {
     @Test
     void testPersonalityAssessment_NotCompleted() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         ModelAndView mav = personalityResource.personalityAssessment();
 
@@ -93,7 +93,7 @@ class PersonalityResourceTest {
     @Test
     void testPersonalityAssessment_AlreadyCompleted() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create completed profile
         UserPersonalityProfile profile = new UserPersonalityProfile();
@@ -117,7 +117,7 @@ class PersonalityResourceTest {
     @Test
     void testPersonalityResults_NotCompleted() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         ModelAndView mav = personalityResource.personalityResults();
 
@@ -129,7 +129,7 @@ class PersonalityResourceTest {
     @Test
     void testPersonalityResults_Completed() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create completed profile
         UserPersonalityProfile profile = new UserPersonalityProfile();
@@ -140,8 +140,8 @@ class PersonalityResourceTest {
         profile.setAgreeableness(70.0);
         profile.setNeuroticism(35.0);
         profile.setAttachmentStyle(UserPersonalityProfile.AttachmentStyle.SECURE);
-        profile.setCommunicationDirectness(70);
-        profile.setCommunicationEmotional(60);
+        profile.setCommunicationDirectness(70.0);
+        profile.setCommunicationEmotional(60.0);
         profile.setAssessmentCompletedAt(new Date());
         personalityRepo.save(profile);
         user.setPersonalityProfile(profile);

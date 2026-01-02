@@ -9,8 +9,17 @@ import org.springframework.data.repository.query.Param;
 
 import com.nonononoki.alovoa.entity.user.Conversation;
 
+import java.util.Optional;
+
 public interface ConversationRepository extends JpaRepository<Conversation, Long> {
 	List<Conversation> findByUsers_Id(long userId);
+
+	/**
+	 * Find a conversation between two specific users.
+	 */
+	@Query("SELECT c FROM Conversation c JOIN c.users u1 JOIN c.users u2 " +
+			"WHERE u1.id = :userId1 AND u2.id = :userId2")
+	Optional<Conversation> findByUsers(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
 	/**
 	 * Find conversations where the last message was sent before cutoff date.

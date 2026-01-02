@@ -1,7 +1,8 @@
 package com.nonononoki.alovoa.service;
 
 import com.nonononoki.alovoa.entity.CompatibilityScore;
-import com.nonononoki.alovoa.entity.Conversation;
+import com.nonononoki.alovoa.entity.user.Conversation;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.entity.MatchWindow;
 import com.nonononoki.alovoa.entity.MatchWindow.WindowStatus;
 import com.nonononoki.alovoa.entity.User;
@@ -174,7 +175,7 @@ public class MatchWindowService {
             notifyMatchConfirmed(window);
         } else {
             // Update to waiting on the other user
-            if (window.getUserAConfirmed()) {
+            if (window.isUserAConfirmed()) {
                 window.setStatus(WindowStatus.PENDING_USER_B);
             } else {
                 window.setStatus(WindowStatus.PENDING_USER_A);
@@ -256,7 +257,7 @@ public class MatchWindowService {
     /**
      * Get all pending decisions for current user.
      */
-    public List<MatchWindow> getPendingDecisions() {
+    public List<MatchWindow> getPendingDecisions() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return windowRepo.findPendingWindowsForUser(user);
     }
@@ -264,7 +265,7 @@ public class MatchWindowService {
     /**
      * Get matches where user is waiting on the other person.
      */
-    public List<MatchWindow> getWaitingMatches() {
+    public List<MatchWindow> getWaitingMatches() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return windowRepo.findWaitingWindowsForUser(user);
     }
@@ -272,7 +273,7 @@ public class MatchWindowService {
     /**
      * Get confirmed matches (ready for conversation).
      */
-    public List<MatchWindow> getConfirmedMatches() {
+    public List<MatchWindow> getConfirmedMatches() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return windowRepo.findConfirmedWindowsForUser(user);
     }
@@ -280,7 +281,7 @@ public class MatchWindowService {
     /**
      * Get count of pending decisions (for notification badge).
      */
-    public int getPendingCount() {
+    public int getPendingCount() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return windowRepo.countPendingDecisions(user);
     }
@@ -310,11 +311,11 @@ public class MatchWindowService {
             windowRepo.save(window);
 
             // If one user confirmed but the other didn't, that's ghosting
-            if (window.getUserAConfirmed() && !window.getUserBConfirmed()) {
+            if (window.isUserAConfirmed() && !window.isUserBConfirmed()) {
                 reputationService.recordBehavior(window.getUserB(),
                         UserBehaviorEvent.BehaviorType.GHOSTING,
                         window.getUserA(), null);
-            } else if (window.getUserBConfirmed() && !window.getUserAConfirmed()) {
+            } else if (window.isUserBConfirmed() && !window.isUserAConfirmed()) {
                 reputationService.recordBehavior(window.getUserA(),
                         UserBehaviorEvent.BehaviorType.GHOSTING,
                         window.getUserB(), null);
@@ -340,10 +341,10 @@ public class MatchWindowService {
         List<MatchWindow> expiringSoon = windowRepo.findWindowsExpiringSoon(now, fourHoursFromNow);
 
         for (MatchWindow window : expiringSoon) {
-            if (!window.getUserAConfirmed()) {
+            if (!window.isUserAConfirmed()) {
                 notifyExpirationReminder(window, window.getUserA());
             }
-            if (!window.getUserBConfirmed()) {
+            if (!window.isUserBConfirmed()) {
                 notifyExpirationReminder(window, window.getUserB());
             }
         }
@@ -369,7 +370,7 @@ public class MatchWindowService {
         }
 
         Conversation conversation = new Conversation();
-        conversation.setUsers(new HashSet<>(Arrays.asList(window.getUserA(), window.getUserB())));
+        conversation.setUsers(Arrays.asList(window.getUserA(), window.getUserB()));
         conversation.setLastUpdated(new Date());
         return conversationRepo.save(conversation);
     }

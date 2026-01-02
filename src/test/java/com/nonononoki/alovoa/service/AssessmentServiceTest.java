@@ -197,7 +197,7 @@ class AssessmentServiceTest {
     @Test
     void testGetQuestionsByCategory_BigFive() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> result = assessmentService.getQuestionsByCategory("BIG_FIVE");
 
@@ -215,7 +215,7 @@ class AssessmentServiceTest {
     @Test
     void testGetQuestionsByCategory_WithAnsweredQuestions() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Answer one Big Five question
         AssessmentQuestion question = testQuestions.stream()
@@ -248,9 +248,9 @@ class AssessmentServiceTest {
     }
 
     @Test
-    void testGetQuestionsByCategory_InvalidCategory() {
+    void testGetQuestionsByCategory_InvalidCategory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         assertThrows(IllegalArgumentException.class, () -> {
             assessmentService.getQuestionsByCategory("INVALID_CATEGORY");
@@ -260,7 +260,7 @@ class AssessmentServiceTest {
     @Test
     void testGetAssessmentProgress_NoResponses() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> progress = assessmentService.getAssessmentProgress();
 
@@ -276,7 +276,7 @@ class AssessmentServiceTest {
     @Test
     void testSubmitResponses_SingleQuestion() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         AssessmentQuestion question = testQuestions.stream()
                 .filter(q -> q.getCategory() == QuestionCategory.BIG_FIVE)
@@ -301,7 +301,7 @@ class AssessmentServiceTest {
     @Test
     void testSubmitResponses_MultipleQuestions() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentQuestion> questions = testQuestions.stream()
                 .filter(q -> q.getCategory() == QuestionCategory.BIG_FIVE)
@@ -326,7 +326,7 @@ class AssessmentServiceTest {
     @Test
     void testSubmitResponses_UpdateExisting() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         AssessmentQuestion question = testQuestions.stream()
                 .filter(q -> q.getCategory() == QuestionCategory.BIG_FIVE)
@@ -354,7 +354,7 @@ class AssessmentServiceTest {
     @Test
     void testSubmitResponses_TextResponse() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create a free text question
         AssessmentQuestion textQuestion = new AssessmentQuestion();
@@ -383,7 +383,7 @@ class AssessmentServiceTest {
     @Test
     void testCalculateBigFiveScores() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Submit all Big Five responses (25 questions minimum for complete profile)
         List<AssessmentResponseDto> responses = new ArrayList<>();
@@ -415,7 +415,7 @@ class AssessmentServiceTest {
     @Test
     void testCalculateBigFiveScores_WithKeyedQuestions() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create mix of plus and minus keyed questions
         List<AssessmentResponseDto> responses = new ArrayList<>();
@@ -448,7 +448,7 @@ class AssessmentServiceTest {
     @Test
     void testCalculateAttachmentScores_Secure() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
         List<AssessmentQuestion> attachmentQuestions = testQuestions.stream()
@@ -472,7 +472,7 @@ class AssessmentServiceTest {
     @Test
     void testCalculateAttachmentScores_AnxiousPreoccupied() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
         List<AssessmentQuestion> attachmentQuestions = testQuestions.stream()
@@ -499,7 +499,7 @@ class AssessmentServiceTest {
     @Test
     void testCalculateAttachmentScores_DismissiveAvoidant() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
         List<AssessmentQuestion> attachmentQuestions = testQuestions.stream()
@@ -526,7 +526,7 @@ class AssessmentServiceTest {
     @Test
     void testCalculateAttachmentScores_FearfulAvoidant() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
         List<AssessmentQuestion> attachmentQuestions = testQuestions.stream()
@@ -550,7 +550,7 @@ class AssessmentServiceTest {
     @Test
     void testCalculateValuesScores() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
         List<AssessmentQuestion> valuesQuestions = testQuestions.stream()
@@ -578,7 +578,7 @@ class AssessmentServiceTest {
     @Test
     void testCalculateLifestyleScores() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
         List<AssessmentQuestion> lifestyleQuestions = testQuestions.stream()
@@ -600,7 +600,7 @@ class AssessmentServiceTest {
     @Test
     void testGetAssessmentResults_NoProfile() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> results = assessmentService.getAssessmentResults();
 
@@ -612,7 +612,7 @@ class AssessmentServiceTest {
     @Test
     void testGetAssessmentResults_WithProfile() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Submit Big Five responses
         List<AssessmentResponseDto> responses = new ArrayList<>();
@@ -639,7 +639,7 @@ class AssessmentServiceTest {
     @Test
     void testResetAssessment_SpecificCategory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Submit responses for multiple categories
         List<AssessmentResponseDto> responses = new ArrayList<>();
@@ -666,7 +666,7 @@ class AssessmentServiceTest {
     @Test
     void testResetAssessment_AllCategories() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Submit responses
         List<AssessmentResponseDto> responses = new ArrayList<>();
@@ -688,7 +688,7 @@ class AssessmentServiceTest {
     }
 
     @Test
-    void testCalculateOkCupidMatch_NoData() {
+    void testCalculateOkCupidMatch_NoData() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -703,7 +703,7 @@ class AssessmentServiceTest {
     void testCalculateOkCupidMatch_WithCommonAnswers() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         // Both users answer the same questions
         List<AssessmentQuestion> commonQuestions = testQuestions.stream()
@@ -719,7 +719,7 @@ class AssessmentServiceTest {
         assessmentService.submitResponses(responses1);
 
         // User 2 answers similarly
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         List<AssessmentResponseDto> responses2 = new ArrayList<>();
         for (AssessmentQuestion q : commonQuestions) {
             responses2.add(new AssessmentResponseDto(q.getExternalId(), 4)); // Same answers
@@ -740,7 +740,7 @@ class AssessmentServiceTest {
     void testCalculateOkCupidMatch_WithDifferences() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         List<AssessmentQuestion> commonQuestions = testQuestions.stream()
                 .filter(q -> q.getCategory() == QuestionCategory.BIG_FIVE)
@@ -755,7 +755,7 @@ class AssessmentServiceTest {
         assessmentService.submitResponses(responses1);
 
         // User 2 answers with low scores (opposite)
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         List<AssessmentResponseDto> responses2 = new ArrayList<>();
         for (AssessmentQuestion q : commonQuestions) {
             responses2.add(new AssessmentResponseDto(q.getExternalId(), 1));
@@ -773,7 +773,7 @@ class AssessmentServiceTest {
     void testCalculateOkCupidMatch_WithMandatoryConflict() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         List<AssessmentQuestion> dealbreakers = testQuestions.stream()
                 .filter(q -> q.getCategory() == QuestionCategory.DEALBREAKER &&
@@ -789,7 +789,7 @@ class AssessmentServiceTest {
         assessmentService.submitResponses(responses1);
 
         // User 2 says yes (1) to same dealbreaker
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         List<AssessmentResponseDto> responses2 = new ArrayList<>();
         for (AssessmentQuestion q : dealbreakers) {
             responses2.add(new AssessmentResponseDto(q.getExternalId(), 1));
@@ -805,7 +805,7 @@ class AssessmentServiceTest {
     @Test
     void testGetNextQuestion() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> result = assessmentService.getNextQuestion(null);
 
@@ -820,7 +820,7 @@ class AssessmentServiceTest {
     @Test
     void testGetNextQuestion_WithCategory() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> result = assessmentService.getNextQuestion("ATTACHMENT");
 
@@ -831,7 +831,7 @@ class AssessmentServiceTest {
     @Test
     void testGetNextQuestion_AllAnswered() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Answer all DEALBREAKER questions
         List<AssessmentResponseDto> responses = new ArrayList<>();
@@ -848,7 +848,7 @@ class AssessmentServiceTest {
     }
 
     @Test
-    void testValidateAnswer_ValidNumeric() {
+    void testValidateAnswer_ValidNumeric() throws Exception {
         AssessmentQuestion question = testQuestions.stream()
                 .filter(q -> q.getResponseScale() == ResponseScale.LIKERT_5)
                 .findFirst()
@@ -861,7 +861,7 @@ class AssessmentServiceTest {
     }
 
     @Test
-    void testValidateAnswer_InvalidRange() {
+    void testValidateAnswer_InvalidRange() throws Exception {
         AssessmentQuestion question = testQuestions.stream()
                 .filter(q -> q.getResponseScale() == ResponseScale.LIKERT_5)
                 .findFirst()
@@ -875,7 +875,7 @@ class AssessmentServiceTest {
     }
 
     @Test
-    void testValidateAnswer_BinaryQuestion() {
+    void testValidateAnswer_BinaryQuestion() throws Exception {
         AssessmentQuestion question = testQuestions.stream()
                 .filter(q -> q.getResponseScale() == ResponseScale.BINARY)
                 .findFirst()
@@ -895,7 +895,7 @@ class AssessmentServiceTest {
     }
 
     @Test
-    void testValidateAnswer_TextResponse() {
+    void testValidateAnswer_TextResponse() throws Exception {
         // Create a text question
         AssessmentQuestion textQuestion = new AssessmentQuestion();
         textQuestion.setExternalId("TEST_TEXT_VALIDATE");
@@ -918,7 +918,7 @@ class AssessmentServiceTest {
     @Test
     void testGetNextUnansweredQuestions_Batch() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> result = assessmentService.getNextUnansweredQuestions(null, 10);
 
@@ -934,7 +934,7 @@ class AssessmentServiceTest {
     @Test
     void testCategoryBasedFiltering() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> result = assessmentService.getQuestionsByCategory("ATTACHMENT");
 
@@ -949,7 +949,7 @@ class AssessmentServiceTest {
     @Test
     void testQuestionWeighting() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Submit responses with a suggested importance
         AssessmentQuestion question = testQuestions.stream()
@@ -977,7 +977,7 @@ class AssessmentServiceTest {
     @Test
     void testIncompleteResponses() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Submit only partial Big Five responses (less than required for completion)
         List<AssessmentResponseDto> responses = new ArrayList<>();
@@ -999,7 +999,7 @@ class AssessmentServiceTest {
     @Test
     void testRetakeScenario() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // First assessment
         List<AssessmentResponseDto> responses1 = new ArrayList<>();
@@ -1032,7 +1032,7 @@ class AssessmentServiceTest {
     void testGetMatchExplanation() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         // Both users answer some questions
         List<AssessmentQuestion> commonQuestions = testQuestions.stream()
@@ -1045,7 +1045,7 @@ class AssessmentServiceTest {
         }
         assessmentService.submitResponses(responses1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         List<AssessmentResponseDto> responses2 = new ArrayList<>();
         for (AssessmentQuestion q : commonQuestions) {
             responses2.add(new AssessmentResponseDto(q.getExternalId(), 3));

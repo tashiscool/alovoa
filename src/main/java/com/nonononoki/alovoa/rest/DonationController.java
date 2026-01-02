@@ -36,7 +36,7 @@ public class DonationController {
      * Get current user's donation info.
      */
     @GetMapping("/info")
-    public ResponseEntity<Map<String, Object>> getDonationInfo() {
+    public ResponseEntity<Map<String, Object>> getDonationInfo() throws AlovoaException {
         return ResponseEntity.ok(donationService.getCurrentUserDonationInfo());
     }
 
@@ -47,7 +47,7 @@ public class DonationController {
     @PostMapping("/record")
     public ResponseEntity<Map<String, String>> recordDonation(
             @RequestParam("amount") BigDecimal amount,
-            @RequestParam(value = "promptId", required = false) Long promptId) {
+            @RequestParam(value = "promptId", required = false) Long promptId) throws AlovoaException {
 
         donationService.recordCurrentUserDonation(amount, promptId);
 

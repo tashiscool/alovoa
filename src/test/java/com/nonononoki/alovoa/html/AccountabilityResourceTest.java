@@ -3,7 +3,7 @@ package com.nonononoki.alovoa.html;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserAccountabilityReport;
 import com.nonononoki.alovoa.entity.user.UserAccountabilityReport.*;
-import com.nonononoki.alovoa.entity.user.UserBehaviorEvent.BehaviorType;
+import com.nonononoki.alovoa.entity.user.UserAccountabilityReport.BehaviorType;
 import com.nonononoki.alovoa.repo.ConversationRepository;
 import com.nonononoki.alovoa.repo.UserAccountabilityReportRepository;
 import com.nonononoki.alovoa.repo.UserRepository;
@@ -83,7 +83,7 @@ class AccountabilityResourceTest {
     @Test
     void testMyAccountability_NoReports() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         ModelAndView mav = accountabilityResource.myAccountability();
 
@@ -99,7 +99,7 @@ class AccountabilityResourceTest {
     void testMyAccountability_WithReports() throws Exception {
         User user = testUsers.get(0);
         User reporter = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create published reports
         UserAccountabilityReport positiveReport = createReport(reporter, user,
@@ -122,7 +122,7 @@ class AccountabilityResourceTest {
     void testUserAccountability() throws Exception {
         User viewer = testUsers.get(0);
         User subject = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(viewer);
+        Mockito.doReturn(viewer).when(authService).getCurrentUser(true);
 
         // Create published report
         UserAccountabilityReport report = createReport(viewer, subject,
@@ -138,9 +138,9 @@ class AccountabilityResourceTest {
     }
 
     @Test
-    void testUserAccountability_UserNotFound() {
+    void testUserAccountability_UserNotFound() throws Exception {
         User viewer = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(viewer);
+        Mockito.doReturn(viewer).when(authService).getCurrentUser(true);
 
         assertThrows(Exception.class, () ->
                 accountabilityResource.userAccountability("00000000-0000-0000-0000-000000000000"));
@@ -150,7 +150,7 @@ class AccountabilityResourceTest {
     void testAccountability_FeedbackScore() throws Exception {
         User user = testUsers.get(0);
         User reporter = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create 3 positive and 1 negative reports
         for (int i = 0; i < 3; i++) {
@@ -173,7 +173,7 @@ class AccountabilityResourceTest {
     void testAccountability_CategoryBreakdown() throws Exception {
         User user = testUsers.get(0);
         User reporter = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create various reports
         reportRepo.save(createReport(reporter, user, AccountabilityCategory.POSITIVE_EXPERIENCE, ReportStatus.PUBLISHED));
@@ -190,7 +190,7 @@ class AccountabilityResourceTest {
         User viewer = testUsers.get(0);
         User subject = testUsers.get(1);
         User otherReporter = testUsers.get(2);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(viewer);
+        Mockito.doReturn(viewer).when(authService).getCurrentUser(true);
 
         // Create public report
         UserAccountabilityReport publicReport = createReport(otherReporter, subject,
@@ -215,7 +215,7 @@ class AccountabilityResourceTest {
         report.setReporter(reporter);
         report.setSubject(subject);
         report.setCategory(category);
-        report.setBehaviorType(BehaviorType.POSITIVE_FEEDBACK);
+        report.setBehaviorType(BehaviorType.RESPECTFUL_COMMUNICATOR);
         report.setTitle("Test Report");
         report.setDescription("Test description");
         report.setStatus(status);

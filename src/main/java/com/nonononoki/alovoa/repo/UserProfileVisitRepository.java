@@ -47,6 +47,12 @@ public interface UserProfileVisitRepository extends JpaRepository<UserProfileVis
     Page<UserProfileVisit> findByVisitorOrderByLastVisitAtDesc(User visitor, Pageable pageable);
 
     /**
+     * Get profiles visited by user in a time period
+     */
+    @Query("SELECT v FROM UserProfileVisit v WHERE v.visitor = :user AND v.lastVisitAt > :since ORDER BY v.lastVisitAt DESC")
+    List<UserProfileVisit> findRecentVisitsByVisitor(@Param("user") User user, @Param("since") Date since);
+
+    /**
      * Check if user has visited another user's profile
      */
     boolean existsByVisitorAndVisitedUser(User visitor, User visitedUser);

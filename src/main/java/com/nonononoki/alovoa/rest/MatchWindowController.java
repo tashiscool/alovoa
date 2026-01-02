@@ -1,6 +1,7 @@
 package com.nonononoki.alovoa.rest;
 
 import com.nonononoki.alovoa.entity.MatchWindow;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.service.MatchWindowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class MatchWindowController {
      * These are matches waiting for the user to confirm/decline.
      */
     @GetMapping("/pending")
-    public ResponseEntity<List<MatchWindow>> getPendingDecisions() {
+    public ResponseEntity<List<MatchWindow>> getPendingDecisions() throws AlovoaException {
         return ResponseEntity.ok(windowService.getPendingDecisions());
     }
 
@@ -34,7 +35,7 @@ public class MatchWindowController {
      * Get matches where user has confirmed but waiting on the other person.
      */
     @GetMapping("/waiting")
-    public ResponseEntity<List<MatchWindow>> getWaitingMatches() {
+    public ResponseEntity<List<MatchWindow>> getWaitingMatches() throws AlovoaException {
         return ResponseEntity.ok(windowService.getWaitingMatches());
     }
 
@@ -42,7 +43,7 @@ public class MatchWindowController {
      * Get confirmed matches ready for conversation.
      */
     @GetMapping("/confirmed")
-    public ResponseEntity<List<MatchWindow>> getConfirmedMatches() {
+    public ResponseEntity<List<MatchWindow>> getConfirmedMatches() throws AlovoaException {
         return ResponseEntity.ok(windowService.getConfirmedMatches());
     }
 
@@ -50,7 +51,7 @@ public class MatchWindowController {
      * Get count of pending decisions (for notification badge).
      */
     @GetMapping("/pending/count")
-    public ResponseEntity<Map<String, Integer>> getPendingCount() {
+    public ResponseEntity<Map<String, Integer>> getPendingCount() throws AlovoaException {
         Map<String, Integer> result = new HashMap<>();
         result.put("count", windowService.getPendingCount());
         return ResponseEntity.ok(result);
@@ -109,7 +110,7 @@ public class MatchWindowController {
      * Get dashboard summary for matches page.
      */
     @GetMapping("/dashboard")
-    public ResponseEntity<Map<String, Object>> getDashboard() {
+    public ResponseEntity<Map<String, Object>> getDashboard() throws AlovoaException {
         Map<String, Object> dashboard = new HashMap<>();
         dashboard.put("pending", windowService.getPendingDecisions());
         dashboard.put("waiting", windowService.getWaitingMatches());

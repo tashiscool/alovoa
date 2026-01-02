@@ -83,7 +83,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testGetOrCreateReputation_NewUser() {
+    void testGetOrCreateReputation_NewUser() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore reputation = reputationService.getOrCreateReputation(user);
@@ -98,7 +98,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testGetOrCreateReputation_ExistingUser() {
+    void testGetOrCreateReputation_ExistingUser() throws Exception {
         User user = testUsers.get(0);
 
         // Create initial reputation
@@ -112,7 +112,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testRecordBehavior_PositiveBehavior() {
+    void testRecordBehavior_PositiveBehavior() throws Exception {
         User user = testUsers.get(0);
 
         // Record a positive behavior
@@ -134,7 +134,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testRecordBehavior_NegativeBehavior() {
+    void testRecordBehavior_NegativeBehavior() throws Exception {
         User user = testUsers.get(0);
         User targetUser = testUsers.get(1);
 
@@ -158,7 +158,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testRecordBehavior_VideoVerified() {
+    void testRecordBehavior_VideoVerified() throws Exception {
         User user = testUsers.get(0);
 
         reputationService.recordBehavior(user, BehaviorType.VIDEO_VERIFIED, null,
@@ -171,7 +171,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testRecordBehavior_CompletedDate() {
+    void testRecordBehavior_CompletedDate() throws Exception {
         User user = testUsers.get(0);
 
         reputationService.recordBehavior(user, BehaviorType.COMPLETED_DATE, null, null);
@@ -183,7 +183,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testRecordBehavior_ReportedBehavior() {
+    void testRecordBehavior_ReportedBehavior() throws Exception {
         User user = testUsers.get(0);
 
         reputationService.recordBehavior(user, BehaviorType.REPORTED, null,
@@ -195,7 +195,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testRecordBehavior_ReportUpheld() {
+    void testRecordBehavior_ReportUpheld() throws Exception {
         User user = testUsers.get(0);
 
         reputationService.recordBehavior(user, BehaviorType.REPORT_UPHELD, null, null);
@@ -208,7 +208,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testRecordBehavior_DecayForRepeatedBehavior() {
+    void testRecordBehavior_DecayForRepeatedBehavior() throws Exception {
         User user = testUsers.get(0);
 
         // Record same positive behavior multiple times
@@ -228,7 +228,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testGetRecentBehavior() {
+    void testGetRecentBehavior() throws Exception {
         User user = testUsers.get(0);
 
         // Record some behaviors
@@ -242,7 +242,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testTrustLevelCalculation_NewMember() {
+    void testTrustLevelCalculation_NewMember() throws Exception {
         User user = testUsers.get(0);
 
         UserReputationScore reputation = reputationService.getOrCreateReputation(user);
@@ -252,7 +252,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testOverallScoreCalculation() {
+    void testOverallScoreCalculation() throws Exception {
         User user = testUsers.get(0);
 
         // Record various behaviors to change scores
@@ -270,7 +270,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testMisrepresentationImpact() {
+    void testMisrepresentationImpact() throws Exception {
         User user = testUsers.get(0);
 
         reputationService.recordBehavior(user, BehaviorType.MISREPRESENTATION, null, null);
@@ -283,7 +283,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testPositiveFeedbackImpact() {
+    void testPositiveFeedbackImpact() throws Exception {
         User user = testUsers.get(0);
 
         reputationService.recordBehavior(user, BehaviorType.POSITIVE_FEEDBACK, null, null);
@@ -296,7 +296,7 @@ class ReputationServiceTest {
     }
 
     @Test
-    void testNoShowImpact() {
+    void testNoShowImpact() throws Exception {
         User user = testUsers.get(0);
 
         reputationService.recordBehavior(user, BehaviorType.NO_SHOW, null, null);

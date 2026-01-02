@@ -43,7 +43,7 @@ public class AccountabilityResource {
     @GetMapping(URL_USER)
     public ModelAndView userAccountability(@PathVariable String userUuid) throws AlovoaException {
         User viewer = authService.getCurrentUser(true);
-        User subject = userRepo.findByUuid(UUID.fromString(userUuid))
+        User subject = userRepo.findOptionalByUuid(UUID.fromString(userUuid))
             .orElseThrow(() -> new AlovoaException("User not found"));
 
         return buildAccountabilityView(subject, viewer, true);
@@ -76,7 +76,7 @@ public class AccountabilityResource {
     @GetMapping(URL_REPORT_FORM)
     public ModelAndView reportForm(@PathVariable String userUuid) throws AlovoaException {
         User viewer = authService.getCurrentUser(true);
-        User subject = userRepo.findByUuid(UUID.fromString(userUuid))
+        User subject = userRepo.findOptionalByUuid(UUID.fromString(userUuid))
             .orElseThrow(() -> new AlovoaException("User not found"));
 
         if (viewer.equals(subject)) {

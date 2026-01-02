@@ -80,7 +80,7 @@ class UserPromptServiceTest {
     void test() throws Exception {
         User user1 = testUsers.get(0);
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         Long promptId = 1L;
         long invalidPromptId = 999L;
         UserPromptDto prompt1 = UserPromptDto.builder().promptId(promptId).text("test").build();

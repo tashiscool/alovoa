@@ -183,7 +183,7 @@ public class RegisterServiceTest {
 		if (!user.isAdmin()) {
 			user = userRepo.findById(user.getId()).get();
 			Mockito.when(authService.getCurrentUser()).thenReturn(user);
-			Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+			Mockito.doReturn(user).when(authService).getCurrentUser(true);
 			UserDeleteToken token = userService.deleteAccountRequest();
 			UserDeleteAccountDto dto = new UserDeleteAccountDto();
 			Captcha captcha = captchaService.generate();

@@ -2,6 +2,7 @@ package com.nonononoki.alovoa.service;
 
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserProfileVisit;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.repo.UserProfileVisitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,7 +52,7 @@ public class ProfileVisitService {
     /**
      * Get visitors to the current user's profile (paginated).
      */
-    public Page<UserProfileVisit> getMyVisitors(int page, int size) {
+    public Page<UserProfileVisit> getMyVisitors(int page, int size) throws AlovoaException {
         User currentUser = authService.getCurrentUser(true);
         return visitRepository.findByVisitedUserOrderByLastVisitAtDesc(
                 currentUser, PageRequest.of(page, size));
@@ -60,7 +61,7 @@ public class ProfileVisitService {
     /**
      * Get profiles the current user has visited (paginated).
      */
-    public Page<UserProfileVisit> getMyVisitedProfiles(int page, int size) {
+    public Page<UserProfileVisit> getMyVisitedProfiles(int page, int size) throws AlovoaException {
         User currentUser = authService.getCurrentUser(true);
         return visitRepository.findByVisitorOrderByLastVisitAtDesc(
                 currentUser, PageRequest.of(page, size));
@@ -69,7 +70,7 @@ public class ProfileVisitService {
     /**
      * Get visitors from the last N days.
      */
-    public List<UserProfileVisit> getRecentVisitors(int days) {
+    public List<UserProfileVisit> getRecentVisitors(int days) throws AlovoaException {
         User currentUser = authService.getCurrentUser(true);
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, -days);
@@ -77,9 +78,19 @@ public class ProfileVisitService {
     }
 
     /**
+     * Get profiles the current user has visited in the last N days.
+     */
+    public List<UserProfileVisit> getMyVisits(int days) throws AlovoaException {
+        User currentUser = authService.getCurrentUser(true);
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -days);
+        return visitRepository.findRecentVisitsByVisitor(currentUser, cal.getTime());
+    }
+
+    /**
      * Count total unique visitors to user's profile.
      */
-    public long getTotalVisitorCount() {
+    public long getTotalVisitorCount() throws AlovoaException {
         User currentUser = authService.getCurrentUser(true);
         return visitRepository.countByVisitedUser(currentUser);
     }
@@ -87,7 +98,7 @@ public class ProfileVisitService {
     /**
      * Count visitors in the last N days.
      */
-    public long getRecentVisitorCount(int days) {
+    public long getRecentVisitorCount(int days) throws AlovoaException {
         User currentUser = authService.getCurrentUser(true);
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, -days);

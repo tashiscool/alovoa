@@ -150,12 +150,12 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 in Clarendon
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // User 2 in Dupont Circle (close to Clarendon)
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -172,12 +172,12 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 in Clarendon
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // User 2 in Rockville (further away)
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Rockville", "Rockville", "MD",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -188,7 +188,7 @@ class TravelTimeServiceTest {
     }
 
     @Test
-    void testCalculateTravelTime_NoAreas_ShouldReturnNegative() {
+    void testCalculateTravelTime_NoAreas_ShouldReturnNegative() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -203,7 +203,7 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // Only user 1 has area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -218,14 +218,14 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 has areas in Clarendon and Bethesda
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
         locationAreaService.addArea("Bethesda", "Bethesda", "MD",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.WORK, true);
 
         // User 2 has area in Bethesda (overlaps with user1's second area)
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Bethesda", "Bethesda", "MD",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -242,11 +242,11 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // Both users in same neighborhood
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.WORK, true);
 
@@ -264,11 +264,11 @@ class TravelTimeServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -281,7 +281,7 @@ class TravelTimeServiceTest {
     }
 
     @Test
-    void testGetTravelTimeDisplay_NoAreas_ShouldReturnNull() {
+    void testGetTravelTimeDisplay_NoAreas_ShouldReturnNull() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -299,11 +299,11 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // Set up users in same area for very short travel time
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.WORK, true);
 
@@ -313,7 +313,7 @@ class TravelTimeServiceTest {
     }
 
     @Test
-    void testGetTravelTimeBucket_Unknown_ShouldReturnUnknownBucket() {
+    void testGetTravelTimeBucket_Unknown_ShouldReturnUnknownBucket() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -323,7 +323,7 @@ class TravelTimeServiceTest {
     }
 
     @Test
-    void testTravelTimeBucket_EnumProperties() {
+    void testTravelTimeBucket_EnumProperties() throws Exception {
         TravelTimeService.TravelTimeBucket under15 = TravelTimeService.TravelTimeBucket.UNDER_15;
 
         assertEquals("Under 15 min", under15.getDisplayName());
@@ -342,17 +342,17 @@ class TravelTimeServiceTest {
         User farUser = testUsers.get(2);
 
         // Current user in Clarendon
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // Near user in Dupont Circle
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(nearUser);
+        Mockito.doReturn(nearUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
         // Far user in Rockville
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(farUser);
+        Mockito.doReturn(farUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Rockville", "Rockville", "MD",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -365,7 +365,7 @@ class TravelTimeServiceTest {
     }
 
     @Test
-    void testFilterByTravelTime_EmptyList_ShouldReturnEmpty() {
+    void testFilterByTravelTime_EmptyList_ShouldReturnEmpty() throws Exception {
         User currentUser = testUsers.get(0);
         List<User> candidates = new ArrayList<>();
 
@@ -381,17 +381,17 @@ class TravelTimeServiceTest {
         User midUser = testUsers.get(2);
 
         // Current user in Clarendon
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // Near user in Arlington
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(nearUser);
+        Mockito.doReturn(nearUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // Mid user in DC
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(midUser);
+        Mockito.doReturn(midUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -410,12 +410,12 @@ class TravelTimeServiceTest {
         User unknownUser = testUsers.get(2);
 
         // Current user in Clarendon
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // Known user in DC
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(knownUser);
+        Mockito.doReturn(knownUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -436,17 +436,17 @@ class TravelTimeServiceTest {
         User farUser = testUsers.get(2);
 
         // Current user in Clarendon
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // Near user in same area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(nearUser);
+        Mockito.doReturn(nearUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // Far user in Rockville
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(farUser);
+        Mockito.doReturn(farUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Rockville", "Rockville", "MD",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -473,11 +473,11 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // Both users in Arlington
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Ballston", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.WORK, true);
 
@@ -499,11 +499,11 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // Different cities
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -515,7 +515,7 @@ class TravelTimeServiceTest {
     }
 
     @Test
-    void testGetTravelTimeInfo_NoAreas_ShouldReturnUnknown() {
+    void testGetTravelTimeInfo_NoAreas_ShouldReturnUnknown() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -539,11 +539,11 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // Clarendon to Dupont is about 3-4 miles
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -559,11 +559,11 @@ class TravelTimeServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Bethesda", "Bethesda", "MD",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -583,11 +583,11 @@ class TravelTimeServiceTest {
         User user2 = testUsers.get(1);
 
         // Add areas with cities that don't have centroid data
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Downtown", "UnknownCity", "XX",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Uptown", "AnotherUnknownCity", "YY",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -602,15 +602,15 @@ class TravelTimeServiceTest {
         User nearUser = testUsers.get(1);
         User farUser = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(currentUser);
+        Mockito.doReturn(currentUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(nearUser);
+        Mockito.doReturn(nearUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(farUser);
+        Mockito.doReturn(farUser).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Rockville", "Rockville", "MD",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 

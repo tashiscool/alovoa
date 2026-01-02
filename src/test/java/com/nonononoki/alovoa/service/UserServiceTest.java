@@ -126,7 +126,7 @@ class UserServiceTest {
         String imgMimePng = "png";
         // setup settings
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         byte[] img1 = Tools.resourceToBytes("img/profile1.png");
         userService.updateProfilePicture(img1, imgMimePng);
         String INTEREST = "interest";
@@ -177,7 +177,7 @@ class UserServiceTest {
         assertEquals(6, user1.getMiscInfos().size());
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user2);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         byte[] img2 = Tools.resourceToBytes("img/profile2.png");
         userService.updateProfilePicture(img2, imgMimePng);
         userService.addInterest(INTEREST);
@@ -188,7 +188,7 @@ class UserServiceTest {
         userService.updatePreferedGender(1, true);
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user3);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user3);
+        Mockito.doReturn(user3).when(authService).getCurrentUser(true);
         byte[] img3 = Tools.resourceToBytes("img/profile3.png");
         userService.updateProfilePicture(img3, imgMimePng);
         assertNotNull(user3.getProfilePicture());
@@ -238,7 +238,7 @@ class UserServiceTest {
 
         // USERDATA
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         UUID uuid = user1.getUuid();
         ResponseEntity<Resource> userData = userService.getUserdata(uuid);
         InputStream inputStream = Objects.requireNonNull(userData.getBody()).getInputStream();
@@ -286,7 +286,7 @@ class UserServiceTest {
         String INTEREST5 = "test5";
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         userService.addInterest(INTEREST1);
         userService.addInterest(INTEREST2);
         userService.addInterest(INTEREST3);
@@ -294,14 +294,14 @@ class UserServiceTest {
         userService.addInterest(INTEREST5);
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user2);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         userService.addInterest(INTEREST1);
         userService.addInterest(INTEREST2);
         userService.addInterest(INTEREST3);
         userService.addInterest(INTEREST4);
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user3);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user3);
+        Mockito.doReturn(user3).when(authService).getCurrentUser(true);
         List<UserInterestDto> iterests = userService.getInterestAutocomplete(query);
         List<String> interestNames = iterests.stream().map(UserInterestDto::getName).toList();
 
@@ -318,7 +318,7 @@ class UserServiceTest {
         assertTrue(interestNames.contains(INTEREST5));
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user2);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         iterests = userService.getInterestAutocomplete(query);
         assertEquals(1, iterests.size());
         assertEquals(1, iterests.get(0).getCount());
@@ -339,7 +339,7 @@ class UserServiceTest {
         UUID uuid1 = user1.getUuid();
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         String imgMimePng = "png";
         byte[] img1 = Tools.resourceToBytes("img/profile1.png");
@@ -349,7 +349,7 @@ class UserServiceTest {
         user1 = userRepo.findById(user1.getId()).get();
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user2);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         userService.upvoteVerificationPicture(uuid1);
 
         Assertions.assertThrows(AlovoaException.class, () -> {
@@ -361,7 +361,7 @@ class UserServiceTest {
         });
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user3);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user3);
+        Mockito.doReturn(user3).when(authService).getCurrentUser(true);
         userService.downvoteVerificationPicture(uuid1);
 
         Assertions.assertThrows(AlovoaException.class, () -> {
@@ -377,7 +377,7 @@ class UserServiceTest {
         assertEquals(1, user1.getVerificationPicture().getUserNo().size());
 
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         userService.updateProfilePicture(img1, imgMimePng);
         user1 = userRepo.findById(user1.getId()).get();
         assertNull(user1.getVerificationPicture());
@@ -387,7 +387,7 @@ class UserServiceTest {
     void testGenerateVerificationCode() throws AlovoaException {
         User user1 = testUsers.get(0);
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         String code = userService.getVerificationCode();
         user1 = userRepo.findById(user1.getId()).get();
 
@@ -399,7 +399,7 @@ class UserServiceTest {
     void testOnboarding() throws Exception {
         User user1 = testUsers.get(0);
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         String imgMimePng = "png";
         byte[] img1 = Tools.resourceToBytes("img/profile1.png");

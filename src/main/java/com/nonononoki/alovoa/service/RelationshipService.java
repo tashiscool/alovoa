@@ -39,7 +39,7 @@ public class RelationshipService {
     /**
      * Get the current user's active relationship.
      */
-    public Optional<RelationshipDto> getMyRelationship() {
+    public Optional<RelationshipDto> getMyRelationship() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return relationshipRepository.findActiveRelationshipByUser(user)
                 .map(r -> toDto(r, user));
@@ -57,7 +57,7 @@ public class RelationshipService {
     /**
      * Get pending relationship requests for the current user.
      */
-    public List<RelationshipDto> getPendingRequests() {
+    public List<RelationshipDto> getPendingRequests() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return relationshipRepository.findPendingRequestsForUser(user)
                 .stream()
@@ -68,7 +68,7 @@ public class RelationshipService {
     /**
      * Get relationship requests sent by the current user.
      */
-    public List<RelationshipDto> getSentRequests() {
+    public List<RelationshipDto> getSentRequests() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return relationshipRepository.findPendingRequestsByUser(user)
                 .stream()
@@ -84,7 +84,7 @@ public class RelationshipService {
             throws AlovoaException {
 
         User currentUser = authService.getCurrentUser(true);
-        User partner = userRepository.findByUuid(partnerUuid)
+        User partner = userRepository.findOptionalByUuid(partnerUuid)
                 .orElseThrow(() -> new AlovoaException("user_not_found"));
 
         // Can't link to yourself
@@ -154,8 +154,8 @@ public class RelationshipService {
 
         // Trigger donation prompt for relationship milestone
         try {
-            donationService.triggerRelationshipMilestone(currentUser);
-            donationService.triggerRelationshipMilestone(relationship.getUser1());
+            donationService.showMilestonePrompt(currentUser, "relationship_confirmed");
+            donationService.showMilestonePrompt(relationship.getUser1(), "relationship_confirmed");
         } catch (Exception ignored) {}
 
         return toDto(relationship, currentUser);
@@ -227,7 +227,7 @@ public class RelationshipService {
 
         // Trigger donation prompt for relationship exit (AURA helped them find someone!)
         try {
-            donationService.triggerRelationshipExit(currentUser);
+            donationService.showRelationshipExitPrompt(currentUser);
         } catch (Exception ignored) {}
     }
 

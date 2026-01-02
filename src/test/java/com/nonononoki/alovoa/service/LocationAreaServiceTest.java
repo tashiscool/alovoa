@@ -96,7 +96,7 @@ class LocationAreaServiceTest {
     @Test
     void testAddFirstArea_ShouldBecomePrimary() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserLocationArea area = locationAreaService.addArea(
                 "Clarendon",
@@ -121,7 +121,7 @@ class LocationAreaServiceTest {
     @Test
     void testAddSecondArea_ShouldBecomeSecondary() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Add first area
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
@@ -145,7 +145,7 @@ class LocationAreaServiceTest {
     @Test
     void testAddThirdArea_ShouldBecomeTertiary() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Add three areas
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
@@ -170,7 +170,7 @@ class LocationAreaServiceTest {
     @Test
     void testAddFourthArea_ShouldThrowException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Add three areas (max allowed)
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
@@ -192,7 +192,7 @@ class LocationAreaServiceTest {
     @Test
     void testUpdateArea_ShouldUpdateSuccessfully() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserLocationArea area = locationAreaService.addArea(
                 "Clarendon",
@@ -224,7 +224,7 @@ class LocationAreaServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 creates an area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         UserLocationArea area = locationAreaService.addArea(
                 "Clarendon",
                 "Arlington",
@@ -236,7 +236,7 @@ class LocationAreaServiceTest {
         );
 
         // User 2 tries to update it
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         Exception exception = assertThrows(Exception.class, () -> {
             locationAreaService.updateArea(
                     area.getId(),
@@ -253,7 +253,7 @@ class LocationAreaServiceTest {
     @Test
     void testRemoveArea_NonPrimary_ShouldSucceed() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Add two areas
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
@@ -279,7 +279,7 @@ class LocationAreaServiceTest {
     @Test
     void testRemovePrimaryArea_WhenOnlyOne_ShouldThrowException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserLocationArea area = locationAreaService.addArea(
                 "Clarendon",
@@ -301,7 +301,7 @@ class LocationAreaServiceTest {
     @Test
     void testRemovePrimaryArea_WhenMultipleExist_ShouldPromoteSecondary() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserLocationArea primaryArea = locationAreaService.addArea(
                 "Clarendon",
@@ -334,7 +334,7 @@ class LocationAreaServiceTest {
     @Test
     void testGetMyAreas_ShouldReturnOrderedList() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
@@ -356,9 +356,9 @@ class LocationAreaServiceTest {
     // ============================================
 
     @Test
-    void testGetMyPreferences_ShouldCreateDefaultIfNotExists() {
+    void testGetMyPreferences_ShouldCreateDefaultIfNotExists() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserLocationPreferences prefs = locationAreaService.getMyPreferences();
 
@@ -370,9 +370,9 @@ class LocationAreaServiceTest {
     }
 
     @Test
-    void testUpdatePreferences_ShouldUpdateSuccessfully() {
+    void testUpdatePreferences_ShouldUpdateSuccessfully() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserLocationPreferences prefs = locationAreaService.updatePreferences(
                 45,
@@ -386,9 +386,9 @@ class LocationAreaServiceTest {
     }
 
     @Test
-    void testSetMovingTo_ShouldSetMovingLocation() {
+    void testSetMovingTo_ShouldSetMovingLocation() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocalDate futureDate = LocalDate.now().plusMonths(2);
         Date movingDate = Date.from(futureDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -407,9 +407,9 @@ class LocationAreaServiceTest {
     }
 
     @Test
-    void testSetMovingTo_ClearMoving_ShouldClearData() {
+    void testSetMovingTo_ClearMoving_ShouldClearData() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // First set moving to
         LocalDate futureDate = LocalDate.now().plusMonths(2);
@@ -432,7 +432,7 @@ class LocationAreaServiceTest {
     @Test
     void testEnableTravelingMode_ShouldCreateSuccessfully() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocalDate arriving = LocalDate.now().plusDays(5);
         LocalDate leaving = LocalDate.now().plusDays(10);
@@ -461,9 +461,9 @@ class LocationAreaServiceTest {
     }
 
     @Test
-    void testEnableTravelingMode_InvalidDates_ShouldThrowException() {
+    void testEnableTravelingMode_InvalidDates_ShouldThrowException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocalDate arriving = LocalDate.now().plusDays(10);
         LocalDate leaving = LocalDate.now().plusDays(5); // Before arriving
@@ -487,7 +487,7 @@ class LocationAreaServiceTest {
     @Test
     void testEnableTravelingMode_ReplacesExisting_ShouldDeleteOldOne() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocalDate arriving1 = LocalDate.now().plusDays(5);
         LocalDate leaving1 = LocalDate.now().plusDays(10);
@@ -522,7 +522,7 @@ class LocationAreaServiceTest {
     @Test
     void testDisableTravelingMode_ShouldMarkAsInactive() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocalDate arriving = LocalDate.now().plusDays(5);
         LocalDate leaving = LocalDate.now().plusDays(10);
@@ -547,12 +547,12 @@ class LocationAreaServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 adds areas
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // User 2 adds overlapping area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Ballston", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.WORK, true);
 
@@ -566,12 +566,12 @@ class LocationAreaServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 adds area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // User 2 adds different area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.WORK, true);
 
@@ -585,14 +585,14 @@ class LocationAreaServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 adds areas
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.WORK, true);
 
         // User 2 adds overlapping areas
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Ballston", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
         locationAreaService.addArea("Georgetown", "Washington", "DC",
@@ -612,17 +612,17 @@ class LocationAreaServiceTest {
         User user3 = testUsers.get(2);
 
         // User 1 adds area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
 
         // User 2 adds overlapping area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Ballston", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.WORK, true);
 
         // User 3 adds different area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user3);
+        Mockito.doReturn(user3).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Georgetown", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -635,7 +635,7 @@ class LocationAreaServiceTest {
     @Test
     void testGetLocationDisplay_ShouldReturnVisibleAreas() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
@@ -657,7 +657,7 @@ class LocationAreaServiceTest {
     @Test
     void testGetLocationDisplay_WithTravelingMode_ShouldIncludeTraveling() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
@@ -678,7 +678,7 @@ class LocationAreaServiceTest {
     @Test
     void testGetLocationDisplay_WithMovingTo_ShouldIncludeMoving() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         locationAreaService.addArea("Clarendon", "Arlington", "VA",
                 UserLocationArea.DisplayLevel.CITY, null, UserLocationArea.AreaLabel.HOME, true);
@@ -701,7 +701,7 @@ class LocationAreaServiceTest {
     @Test
     void testDisableExpiredTravelingModes_ShouldDisableExpired() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create expired traveling mode
         LocalDate arriving = LocalDate.now().minusDays(10);

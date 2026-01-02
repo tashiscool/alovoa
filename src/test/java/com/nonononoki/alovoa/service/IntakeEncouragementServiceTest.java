@@ -77,7 +77,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetLifeStats_WithBirthday() {
+    void testGetLifeStats_WithBirthday() throws Exception {
         User user = testUsers.get(0);
 
         // Set birthday to 25 years ago
@@ -117,7 +117,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetLifeStats_NoBirthday() {
+    void testGetLifeStats_NoBirthday() throws Exception {
         User user = testUsers.get(0);
 
         Map<String, Object> stats = encouragementService.getLifeStats(user);
@@ -127,7 +127,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetLifeStats_DifferentAges() {
+    void testGetLifeStats_DifferentAges() throws Exception {
         User user = testUsers.get(0);
 
         // Test with 18 year old
@@ -148,7 +148,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetStepEncouragement_Questions() {
+    void testGetStepEncouragement_Questions() throws Exception {
         String encouragement = encouragementService.getStepEncouragement("questions");
 
         assertNotNull(encouragement);
@@ -158,7 +158,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetStepEncouragement_Video() {
+    void testGetStepEncouragement_Video() throws Exception {
         String encouragement = encouragementService.getStepEncouragement("video");
 
         assertNotNull(encouragement);
@@ -166,7 +166,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetStepEncouragement_Profile() {
+    void testGetStepEncouragement_Profile() throws Exception {
         String encouragement = encouragementService.getStepEncouragement("profile");
 
         assertNotNull(encouragement);
@@ -174,7 +174,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetStepEncouragement_Photos() {
+    void testGetStepEncouragement_Photos() throws Exception {
         String encouragement = encouragementService.getStepEncouragement("photos");
 
         assertNotNull(encouragement);
@@ -182,7 +182,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetStepEncouragement_UnknownStep() {
+    void testGetStepEncouragement_UnknownStep() throws Exception {
         String encouragement = encouragementService.getStepEncouragement("unknown_step");
 
         // Should return default encouragement from questions
@@ -191,7 +191,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetStepEncouragement_Randomness() {
+    void testGetStepEncouragement_Randomness() throws Exception {
         // Call multiple times to verify randomness
         String enc1 = encouragementService.getStepEncouragement("questions");
         String enc2 = encouragementService.getStepEncouragement("questions");
@@ -215,7 +215,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetRelationshipFact() {
+    void testGetRelationshipFact() throws Exception {
         String fact = encouragementService.getRelationshipFact();
 
         assertNotNull(fact);
@@ -224,7 +224,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetRelationshipFact_Randomness() {
+    void testGetRelationshipFact_Randomness() throws Exception {
         String fact1 = encouragementService.getRelationshipFact();
 
         boolean foundDifferent = false;
@@ -239,7 +239,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetPopCultureFact() {
+    void testGetPopCultureFact() throws Exception {
         String fact = encouragementService.getPopCultureFact();
 
         assertNotNull(fact);
@@ -247,7 +247,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetPopCultureFact_Randomness() {
+    void testGetPopCultureFact_Randomness() throws Exception {
         String fact1 = encouragementService.getPopCultureFact();
 
         boolean foundDifferent = false;
@@ -262,7 +262,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetHobbyInsight() {
+    void testGetHobbyInsight() throws Exception {
         String insight = encouragementService.getHobbyInsight();
 
         assertNotNull(insight);
@@ -270,7 +270,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetHobbyInsight_Randomness() {
+    void testGetHobbyInsight_Randomness() throws Exception {
         String insight1 = encouragementService.getHobbyInsight();
 
         boolean foundDifferent = false;
@@ -285,7 +285,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetCompletionMessage() {
+    void testGetCompletionMessage() throws Exception {
         String message = encouragementService.getCompletionMessage();
 
         assertNotNull(message);
@@ -294,7 +294,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetCompletionMessage_Randomness() {
+    void testGetCompletionMessage_Randomness() throws Exception {
         String msg1 = encouragementService.getCompletionMessage();
 
         boolean foundDifferent = false;
@@ -309,7 +309,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetIntakeEncouragement_WithoutBirthday() {
+    void testGetIntakeEncouragement_WithoutBirthday() throws Exception {
         User user = testUsers.get(0);
 
         Map<String, Object> encouragement = encouragementService.getIntakeEncouragement(user, "questions");
@@ -330,7 +330,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetIntakeEncouragement_WithBirthday() {
+    void testGetIntakeEncouragement_WithBirthday() throws Exception {
         User user = testUsers.get(0);
         UserDates dates = new UserDates();
         dates.setDateOfBirth(Tools.ageToDate(25));
@@ -347,7 +347,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetIntakeEncouragement_DifferentSteps() {
+    void testGetIntakeEncouragement_DifferentSteps() throws Exception {
         User user = testUsers.get(0);
 
         Map<String, Object> questionsEnc = encouragementService.getIntakeEncouragement(user, "questions");
@@ -365,7 +365,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Dealbreakers() {
+    void testGetQuestionCategoryHint_Dealbreakers() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("dealbreakers_safety");
 
         assertNotNull(hint);
@@ -373,7 +373,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Values() {
+    void testGetQuestionCategoryHint_Values() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("values_politics");
 
         assertNotNull(hint);
@@ -381,7 +381,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Relationship() {
+    void testGetQuestionCategoryHint_Relationship() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("relationship_dynamics");
 
         assertNotNull(hint);
@@ -389,7 +389,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Attachment() {
+    void testGetQuestionCategoryHint_Attachment() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("attachment_emotional");
 
         assertNotNull(hint);
@@ -397,7 +397,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Lifestyle() {
+    void testGetQuestionCategoryHint_Lifestyle() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("lifestyle_compatibility");
 
         assertNotNull(hint);
@@ -405,7 +405,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Family() {
+    void testGetQuestionCategoryHint_Family() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("family_future");
 
         assertNotNull(hint);
@@ -413,7 +413,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Intimacy() {
+    void testGetQuestionCategoryHint_Intimacy() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("sex_intimacy");
 
         assertNotNull(hint);
@@ -421,7 +421,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Personality() {
+    void testGetQuestionCategoryHint_Personality() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("personality_temperament");
 
         assertNotNull(hint);
@@ -429,7 +429,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Hypotheticals() {
+    void testGetQuestionCategoryHint_Hypotheticals() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("hypotheticals_scenarios");
 
         assertNotNull(hint);
@@ -437,7 +437,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Location() {
+    void testGetQuestionCategoryHint_Location() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("location_specific");
 
         assertNotNull(hint);
@@ -445,7 +445,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_Unknown() {
+    void testGetQuestionCategoryHint_Unknown() throws Exception {
         String hint = encouragementService.getQuestionCategoryHint("unknown_category");
 
         assertNotNull(hint);
@@ -453,7 +453,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetQuestionCategoryHint_CaseInsensitive() {
+    void testGetQuestionCategoryHint_CaseInsensitive() throws Exception {
         String hint1 = encouragementService.getQuestionCategoryHint("dealbreakers_safety");
         String hint2 = encouragementService.getQuestionCategoryHint("DEALBREAKERS_SAFETY");
         String hint3 = encouragementService.getQuestionCategoryHint("DeAlBrEaKeRs_SaFeTy");
@@ -464,7 +464,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetVideoTips() {
+    void testGetVideoTips() throws Exception {
         List<String> tips = encouragementService.getVideoTips();
 
         assertNotNull(tips);
@@ -479,7 +479,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testGetPlatformStats() {
+    void testGetPlatformStats() throws Exception {
         Map<String, Object> stats = encouragementService.getPlatformStats();
 
         assertNotNull(stats);
@@ -508,7 +508,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testProgressMessage_Questions() {
+    void testProgressMessage_Questions() throws Exception {
         User user = testUsers.get(0);
         Map<String, Object> encouragement = encouragementService.getIntakeEncouragement(user, "questions");
 
@@ -518,7 +518,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testProgressMessage_Video() {
+    void testProgressMessage_Video() throws Exception {
         User user = testUsers.get(0);
         Map<String, Object> encouragement = encouragementService.getIntakeEncouragement(user, "video");
 
@@ -528,7 +528,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testProgressMessage_Photos() {
+    void testProgressMessage_Photos() throws Exception {
         User user = testUsers.get(0);
         Map<String, Object> encouragement = encouragementService.getIntakeEncouragement(user, "photos");
 
@@ -538,7 +538,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testProgressMessage_Complete() {
+    void testProgressMessage_Complete() throws Exception {
         User user = testUsers.get(0);
         Map<String, Object> encouragement = encouragementService.getIntakeEncouragement(user, "complete");
 
@@ -549,7 +549,7 @@ class IntakeEncouragementServiceTest {
     }
 
     @Test
-    void testAllEncouragementVariety() {
+    void testAllEncouragementVariety() throws Exception {
         // Test that we have variety in all encouragement types
         int iterations = 50;
 

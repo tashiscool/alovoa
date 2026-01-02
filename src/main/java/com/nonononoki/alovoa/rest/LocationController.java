@@ -41,7 +41,7 @@ public class LocationController {
      * Get all location areas for current user.
      */
     @GetMapping("/areas")
-    public ResponseEntity<List<UserLocationArea>> getMyAreas() {
+    public ResponseEntity<List<UserLocationArea>> getMyAreas() throws AlovoaException {
         return ResponseEntity.ok(locationService.getMyAreas());
     }
 
@@ -108,7 +108,7 @@ public class LocationController {
      * Get location preferences for current user.
      */
     @GetMapping("/preferences")
-    public ResponseEntity<UserLocationPreferences> getPreferences() {
+    public ResponseEntity<UserLocationPreferences> getPreferences() throws AlovoaException {
         return ResponseEntity.ok(locationService.getMyPreferences());
     }
 
@@ -116,7 +116,7 @@ public class LocationController {
      * Update location preferences.
      */
     @PutMapping("/preferences")
-    public ResponseEntity<UserLocationPreferences> updatePreferences(@RequestBody PreferencesRequest request) {
+    public ResponseEntity<UserLocationPreferences> updatePreferences(@RequestBody PreferencesRequest request) throws AlovoaException {
         UserLocationPreferences prefs = locationService.updatePreferences(
                 request.maxTravelMinutes,
                 request.requireAreaOverlap,
@@ -129,7 +129,7 @@ public class LocationController {
      * Set "moving to" location.
      */
     @PostMapping("/moving-to")
-    public ResponseEntity<UserLocationPreferences> setMovingTo(@RequestBody MovingToRequest request) {
+    public ResponseEntity<UserLocationPreferences> setMovingTo(@RequestBody MovingToRequest request) throws AlovoaException {
         UserLocationPreferences prefs = locationService.setMovingTo(
                 request.city,
                 request.state,
@@ -142,7 +142,7 @@ public class LocationController {
      * Clear "moving to" location.
      */
     @DeleteMapping("/moving-to")
-    public ResponseEntity<UserLocationPreferences> clearMovingTo() {
+    public ResponseEntity<UserLocationPreferences> clearMovingTo() throws AlovoaException {
         UserLocationPreferences prefs = locationService.setMovingTo(null, null, null);
         return ResponseEntity.ok(prefs);
     }
@@ -155,7 +155,7 @@ public class LocationController {
      * Get current traveling mode status.
      */
     @GetMapping("/traveling")
-    public ResponseEntity<?> getTravelingMode() {
+    public ResponseEntity<?> getTravelingMode() throws AlovoaException {
         Optional<UserTravelingMode> traveling = locationService.getMyTravelingMode();
         if (traveling.isPresent()) {
             return ResponseEntity.ok(traveling.get());
@@ -187,7 +187,7 @@ public class LocationController {
      * Disable traveling mode.
      */
     @DeleteMapping("/traveling")
-    public ResponseEntity<?> disableTravelingMode() {
+    public ResponseEntity<?> disableTravelingMode() throws AlovoaException {
         locationService.disableTravelingMode();
         return ResponseEntity.ok(Map.of("success", true));
     }
@@ -200,7 +200,7 @@ public class LocationController {
      * Get date spots in all of user's areas.
      */
     @GetMapping("/date-spots")
-    public ResponseEntity<Map<String, List<DateSpotSuggestion>>> getDateSpots() {
+    public ResponseEntity<Map<String, List<DateSpotSuggestion>>> getDateSpots() throws AlovoaException {
         return ResponseEntity.ok(dateSpotService.getSpotsInMyAreas());
     }
 

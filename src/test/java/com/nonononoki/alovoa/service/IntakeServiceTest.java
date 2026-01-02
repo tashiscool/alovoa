@@ -102,7 +102,7 @@ class IntakeServiceTest {
     @Test
     void testGetIntakeProgress_NewUser() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         IntakeProgressDto progress = intakeService.getIntakeProgress();
 
@@ -121,7 +121,7 @@ class IntakeServiceTest {
     @Test
     void testGetCoreQuestions() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<Map<String, Object>> questions = intakeService.getCoreQuestions();
 
@@ -143,7 +143,7 @@ class IntakeServiceTest {
     @Test
     void testSubmitCoreAnswers() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create test question
         AssessmentQuestion question = createSingleCoreQuestion("dealbreakers_safety", "Q1");
@@ -170,7 +170,7 @@ class IntakeServiceTest {
     @Test
     void testSubmitCoreAnswers_UpdateExisting() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         AssessmentQuestion question = createSingleCoreQuestion("dealbreakers_safety", "Q2");
 
@@ -195,7 +195,7 @@ class IntakeServiceTest {
     @Test
     void testUploadVideoIntroduction() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(s3StorageService.uploadMedia(any(), any(), any())).thenReturn("test-s3-key");
 
         // Mark questions as complete first
@@ -227,7 +227,7 @@ class IntakeServiceTest {
     @Test
     void testUploadVideoIntroduction_WithSkipAi() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(s3StorageService.uploadMedia(any(), any(), any())).thenReturn("test-s3-key");
 
         // Mark questions as complete
@@ -256,7 +256,7 @@ class IntakeServiceTest {
     @Test
     void testUploadVideoIntroduction_InvalidFormat() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Mark questions as complete
         UserIntakeProgress progress = getOrCreateProgress(user);
@@ -279,7 +279,7 @@ class IntakeServiceTest {
     @Test
     void testSubmitManualProfileInfo() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(s3StorageService.uploadMedia(any(), any(), any())).thenReturn("test-s3-key");
 
         // Upload video first
@@ -319,7 +319,7 @@ class IntakeServiceTest {
     @Test
     void testSubmitManualProfileInfo_NoVideoUploaded() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, String> profileInfo = new HashMap<>();
         profileInfo.put("worldview", "Test worldview");
@@ -332,7 +332,7 @@ class IntakeServiceTest {
     @Test
     void testSkipVideoAnalysis() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(s3StorageService.uploadMedia(any(), any(), any())).thenReturn("test-s3-key");
 
         // Upload video first
@@ -528,7 +528,7 @@ class IntakeServiceTest {
     @Test
     void testUploadAudioIntroduction() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         MockMultipartFile audioFile = new MockMultipartFile(
                 "audio",
@@ -551,7 +551,7 @@ class IntakeServiceTest {
     @Test
     void testUploadAudioIntroduction_InvalidFormat() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         MockMultipartFile textFile = new MockMultipartFile(
                 "audio",
@@ -568,7 +568,7 @@ class IntakeServiceTest {
     @Test
     void testProgressPercentageCalculation() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // 0% initially
         IntakeProgressDto progress = intakeService.getIntakeProgress();

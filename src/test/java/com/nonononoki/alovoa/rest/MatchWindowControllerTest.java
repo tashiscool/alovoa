@@ -85,7 +85,7 @@ class MatchWindowControllerTest {
     @DisplayName("GET /api/v1/match-windows/pending - Returns pending decisions")
     void testGetPendingDecisions() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<MatchWindow> mockWindows = new ArrayList<>();
         Mockito.when(windowService.getPendingDecisions()).thenReturn(mockWindows);
@@ -101,7 +101,7 @@ class MatchWindowControllerTest {
     @DisplayName("GET /api/v1/match-windows/waiting - Returns waiting matches")
     void testGetWaitingMatches() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<MatchWindow> mockWindows = new ArrayList<>();
         Mockito.when(windowService.getWaitingMatches()).thenReturn(mockWindows);
@@ -116,7 +116,7 @@ class MatchWindowControllerTest {
     @DisplayName("GET /api/v1/match-windows/confirmed - Returns confirmed matches")
     void testGetConfirmedMatches() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<MatchWindow> mockWindows = new ArrayList<>();
         Mockito.when(windowService.getConfirmedMatches()).thenReturn(mockWindows);
@@ -131,7 +131,7 @@ class MatchWindowControllerTest {
     @DisplayName("GET /api/v1/match-windows/pending/count - Returns pending count")
     void testGetPendingCount() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.when(windowService.getPendingCount()).thenReturn(5);
 
@@ -145,7 +145,7 @@ class MatchWindowControllerTest {
     @DisplayName("GET /api/v1/match-windows/{uuid} - Returns specific window")
     void testGetWindow() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UUID uuid = UUID.randomUUID();
         MatchWindow mockWindow = new MatchWindow();
@@ -160,7 +160,7 @@ class MatchWindowControllerTest {
     @DisplayName("GET /api/v1/match-windows/{uuid} - Returns 404 when window not found")
     void testGetWindowNotFound() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UUID uuid = UUID.randomUUID();
         Mockito.when(windowService.getWindow(uuid)).thenReturn(Optional.empty());
@@ -174,7 +174,7 @@ class MatchWindowControllerTest {
     @DisplayName("POST /api/v1/match-windows/{uuid}/confirm - Confirms interest in match")
     void testConfirmInterest() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UUID uuid = UUID.randomUUID();
         MatchWindow mockWindow = new MatchWindow();
@@ -191,7 +191,7 @@ class MatchWindowControllerTest {
     @DisplayName("POST /api/v1/match-windows/{uuid}/confirm - Handles exception")
     void testConfirmInterestException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UUID uuid = UUID.randomUUID();
         Mockito.when(windowService.confirmInterest(uuid))
@@ -207,7 +207,7 @@ class MatchWindowControllerTest {
     @DisplayName("POST /api/v1/match-windows/{uuid}/decline - Declines a match")
     void testDeclineMatch() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UUID uuid = UUID.randomUUID();
         MatchWindow mockWindow = new MatchWindow();
@@ -224,7 +224,7 @@ class MatchWindowControllerTest {
     @DisplayName("POST /api/v1/match-windows/{uuid}/decline - Handles exception")
     void testDeclineMatchException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UUID uuid = UUID.randomUUID();
         Mockito.when(windowService.declineMatch(uuid))
@@ -240,7 +240,7 @@ class MatchWindowControllerTest {
     @DisplayName("POST /api/v1/match-windows/{uuid}/extend - Requests extension")
     void testRequestExtension() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UUID uuid = UUID.randomUUID();
         MatchWindow mockWindow = new MatchWindow();
@@ -257,7 +257,7 @@ class MatchWindowControllerTest {
     @DisplayName("POST /api/v1/match-windows/{uuid}/extend - Handles exception when extension already used")
     void testRequestExtensionAlreadyUsed() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UUID uuid = UUID.randomUUID();
         Mockito.when(windowService.requestExtension(uuid))
@@ -273,7 +273,7 @@ class MatchWindowControllerTest {
     @DisplayName("GET /api/v1/match-windows/dashboard - Returns dashboard with all sections")
     void testGetDashboard() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<MatchWindow> pending = new ArrayList<>();
         List<MatchWindow> waiting = new ArrayList<>();
@@ -297,7 +297,7 @@ class MatchWindowControllerTest {
     @DisplayName("GET /api/v1/match-windows/pending/count - Returns zero when no pending")
     void testGetPendingCountZero() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.when(windowService.getPendingCount()).thenReturn(0);
 

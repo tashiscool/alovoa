@@ -3,7 +3,7 @@ package com.nonononoki.alovoa.service;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserAccountabilityReport;
 import com.nonononoki.alovoa.entity.user.UserAccountabilityReport.*;
-import com.nonononoki.alovoa.entity.user.UserBehaviorEvent.BehaviorType;
+import com.nonononoki.alovoa.entity.user.UserAccountabilityReport.BehaviorType;
 import com.nonononoki.alovoa.repo.ConversationRepository;
 import com.nonononoki.alovoa.repo.UserAccountabilityReportRepository;
 import com.nonononoki.alovoa.repo.UserRepository;
@@ -91,7 +91,7 @@ class AccountabilityServiceTest {
                 reporter,
                 subject,
                 AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING,
+                BehaviorType.STOPPED_RESPONDING,
                 "Ghosted after matching",
                 "We matched and chatted for a week, then they stopped responding.",
                 false,
@@ -110,7 +110,7 @@ class AccountabilityServiceTest {
     }
 
     @Test
-    void testSubmitReport_CannotReportSelf() {
+    void testSubmitReport_CannotReportSelf() throws Exception {
         User user = testUsers.get(0);
 
         assertThrows(IllegalArgumentException.class, () ->
@@ -118,7 +118,7 @@ class AccountabilityServiceTest {
                         user,
                         user,
                         AccountabilityCategory.GHOSTING,
-                        BehaviorType.GHOSTING,
+                        BehaviorType.STOPPED_RESPONDING,
                         "Test",
                         "Test",
                         false,
@@ -135,7 +135,7 @@ class AccountabilityServiceTest {
                 reporter,
                 subject,
                 AccountabilityCategory.HARASSMENT,
-                BehaviorType.INAPPROPRIATE_CONTENT,
+                BehaviorType.CRUDE_BEHAVIOR,
                 "Harassment report",
                 "Received inappropriate messages.",
                 true,  // anonymous
@@ -154,7 +154,7 @@ class AccountabilityServiceTest {
                 reporter,
                 subject,
                 AccountabilityCategory.POSITIVE_EXPERIENCE,
-                BehaviorType.POSITIVE_FEEDBACK,
+                BehaviorType.RESPECTFUL_COMMUNICATOR,
                 "Great date!",
                 "We had an amazing first date. Very respectful and genuine.",
                 false,
@@ -178,7 +178,7 @@ class AccountabilityServiceTest {
                     reporter,
                     subject,
                     AccountabilityCategory.values()[i % 3],
-                    BehaviorType.GHOSTING,
+                    BehaviorType.STOPPED_RESPONDING,
                     "Report " + i,
                     "Description " + i,
                     false,
@@ -192,7 +192,7 @@ class AccountabilityServiceTest {
                         reporter,
                         subject1,
                         AccountabilityCategory.DISHONESTY,
-                        BehaviorType.MISREPRESENTATION,
+                        BehaviorType.MISREPRESENTED_RELATIONSHIP_STATUS,
                         "Too many reports",
                         "Description",
                         false,
@@ -207,7 +207,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         accountabilityService.verifyReport(report.getUuid(), true, "Verified by admin");
 
@@ -225,7 +225,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         accountabilityService.verifyReport(report.getUuid(), false, "No evidence provided");
 
@@ -241,7 +241,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         // Must verify first
         accountabilityService.verifyReport(report.getUuid(), true, "Verified");
@@ -263,7 +263,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         // Cannot publish unverified report
         assertThrows(IllegalStateException.class, () ->
@@ -277,7 +277,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         accountabilityService.submitSubjectResponse(report.getUuid(), subject,
                 "I had a family emergency and couldn't respond.");
@@ -296,7 +296,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         assertThrows(IllegalArgumentException.class, () ->
                 accountabilityService.submitSubjectResponse(report.getUuid(), other,
@@ -310,7 +310,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         accountabilityService.submitSubjectResponse(report.getUuid(), subject, "First response");
 
@@ -326,13 +326,13 @@ class AccountabilityServiceTest {
         // Create and publish some reports
         UserAccountabilityReport positive = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.POSITIVE_EXPERIENCE,
-                BehaviorType.POSITIVE_FEEDBACK, "Great!", "Great experience", false, null);
+                BehaviorType.RESPECTFUL_COMMUNICATOR, "Great!", "Great experience", false, null);
         accountabilityService.verifyReport(positive.getUuid(), true, "Verified");
         accountabilityService.publishReport(positive.getUuid(), ReportVisibility.PUBLIC);
 
         UserAccountabilityReport negative = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Ghosted", "They ghosted me", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Ghosted", "They ghosted me", false, null);
         accountabilityService.verifyReport(negative.getUuid(), true, "Verified");
         accountabilityService.publishReport(negative.getUuid(), ReportVisibility.PUBLIC);
 
@@ -354,7 +354,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.POSITIVE_EXPERIENCE,
-                BehaviorType.POSITIVE_FEEDBACK, "Great!", "Great experience", false, null);
+                BehaviorType.RESPECTFUL_COMMUNICATOR, "Great!", "Great experience", false, null);
         accountabilityService.verifyReport(report.getUuid(), true, "Verified");
         accountabilityService.publishReport(report.getUuid(), ReportVisibility.PUBLIC);
 
@@ -372,7 +372,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
         accountabilityService.verifyReport(report.getUuid(), true, "Verified");
         accountabilityService.publishReport(report.getUuid(), ReportVisibility.PUBLIC);
 
@@ -391,7 +391,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
         accountabilityService.verifyReport(report.getUuid(), true, "Verified");
         accountabilityService.publishReport(report.getUuid(), ReportVisibility.PUBLIC);
 
@@ -410,7 +410,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
         accountabilityService.verifyReport(report.getUuid(), true, "Verified");
         accountabilityService.publishReport(report.getUuid(), ReportVisibility.PUBLIC);
 
@@ -431,7 +431,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         accountabilityService.retractReport(report.getUuid(), reporter);
 
@@ -448,7 +448,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
 
         assertThrows(IllegalArgumentException.class, () ->
                 accountabilityService.retractReport(report.getUuid(), other));
@@ -461,7 +461,7 @@ class AccountabilityServiceTest {
 
         UserAccountabilityReport report = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test", "Description", false, null);
         accountabilityService.verifyReport(report.getUuid(), true, "Verified");
         accountabilityService.publishReport(report.getUuid(), ReportVisibility.PUBLIC);
 
@@ -476,10 +476,10 @@ class AccountabilityServiceTest {
 
         accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test 1", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test 1", "Description", false, null);
         accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.DISHONESTY,
-                BehaviorType.MISREPRESENTATION, "Test 2", "Description", false, null);
+                BehaviorType.MISREPRESENTED_RELATIONSHIP_STATUS, "Test 2", "Description", false, null);
 
         Page<UserAccountabilityReport> pending = accountabilityService.getPendingReports(0, 10);
 
@@ -494,11 +494,11 @@ class AccountabilityServiceTest {
         // Test various categories have different impacts
         UserAccountabilityReport harassment = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.HARASSMENT,
-                BehaviorType.INAPPROPRIATE_CONTENT, "Test", "Description", false, null);
+                BehaviorType.CRUDE_BEHAVIOR, "Test", "Description", false, null);
 
         UserAccountabilityReport ghosting = accountabilityService.submitReport(
                 reporter, subject, AccountabilityCategory.GHOSTING,
-                BehaviorType.GHOSTING, "Test2", "Description", false, null);
+                BehaviorType.STOPPED_RESPONDING, "Test2", "Description", false, null);
 
         // Harassment should have higher impact than ghosting
         assertTrue(Math.abs(harassment.getReputationImpact()) > Math.abs(ghosting.getReputationImpact()));

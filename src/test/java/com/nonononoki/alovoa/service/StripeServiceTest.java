@@ -50,6 +50,9 @@ class StripeServiceTest {
     private UserRepository userRepo;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private RegisterService registerService;
 
     @Autowired
@@ -78,7 +81,7 @@ class StripeServiceTest {
 
     @AfterEach
     void tearDown() throws Exception {
-        RegisterServiceTest.deleteAllUsers(userRepo, authService, captchaService, null, userRepo);
+        RegisterServiceTest.deleteAllUsers(userService, authService, captchaService, null, userRepo);
     }
 
     // ============================================
@@ -86,13 +89,13 @@ class StripeServiceTest {
     // ============================================
 
     @Test
-    void testIsEnabled_TestEnvironment() {
+    void testIsEnabled_TestEnvironment() throws Exception {
         // In test environment, Stripe should be disabled (no real API key)
         assertFalse(stripeService.isEnabled());
     }
 
     @Test
-    void testGetPublicKey() {
+    void testGetPublicKey() throws Exception {
         String publicKey = stripeService.getPublicKey();
         // May be null or empty in test environment
         assertNotNull(publicKey);
@@ -103,7 +106,7 @@ class StripeServiceTest {
     // ============================================
 
     @Test
-    void testCreateDonationSession_StripeDisabled_ThrowsException() {
+    void testCreateDonationSession_StripeDisabled_ThrowsException() throws Exception {
         User user = testUsers.get(0);
 
         Exception exception = assertThrows(IllegalStateException.class, () -> {
@@ -114,7 +117,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testCreateQuickDonationUrl_StripeDisabled_ThrowsException() {
+    void testCreateQuickDonationUrl_StripeDisabled_ThrowsException() throws Exception {
         Exception exception = assertThrows(IllegalStateException.class, () -> {
             stripeService.createQuickDonationUrl(1000L);
         });
@@ -127,7 +130,7 @@ class StripeServiceTest {
     // ============================================
 
     @Test
-    void testProcessWebhook_InvalidSignature_ThrowsSecurityException() {
+    void testProcessWebhook_InvalidSignature_ThrowsSecurityException() throws Exception {
         String invalidPayload = "{\"invalid\":\"json\"}";
         String invalidSignature = "invalid_signature";
 
@@ -160,7 +163,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testProcessWebhook_CheckoutCompleted_AnonymousDonation() {
+    void testProcessWebhook_CheckoutCompleted_AnonymousDonation() throws Exception {
         // Mock anonymous donation (no user ID)
         String mockPayload = createMockCheckoutCompletedPayload(
                 null,
@@ -178,7 +181,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testProcessWebhook_CheckoutCompleted_WithPromptId() {
+    void testProcessWebhook_CheckoutCompleted_WithPromptId() throws Exception {
         User user = testUsers.get(0);
 
         String mockPayload = createMockCheckoutCompletedPayload(
@@ -197,7 +200,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testProcessWebhook_NonDonationType_Ignored() {
+    void testProcessWebhook_NonDonationType_Ignored() throws Exception {
         String mockPayload = """
                 {
                     "id": "evt_test",
@@ -223,7 +226,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testProcessWebhook_InvalidAmount_HandledGracefully() {
+    void testProcessWebhook_InvalidAmount_HandledGracefully() throws Exception {
         User user = testUsers.get(0);
 
         String mockPayload = createMockCheckoutCompletedPayload(
@@ -259,7 +262,7 @@ class StripeServiceTest {
     // ============================================
 
     @Test
-    void testDonationRecording_ThroughService() {
+    void testDonationRecording_ThroughService() throws Exception {
         User user = testUsers.get(0);
         double initialDonations = user.getTotalDonations();
 
@@ -275,7 +278,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testDonationRecording_UpdatesTier() {
+    void testDonationRecording_UpdatesTier() throws Exception {
         User user = testUsers.get(0);
 
         // Small donation
@@ -300,7 +303,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testMultipleDonations_AccumulateTotals() {
+    void testMultipleDonations_AccumulateTotals() throws Exception {
         User user = testUsers.get(0);
 
         donationService.recordDonation(user, new BigDecimal("10.00"), null);
@@ -316,7 +319,7 @@ class StripeServiceTest {
     // ============================================
 
     @Test
-    void testAmountConversion_CentsToDollars() {
+    void testAmountConversion_CentsToDollars() throws Exception {
         // 1000 cents = $10.00
         long amountCents = 1000L;
         BigDecimal expected = new BigDecimal("10.00");
@@ -326,7 +329,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testAmountConversion_LargeDonation() {
+    void testAmountConversion_LargeDonation() throws Exception {
         // 100000 cents = $1000.00
         long amountCents = 100000L;
         BigDecimal expected = new BigDecimal("1000.00");
@@ -336,7 +339,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testAmountConversion_SmallDonation() {
+    void testAmountConversion_SmallDonation() throws Exception {
         // 100 cents = $1.00
         long amountCents = 100L;
         BigDecimal expected = new BigDecimal("1.00");
@@ -350,7 +353,7 @@ class StripeServiceTest {
     // ============================================
 
     @Test
-    void testDonationRecording_NullPromptId_Success() {
+    void testDonationRecording_NullPromptId_Success() throws Exception {
         User user = testUsers.get(0);
 
         // Should work without prompt ID
@@ -361,7 +364,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testDonationRecording_InvalidPromptId_Success() {
+    void testDonationRecording_InvalidPromptId_Success() throws Exception {
         User user = testUsers.get(0);
 
         // Should work even with invalid prompt ID
@@ -372,7 +375,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testDonationStreak_FirstDonation() {
+    void testDonationStreak_FirstDonation() throws Exception {
         User user = testUsers.get(0);
 
         donationService.recordDonation(user, new BigDecimal("10.00"), null);
@@ -509,7 +512,7 @@ class StripeServiceTest {
     // ============================================
 
     @Test
-    void testProcessWebhook_PaymentIntentSucceeded() {
+    void testProcessWebhook_PaymentIntentSucceeded() throws Exception {
         String mockPayload = createMockPaymentIntentPayload(5000L);
 
         try {
@@ -521,7 +524,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testProcessWebhook_ChargeSucceeded() {
+    void testProcessWebhook_ChargeSucceeded() throws Exception {
         String mockPayload = createMockChargeSucceededPayload(2500L);
 
         try {
@@ -533,7 +536,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testProcessWebhook_ChargeRefunded() {
+    void testProcessWebhook_ChargeRefunded() throws Exception {
         String mockPayload = createMockChargeRefundedPayload(5000L, 5000L);
 
         try {
@@ -545,7 +548,7 @@ class StripeServiceTest {
     }
 
     @Test
-    void testProcessWebhook_UnhandledEventType_NoError() {
+    void testProcessWebhook_UnhandledEventType_NoError() throws Exception {
         String mockPayload = """
                 {
                     "id": "evt_test",

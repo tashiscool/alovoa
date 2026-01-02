@@ -3,6 +3,7 @@ package com.nonononoki.alovoa.service;
 import com.nonononoki.alovoa.entity.DonationPrompt;
 import com.nonononoki.alovoa.entity.DonationPrompt.PromptType;
 import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.entity.User.DonationTier;
 import com.nonononoki.alovoa.repo.DonationPromptRepository;
 import com.nonononoki.alovoa.repo.UserRepository;
@@ -236,7 +237,7 @@ public class DonationService {
      * Record a donation from current user.
      */
     @Transactional
-    public void recordCurrentUserDonation(BigDecimal amount, Long promptId) {
+    public void recordCurrentUserDonation(BigDecimal amount, Long promptId) throws AlovoaException {
         User user = authService.getCurrentUser(true);
         recordDonation(user, amount, promptId);
     }
@@ -421,7 +422,7 @@ public class DonationService {
     /**
      * Get current user's donation history.
      */
-    public Map<String, Object> getCurrentUserDonationInfo() {
+    public Map<String, Object> getCurrentUserDonationInfo() throws AlovoaException {
         User user = authService.getCurrentUser(true);
 
         Map<String, Object> info = new HashMap<>();

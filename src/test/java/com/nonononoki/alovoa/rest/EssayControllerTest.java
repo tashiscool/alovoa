@@ -80,7 +80,7 @@ class EssayControllerTest {
 
         // Ensure templates exist
         if (essayTemplateRepo.count() == 0) {
-            essayTemplateRepo.saveAll(EssayPromptTemplate.getDefaultTemplates());
+            essayTemplateRepo.saveAll(List.of(EssayPromptTemplate.getDefaultTemplates()));
         }
     }
 
@@ -104,7 +104,7 @@ class EssayControllerTest {
     @DisplayName("GET /api/v1/essays - Get user essays")
     void testGetUserEssays() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/api/v1/essays"))
                 .andExpect(status().isOk())
@@ -117,7 +117,7 @@ class EssayControllerTest {
     @DisplayName("POST /api/v1/essays/{promptId} - Save single essay")
     void testSaveEssay() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, String> request = new HashMap<>();
         request.put("text", "This is my self summary essay.");
@@ -138,7 +138,7 @@ class EssayControllerTest {
     @DisplayName("POST /api/v1/essays - Save multiple essays")
     void testSaveMultipleEssays() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, String> essays = new HashMap<>();
         essays.put("1", "Self summary content");
@@ -156,7 +156,7 @@ class EssayControllerTest {
     @DisplayName("POST /api/v1/essays/{promptId} - Invalid prompt ID returns error")
     void testInvalidPromptId() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, String> request = new HashMap<>();
         request.put("text", "Some text");
@@ -172,7 +172,7 @@ class EssayControllerTest {
     @DisplayName("POST /api/v1/essays/{promptId} - Essay too long returns error")
     void testEssayTooLong() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, String> request = new HashMap<>();
         request.put("text", "x".repeat(2001));
@@ -188,7 +188,7 @@ class EssayControllerTest {
     @DisplayName("DELETE /api/v1/essays/{promptId} - Delete essay")
     void testDeleteEssay() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // First save an essay
         Map<String, String> request = new HashMap<>();
@@ -214,7 +214,7 @@ class EssayControllerTest {
     @DisplayName("GET /api/v1/essays/count - Get filled essay count")
     void testGetFilledCount() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Initially 0
         mockMvc.perform(get("/api/v1/essays/count"))

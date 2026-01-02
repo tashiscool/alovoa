@@ -329,7 +329,7 @@ class VideoAnalysisServiceTest {
     }
 
     @Test
-    void testGetAnalysisStatus_NonExistentVideo() {
+    void testGetAnalysisStatus_NonExistentVideo() throws Exception {
         assertNull(videoAnalysisService.getAnalysisStatus(99999L));
     }
 
@@ -466,7 +466,7 @@ class VideoAnalysisServiceTest {
     }
 
     @Test
-    void testRetryAnalysis_NonExistentVideo() {
+    void testRetryAnalysis_NonExistentVideo() throws Exception {
         // Should not throw exception
         assertDoesNotThrow(() -> videoAnalysisService.retryAnalysis(99999L));
     }
@@ -474,7 +474,7 @@ class VideoAnalysisServiceTest {
     // === Provider Availability Tests ===
 
     @Test
-    void testIsProviderAvailable() {
+    void testIsProviderAvailable() throws Exception {
         Mockito.when(aiProvider.isAvailable()).thenReturn(true);
         assertTrue(videoAnalysisService.isProviderAvailable());
 
@@ -483,7 +483,7 @@ class VideoAnalysisServiceTest {
     }
 
     @Test
-    void testGetProviderName() {
+    void testGetProviderName() throws Exception {
         Mockito.when(aiProvider.getProviderName()).thenReturn("openai");
         assertEquals("openai", videoAnalysisService.getProviderName());
 

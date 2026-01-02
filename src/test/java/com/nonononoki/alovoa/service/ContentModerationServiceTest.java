@@ -128,7 +128,7 @@ class ContentModerationServiceTest {
     // === Text Moderation Tests ===
 
     @Test
-    void testModerateContent_CleanText_Allowed() {
+    void testModerateContent_CleanText_Allowed() throws Exception {
         String cleanText = "Hello, this is a nice message!";
 
         ModerationResult result = moderationService.moderateContent(cleanText);
@@ -139,7 +139,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testModerateContent_NullContent_Allowed() {
+    void testModerateContent_NullContent_Allowed() throws Exception {
         ModerationResult result = moderationService.moderateContent(null);
 
         assertTrue(result.isAllowed());
@@ -147,7 +147,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testModerateContent_EmptyContent_Allowed() {
+    void testModerateContent_EmptyContent_Allowed() throws Exception {
         ModerationResult result = moderationService.moderateContent("");
         assertTrue(result.isAllowed());
 
@@ -156,7 +156,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testKeywordFilter_BlockedWord_Blocked() {
+    void testKeywordFilter_BlockedWord_Blocked() throws Exception {
         String textWithBlockedWord = "This contains badword1 in the message";
 
         ModerationResult result = moderationService.moderateContent(textWithBlockedWord);
@@ -168,7 +168,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testKeywordFilter_BlockedWordCaseInsensitive_Blocked() {
+    void testKeywordFilter_BlockedWordCaseInsensitive_Blocked() throws Exception {
         String textWithBlockedWord = "This contains BADWORD1 in uppercase";
 
         ModerationResult result = moderationService.moderateContent(textWithBlockedWord);
@@ -178,7 +178,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testKeywordFilter_MultipleBlockedWords_BlockedOnFirst() {
+    void testKeywordFilter_MultipleBlockedWords_BlockedOnFirst() throws Exception {
         String textWithMultipleBlocked = "This has badword1 and badword2";
 
         ModerationResult result = moderationService.moderateContent(textWithMultipleBlocked);
@@ -188,7 +188,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testKeywordFilter_WarningWord_Allowed() {
+    void testKeywordFilter_WarningWord_Allowed() throws Exception {
         // Warning words log but don't block
         String textWithWarning = "Please caution when reading this";
 
@@ -366,7 +366,7 @@ class ContentModerationServiceTest {
     // === Moderation Event Logging Tests ===
 
     @Test
-    void testModerationEventLogging_BlockedContent() {
+    void testModerationEventLogging_BlockedContent() throws Exception {
         User user = testUsers.get(0);
         String contentType = "MESSAGE";
         String toxicContent = "Content with badword1";
@@ -393,7 +393,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testModerationEventLogging_AllowedContent() {
+    void testModerationEventLogging_AllowedContent() throws Exception {
         User user = testUsers.get(0);
         String contentType = "PROFILE";
         String cleanContent = "Nice clean content";
@@ -416,7 +416,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testModerationEventLogging_NoUserOrContentType() {
+    void testModerationEventLogging_NoUserOrContentType() throws Exception {
         String content = "Some content";
 
         long initialCount = moderationEventRepo.count();
@@ -433,7 +433,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testGetBlockedContentCount() {
+    void testGetBlockedContentCount() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
@@ -455,7 +455,7 @@ class ContentModerationServiceTest {
     // === Configuration Tests ===
 
     @Test
-    void testModeration_Disabled() {
+    void testModeration_Disabled() throws Exception {
         ReflectionTestUtils.setField(moderationService, "moderationEnabled", false);
 
         String toxicContent = "badword1 badword2 offensive";
@@ -498,7 +498,7 @@ class ContentModerationServiceTest {
     // === Edge Cases ===
 
     @Test
-    void testModerateContent_VeryLongText() {
+    void testModerateContent_VeryLongText() throws Exception {
         String longText = "clean text ".repeat(1000);
 
         ModerationResult result = moderationService.moderateContent(longText);
@@ -507,7 +507,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testModerateContent_SpecialCharacters() {
+    void testModerateContent_SpecialCharacters() throws Exception {
         String specialChars = "!@#$%^&*()_+-=[]{}|;:',.<>?/~`";
 
         ModerationResult result = moderationService.moderateContent(specialChars);
@@ -516,7 +516,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testModerateContent_Unicode() {
+    void testModerateContent_Unicode() throws Exception {
         String unicode = "Hello 世界 🌍 Привет مرحبا";
 
         ModerationResult result = moderationService.moderateContent(unicode);
@@ -525,7 +525,7 @@ class ContentModerationServiceTest {
     }
 
     @Test
-    void testModerateContent_MultipleContentTypes() {
+    void testModerateContent_MultipleContentTypes() throws Exception {
         User user = testUsers.get(0);
 
         moderationService.moderateContent("test", user, "MESSAGE");

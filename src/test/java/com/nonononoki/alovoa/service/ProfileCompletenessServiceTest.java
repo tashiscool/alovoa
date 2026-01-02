@@ -1,10 +1,13 @@
 package com.nonononoki.alovoa.service;
 
 import com.nonononoki.alovoa.entity.User;
+import com.nonononoki.alovoa.entity.user.UserAudio;
 import com.nonononoki.alovoa.entity.user.UserInterest;
 import com.nonononoki.alovoa.entity.user.UserPersonalityProfile;
 import com.nonononoki.alovoa.entity.user.UserProfileDetails;
+import com.nonononoki.alovoa.entity.user.UserProfilePicture;
 import com.nonononoki.alovoa.entity.user.UserVideo;
+import com.nonononoki.alovoa.entity.user.UserVideoVerification;
 import com.nonononoki.alovoa.model.ProfileCompletenessDto;
 import com.nonononoki.alovoa.repo.ConversationRepository;
 import com.nonononoki.alovoa.repo.UserRepository;
@@ -81,7 +84,7 @@ class ProfileCompletenessServiceTest {
     // ============================================
 
     @Test
-    void testCalculateCompleteness_EmptyProfile_ShouldReturnZeroPercent() {
+    void testCalculateCompleteness_EmptyProfile_ShouldReturnZeroPercent() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -92,7 +95,8 @@ class ProfileCompletenessServiceTest {
         user.setAudio(null);
         user.setInterests(new ArrayList<>());
         user.setProfileDetails(null);
-        user.setVideoVerified(false);
+        // Video verification is checked via videoVerification entity, not a setter
+        user.setVideoVerification(null);
         user.setPersonalityProfile(null);
         user = userRepo.saveAndFlush(user);
 
@@ -105,12 +109,14 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_FullProfile_ShouldReturn100Percent() {
+    void testCalculateCompleteness_FullProfile_ShouldReturn100Percent() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
         // Set profile picture
-        user.setProfilePicture("profile.jpg");
+        UserProfilePicture profilePic = new UserProfilePicture();
+        profilePic.setUser(user);
+        user.setProfilePicture(profilePic);
 
         // Set description (50+ chars)
         user.setDescription("This is a comprehensive description that is longer than fifty characters.");
@@ -125,7 +131,9 @@ class ProfileCompletenessServiceTest {
         user.setVideos(videos);
 
         // Set audio
-        user.setAudio("audio.mp3");
+        UserAudio userAudio = new UserAudio();
+        userAudio.setUser(user);
+        user.setAudio(userAudio);
 
         // Set interests
         UserInterest interest1 = new UserInterest();
@@ -151,8 +159,11 @@ class ProfileCompletenessServiceTest {
         details.setPets(UserProfileDetails.PetStatus.HAS_CATS);
         user.setProfileDetails(details);
 
-        // Set video verified
-        user.setVideoVerified(true);
+        // Set video verified - create a verified video verification
+        UserVideoVerification verification = new UserVideoVerification();
+        verification.setUser(user);
+        verification.setStatus(UserVideoVerification.VerificationStatus.VERIFIED);
+        user.setVideoVerification(verification);
 
         // Set personality profile
         UserPersonalityProfile personality = new UserPersonalityProfile();
@@ -184,7 +195,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_NullUser_ShouldThrowException() {
+    void testCalculateCompleteness_NullUser_ShouldThrowException() throws Exception {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             profileCompletenessService.calculateCompleteness(null);
         });
@@ -197,7 +208,7 @@ class ProfileCompletenessServiceTest {
     // ============================================
 
     @Test
-    void testCalculateCompleteness_MissingProfilePicture_ShouldDetect() {
+    void testCalculateCompleteness_MissingProfilePicture_ShouldDetect() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -212,7 +223,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_ShortDescription_ShouldNotCount() {
+    void testCalculateCompleteness_ShortDescription_ShouldNotCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -228,7 +239,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_LongDescription_ShouldCount() {
+    void testCalculateCompleteness_LongDescription_ShouldCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -243,7 +254,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_VideoWithoutIntroFlag_ShouldNotCount() {
+    void testCalculateCompleteness_VideoWithoutIntroFlag_ShouldNotCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -265,7 +276,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_MultipleVideosWithIntro_ShouldCount() {
+    void testCalculateCompleteness_MultipleVideosWithIntro_ShouldCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -293,7 +304,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_TwoInterests_ShouldNotCount() {
+    void testCalculateCompleteness_TwoInterests_ShouldNotCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -316,7 +327,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_ThreeInterests_ShouldCount() {
+    void testCalculateCompleteness_ThreeInterests_ShouldCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -339,7 +350,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_InsufficientProfileDetails_ShouldNotCount() {
+    void testCalculateCompleteness_InsufficientProfileDetails_ShouldNotCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -357,7 +368,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_SufficientProfileDetails_ShouldCount() {
+    void testCalculateCompleteness_SufficientProfileDetails_ShouldCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -378,7 +389,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_IncompletePersonalityProfile_ShouldNotCount() {
+    void testCalculateCompleteness_IncompletePersonalityProfile_ShouldNotCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -397,7 +408,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_CompletePersonalityProfile_ShouldCount() {
+    void testCalculateCompleteness_CompletePersonalityProfile_ShouldCount() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -422,12 +433,14 @@ class ProfileCompletenessServiceTest {
     // ============================================
 
     @Test
-    void testCalculateCompleteness_PartialProfile_ShouldCalculateCorrectPercentage() {
+    void testCalculateCompleteness_PartialProfile_ShouldCalculateCorrectPercentage() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
         // Add only profile picture (20 points out of 100)
-        user.setProfilePicture("profile.jpg");
+        UserProfilePicture pic = new UserProfilePicture();
+        pic.setUser(user);
+        user.setProfilePicture(pic);
         user = userRepo.saveAndFlush(user);
 
         ProfileCompletenessDto completeness = profileCompletenessService.calculateCompleteness(user);
@@ -438,12 +451,14 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_HalfwayComplete_ShouldShow50Percent() {
+    void testCalculateCompleteness_HalfwayComplete_ShouldShow50Percent() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
         // Profile picture (20) + Description (15) + Video intro (20) = 55 points
-        user.setProfilePicture("profile.jpg");
+        UserProfilePicture pic = new UserProfilePicture();
+        pic.setUser(user);
+        user.setProfilePicture(pic);
         user.setDescription("This is a comprehensive description that is longer than fifty characters.");
 
         UserVideo introVideo = new UserVideo();
@@ -462,13 +477,15 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_AdditionalPhotos_ShouldBeTracked() {
+    void testCalculateCompleteness_AdditionalPhotos_ShouldBeTracked() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
         // Mock additional images (implementation depends on User entity structure)
         // This is a placeholder - adjust based on actual implementation
-        user.setProfilePicture("profile.jpg");
+        UserProfilePicture pic = new UserProfilePicture();
+        pic.setUser(user);
+        user.setProfilePicture(pic);
 
         ProfileCompletenessDto completeness = profileCompletenessService.calculateCompleteness(user);
 
@@ -478,7 +495,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_Preferences_ShouldBeTracked() {
+    void testCalculateCompleteness_Preferences_ShouldBeTracked() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -490,7 +507,7 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_MissingItemsList_ShouldContainActionableItems() {
+    void testCalculateCompleteness_MissingItemsList_ShouldContainActionableItems() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
@@ -509,11 +526,13 @@ class ProfileCompletenessServiceTest {
     }
 
     @Test
-    void testCalculateCompleteness_CompletedItemsList_ShouldMatchCompletedFields() {
+    void testCalculateCompleteness_CompletedItemsList_ShouldMatchCompletedFields() throws Exception {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
-        user.setProfilePicture("profile.jpg");
+        UserProfilePicture pic = new UserProfilePicture();
+        pic.setUser(user);
+        user.setProfilePicture(pic);
         user.setDescription("This is a comprehensive description that is longer than fifty characters.");
         user = userRepo.saveAndFlush(user);
 

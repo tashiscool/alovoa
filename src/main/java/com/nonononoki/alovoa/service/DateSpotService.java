@@ -3,6 +3,7 @@ package com.nonononoki.alovoa.service;
 import com.nonononoki.alovoa.entity.DateSpotSuggestion;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserLocationArea;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.repo.DateSpotSuggestionRepository;
 import com.nonononoki.alovoa.repo.UserLocationAreaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,7 +191,7 @@ public class DateSpotService {
     /**
      * Get spots in all of the current user's declared areas.
      */
-    public Map<String, List<DateSpotSuggestion>> getSpotsInMyAreas() {
+    public Map<String, List<DateSpotSuggestion>> getSpotsInMyAreas() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         List<UserLocationArea> myAreas = areaRepo.findByUserOrderByDisplayOrderAsc(user);
 

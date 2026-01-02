@@ -17,7 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * @Transactional
  * public class MyIntegrationTest extends BaseIntegrationTest {
  *     @Test
- *     void testSomething() {
+ *     void testSomething() throws Exception {
  *         // test code using real database
  *     }
  * }

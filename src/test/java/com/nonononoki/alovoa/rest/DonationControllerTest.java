@@ -88,7 +88,7 @@ class DonationControllerTest {
     @DisplayName("GET /api/v1/donation/info - Get current user donation info")
     void testGetDonationInfo() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/api/v1/donation/info"))
                 .andExpect(status().isOk())
@@ -102,7 +102,7 @@ class DonationControllerTest {
     @DisplayName("POST /api/v1/donation/record - Record donation successfully")
     void testRecordDonation_Success() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/api/v1/donation/record")
                         .param("amount", "25.00"))
@@ -121,7 +121,7 @@ class DonationControllerTest {
     @DisplayName("POST /api/v1/donation/record - Record donation with prompt ID")
     void testRecordDonation_WithPromptId() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/api/v1/donation/record")
                         .param("amount", "10.00")
@@ -136,7 +136,7 @@ class DonationControllerTest {
     @DisplayName("POST /api/v1/donation/record - Upgrades donation tier")
     void testRecordDonation_UpgradesTier() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // First donation - should become SUPPORTER
         mockMvc.perform(post("/api/v1/donation/record")
@@ -161,7 +161,7 @@ class DonationControllerTest {
     @DisplayName("POST /api/v1/donation/dismiss/{promptId} - Dismiss donation prompt")
     void testDismissPrompt() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/api/v1/donation/dismiss/123"))
                 .andExpect(status().isOk())
@@ -207,7 +207,7 @@ class DonationControllerTest {
         adminUser.setAdmin(true);
         userRepo.save(adminUser);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(adminUser);
+        Mockito.doReturn(adminUser).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/api/v1/donation/stats"))
                 .andExpect(status().isOk());
@@ -221,7 +221,7 @@ class DonationControllerTest {
         regularUser.setAdmin(false);
         userRepo.save(regularUser);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(regularUser);
+        Mockito.doReturn(regularUser).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/api/v1/donation/stats"))
                 .andExpect(status().isBadRequest());
@@ -244,7 +244,7 @@ class DonationControllerTest {
     @DisplayName("POST /api/v1/donation/record - Multiple donations accumulate")
     void testMultipleDonations_Accumulate() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Record three donations
         mockMvc.perform(post("/api/v1/donation/record")
@@ -269,7 +269,7 @@ class DonationControllerTest {
     @DisplayName("GET /api/v1/donation/info - Shows correct tier after donation")
     void testGetDonationInfo_AfterDonation() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Initial state - NO_DONATION
         mockMvc.perform(get("/api/v1/donation/info"))
@@ -281,7 +281,7 @@ class DonationControllerTest {
 
         // Refresh user
         user = userRepo.findById(user.getId()).orElseThrow();
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Check updated info
         mockMvc.perform(get("/api/v1/donation/info"))
@@ -295,7 +295,7 @@ class DonationControllerTest {
     @DisplayName("POST /api/v1/donation/record - Large donation reaches FOUNDING_MEMBER tier")
     void testRecordDonation_FoundingMemberTier() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/api/v1/donation/record")
                         .param("amount", "100.00"))

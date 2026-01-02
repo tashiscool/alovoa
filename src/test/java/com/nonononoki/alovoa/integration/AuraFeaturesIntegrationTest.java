@@ -67,25 +67,25 @@ public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
         testUser = registerService.registerConfirm(token);
 
         Mockito.when(authService.getCurrentUser()).thenReturn(testUser);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(testUser);
+        Mockito.doReturn(testUser).when(authService).getCurrentUser(true);
     }
 
     @Test
-    void testUserCreatedSuccessfully() {
+    void testUserCreatedSuccessfully() throws Exception {
         assertNotNull(testUser);
         assertNotNull(testUser.getId());
         assertFalse(testUser.isAdmin());
     }
 
     @Test
-    void testUserFoundInDatabase() {
+    void testUserFoundInDatabase() throws Exception {
         Optional<User> foundUser = userRepository.findById(testUser.getId());
         assertTrue(foundUser.isPresent());
         assertEquals(testUser.getEmail(), foundUser.get().getEmail());
     }
 
     @Test
-    void testPersonalityProfileRepository() {
+    void testPersonalityProfileRepository() throws Exception {
         if (personalityProfileRepository != null) {
             // Verify repository is accessible
             long count = personalityProfileRepository.count();
@@ -94,7 +94,7 @@ public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void testReputationScoreRepository() {
+    void testReputationScoreRepository() throws Exception {
         if (reputationScoreRepository != null) {
             // Verify repository is accessible
             long count = reputationScoreRepository.count();
@@ -128,7 +128,7 @@ public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void testUserAgeCalculation() {
+    void testUserAgeCalculation() throws Exception {
         // Verify age is correctly stored
         assertNotNull(testUser.getDates());
         assertNotNull(testUser.getDates().getDateOfBirth());

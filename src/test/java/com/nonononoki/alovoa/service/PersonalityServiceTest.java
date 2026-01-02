@@ -82,7 +82,7 @@ class PersonalityServiceTest {
     }
 
     @Test
-    void testGetAssessmentQuestions() {
+    void testGetAssessmentQuestions() throws Exception {
         Map<String, Object> result = personalityService.getAssessmentQuestions();
 
         assertNotNull(result);
@@ -112,7 +112,7 @@ class PersonalityServiceTest {
     @Test
     void testSubmitAssessment() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         PersonalityAssessmentDto dto = new PersonalityAssessmentDto();
         Map<String, Integer> answers = new HashMap<>();
@@ -187,7 +187,7 @@ class PersonalityServiceTest {
     @Test
     void testGetPersonalityResults_NoProfile() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> result = personalityService.getPersonalityResults();
 
@@ -199,7 +199,7 @@ class PersonalityServiceTest {
     @Test
     void testGetPersonalityResults_WithProfile() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // First submit an assessment
         PersonalityAssessmentDto dto = new PersonalityAssessmentDto();
@@ -223,7 +223,7 @@ class PersonalityServiceTest {
     @Test
     void testRetakeAssessment() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // First submit an assessment
         PersonalityAssessmentDto dto = new PersonalityAssessmentDto();
@@ -249,7 +249,7 @@ class PersonalityServiceTest {
     @Test
     void testAttachmentStyleCalculation_Secure() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         PersonalityAssessmentDto dto = new PersonalityAssessmentDto();
         Map<String, Integer> answers = createCompleteAnswers();
@@ -270,7 +270,7 @@ class PersonalityServiceTest {
     @Test
     void testAttachmentStyleCalculation_Anxious() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         PersonalityAssessmentDto dto = new PersonalityAssessmentDto();
         Map<String, Integer> answers = createCompleteAnswers();
@@ -291,7 +291,7 @@ class PersonalityServiceTest {
     @Test
     void testAttachmentStyleCalculation_Avoidant() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         PersonalityAssessmentDto dto = new PersonalityAssessmentDto();
         Map<String, Integer> answers = createCompleteAnswers();

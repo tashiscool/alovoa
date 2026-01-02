@@ -82,7 +82,7 @@ class PoliticalAssessmentResourceTest {
     @Test
     void testValuesAssessment_NewAssessment() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         ModelAndView mav = politicalAssessmentResource.valuesAssessment();
 
@@ -96,7 +96,7 @@ class PoliticalAssessmentResourceTest {
     @Test
     void testValuesAssessment_PartiallyComplete() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create partial assessment
         UserPoliticalAssessment assessment = new UserPoliticalAssessment();
@@ -120,7 +120,7 @@ class PoliticalAssessmentResourceTest {
     @Test
     void testValuesAssessment_Approved() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create approved assessment
         UserPoliticalAssessment assessment = new UserPoliticalAssessment();
@@ -144,7 +144,7 @@ class PoliticalAssessmentResourceTest {
     @Test
     void testValuesAssessment_PendingExplanation() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create assessment requiring explanation
         UserPoliticalAssessment assessment = new UserPoliticalAssessment();
@@ -167,7 +167,7 @@ class PoliticalAssessmentResourceTest {
     @Test
     void testValuesAssessment_PendingVasectomy() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create assessment requiring vasectomy verification
         UserPoliticalAssessment assessment = new UserPoliticalAssessment();
@@ -191,7 +191,7 @@ class PoliticalAssessmentResourceTest {
     @Test
     void testValuesAssessment_Rejected() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create rejected assessment
         UserPoliticalAssessment assessment = new UserPoliticalAssessment();
@@ -214,7 +214,7 @@ class PoliticalAssessmentResourceTest {
     @Test
     void testValuesAssessment_UnderReview() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create assessment under review
         UserPoliticalAssessment assessment = new UserPoliticalAssessment();
@@ -238,7 +238,7 @@ class PoliticalAssessmentResourceTest {
     @Test
     void testValuesAssessment_StatusMessage() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         ModelAndView mav = politicalAssessmentResource.valuesAssessment();
 

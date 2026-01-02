@@ -71,7 +71,7 @@ class EssayServiceTest {
 
         // Ensure essay templates exist
         if (essayTemplateRepo.count() == 0) {
-            List<EssayPromptTemplate> templates = EssayPromptTemplate.getDefaultTemplates();
+            List<EssayPromptTemplate> templates = List.of(EssayPromptTemplate.getDefaultTemplates());
             essayTemplateRepo.saveAll(templates);
         }
     }
@@ -83,7 +83,7 @@ class EssayServiceTest {
 
     @Test
     @DisplayName("Get all essay templates returns 10 prompts")
-    void testGetAllTemplates() {
+    void testGetAllTemplates() throws Exception {
         List<EssayPromptTemplate> templates = essayService.getAllTemplates();
 
         assertEquals(10, templates.size());
@@ -96,7 +96,7 @@ class EssayServiceTest {
 
     @Test
     @DisplayName("Templates have correct content")
-    void testTemplateContent() {
+    void testTemplateContent() throws Exception {
         List<EssayPromptTemplate> templates = essayService.getAllTemplates();
 
         // Check first template (Self Summary)
@@ -116,7 +116,7 @@ class EssayServiceTest {
     @DisplayName("Get user essays returns empty answers initially")
     void testGetUserEssaysEmpty() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<EssayDto> essays = essayService.getCurrentUserEssays();
 
@@ -131,7 +131,7 @@ class EssayServiceTest {
     @DisplayName("Save essay successfully")
     void testSaveEssay() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         String essayText = "This is my self summary. I'm a test user.";
         essayService.saveEssay(EssayPromptTemplate.SELF_SUMMARY, essayText);
@@ -150,7 +150,7 @@ class EssayServiceTest {
     @DisplayName("Update existing essay")
     void testUpdateEssay() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Save initial essay
         essayService.saveEssay(EssayPromptTemplate.DOING_WITH_LIFE, "Original text");
@@ -172,7 +172,7 @@ class EssayServiceTest {
     @DisplayName("Delete essay by setting empty text")
     void testDeleteEssay() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Save essay
         essayService.saveEssay(EssayPromptTemplate.REALLY_GOOD_AT, "I'm really good at testing!");
@@ -193,7 +193,7 @@ class EssayServiceTest {
     @DisplayName("Delete essay by setting null text")
     void testDeleteEssayNull() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         essayService.saveEssay(EssayPromptTemplate.FAVORITES, "My favorite things");
         essayService.saveEssay(EssayPromptTemplate.FAVORITES, null);
@@ -211,7 +211,7 @@ class EssayServiceTest {
     @DisplayName("Save multiple essays at once")
     void testSaveMultipleEssays() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<Long, String> essays = new HashMap<>();
         essays.put(EssayPromptTemplate.SELF_SUMMARY, "My self summary");
@@ -232,9 +232,9 @@ class EssayServiceTest {
 
     @Test
     @DisplayName("Invalid prompt ID throws exception")
-    void testInvalidPromptId() {
+    void testInvalidPromptId() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Prompt ID 0 is invalid
         assertThrows(AlovoaException.class, () -> {
@@ -254,9 +254,9 @@ class EssayServiceTest {
 
     @Test
     @DisplayName("Essay too long throws exception")
-    void testEssayTooLong() {
+    void testEssayTooLong() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create a string longer than 2000 characters
         String longEssay = "x".repeat(2001);
@@ -270,7 +270,7 @@ class EssayServiceTest {
     @DisplayName("Essay at max length is accepted")
     void testEssayMaxLength() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create a string exactly 2000 characters
         String maxEssay = "x".repeat(2000);
@@ -289,7 +289,7 @@ class EssayServiceTest {
     @DisplayName("Get filled essay count")
     void testGetFilledEssayCount() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Initially no essays
         assertEquals(0, essayService.getFilledEssayCount(user));
@@ -308,7 +308,7 @@ class EssayServiceTest {
     @DisplayName("Essay text is trimmed")
     void testEssayTextTrimmed() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         essayService.saveEssay(EssayPromptTemplate.SELF_SUMMARY, "  Text with spaces  ");
 
@@ -325,7 +325,7 @@ class EssayServiceTest {
     @DisplayName("All 10 essay prompts can be filled")
     void testAllPromptsCanBeFilled() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Fill all 10 prompts
         for (long i = 1; i <= 10; i++) {
@@ -346,7 +346,7 @@ class EssayServiceTest {
     @DisplayName("Essay DTO contains all template fields")
     void testEssayDtoFields() throws AlovoaException {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<EssayDto> essays = essayService.getCurrentUserEssays();
 

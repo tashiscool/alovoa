@@ -184,12 +184,12 @@ class DateSpotServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 adds Dupont Circle
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
         // User 2 adds Dupont Circle
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.WORK, true);
 
@@ -208,12 +208,12 @@ class DateSpotServiceTest {
         User user2 = testUsers.get(1);
 
         // User 1 adds Dupont Circle
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
         // User 2 adds different area
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Georgetown", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
@@ -228,11 +228,11 @@ class DateSpotServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.WORK, true);
 
@@ -247,7 +247,7 @@ class DateSpotServiceTest {
     // ============================================
 
     @Test
-    void testGetSafeSpots_ShouldReturnOnlySafeSpots() {
+    void testGetSafeSpots_ShouldReturnOnlySafeSpots() throws Exception {
         List<DateSpotSuggestion> safeSpots = dateSpotService.getSafeSpots("Dupont Circle");
 
         assertNotNull(safeSpots);
@@ -262,7 +262,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testGetDaytimeSpots_ShouldReturnDaytimeFriendlySpots() {
+    void testGetDaytimeSpots_ShouldReturnDaytimeFriendlySpots() throws Exception {
         List<DateSpotSuggestion> daytimeSpots = dateSpotService.getDaytimeSpots("Dupont Circle");
 
         assertNotNull(daytimeSpots);
@@ -274,7 +274,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testGetBudgetFriendlySpots_ShouldReturnAffordableOptions() {
+    void testGetBudgetFriendlySpots_ShouldReturnAffordableOptions() throws Exception {
         List<DateSpotSuggestion> budgetSpots = dateSpotService.getBudgetFriendlySpots("Dupont Circle");
 
         assertNotNull(budgetSpots);
@@ -287,7 +287,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testGetSpotsByType_ShouldFilterByVenueType() {
+    void testGetSpotsByType_ShouldFilterByVenueType() throws Exception {
         List<DateSpotSuggestion> coffeeShops = dateSpotService.getSpotsByType(
                 "Dupont Circle", DateSpotSuggestion.VenueType.COFFEE_SHOP);
 
@@ -303,7 +303,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testGetTopRatedSpots_ShouldOrderByRating() {
+    void testGetTopRatedSpots_ShouldOrderByRating() throws Exception {
         List<DateSpotSuggestion> topRated = dateSpotService.getTopRatedSpots("Dupont Circle");
 
         assertNotNull(topRated);
@@ -320,7 +320,7 @@ class DateSpotServiceTest {
     // ============================================
 
     @Test
-    void testFilterSpots_ByVenueType_ShouldFilter() {
+    void testFilterSpots_ByVenueType_ShouldFilter() throws Exception {
         List<DateSpotSuggestion> allSpots = spotRepo.findByNeighborhoodAndActiveTrue("Dupont Circle");
 
         List<DateSpotSuggestion> filtered = dateSpotService.filterSpots(
@@ -338,7 +338,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testFilterSpots_ByMaxPrice_ShouldFilter() {
+    void testFilterSpots_ByMaxPrice_ShouldFilter() throws Exception {
         List<DateSpotSuggestion> allSpots = spotRepo.findByNeighborhoodAndActiveTrue("Dupont Circle");
 
         List<DateSpotSuggestion> filtered = dateSpotService.filterSpots(
@@ -356,7 +356,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testFilterSpots_RequireNearTransit_ShouldFilter() {
+    void testFilterSpots_RequireNearTransit_ShouldFilter() throws Exception {
         List<DateSpotSuggestion> allSpots = spotRepo.findByNeighborhoodAndActiveTrue("Dupont Circle");
 
         List<DateSpotSuggestion> filtered = dateSpotService.filterSpots(
@@ -374,7 +374,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testFilterSpots_RequireDaytime_ShouldFilter() {
+    void testFilterSpots_RequireDaytime_ShouldFilter() throws Exception {
         List<DateSpotSuggestion> allSpots = spotRepo.findByNeighborhoodAndActiveTrue("Dupont Circle");
 
         List<DateSpotSuggestion> filtered = dateSpotService.filterSpots(
@@ -392,7 +392,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testFilterSpots_MultipleCriteria_ShouldApplyAll() {
+    void testFilterSpots_MultipleCriteria_ShouldApplyAll() throws Exception {
         List<DateSpotSuggestion> allSpots = spotRepo.findByNeighborhoodAndActiveTrue("Dupont Circle");
 
         List<DateSpotSuggestion> filtered = dateSpotService.filterSpots(
@@ -416,7 +416,7 @@ class DateSpotServiceTest {
     // ============================================
 
     @Test
-    void testAddSpot_ShouldCreateNewSpot() {
+    void testAddSpot_ShouldCreateNewSpot() throws Exception {
         DateSpotSuggestion newSpot = new DateSpotSuggestion();
         newSpot.setNeighborhood("Adams Morgan");
         newSpot.setCity("Washington");
@@ -456,7 +456,7 @@ class DateSpotServiceTest {
     }
 
     @Test
-    void testUpdateSpot_NonexistentId_ShouldThrowException() {
+    void testUpdateSpot_NonexistentId_ShouldThrowException() throws Exception {
         DateSpotSuggestion updates = new DateSpotSuggestion();
         updates.setName("Test");
 
@@ -515,7 +515,7 @@ class DateSpotServiceTest {
     @Test
     void testGetSpotsInMyAreas_ShouldReturnSpotsInUserAreas() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Add user areas
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
@@ -540,11 +540,11 @@ class DateSpotServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.WORK, true);
 
@@ -564,11 +564,11 @@ class DateSpotServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Dupont Circle", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         locationAreaService.addArea("Georgetown", "Washington", "DC",
                 UserLocationArea.DisplayLevel.NEIGHBORHOOD, null, UserLocationArea.AreaLabel.HOME, true);
 

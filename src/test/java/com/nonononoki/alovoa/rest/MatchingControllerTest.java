@@ -87,7 +87,7 @@ class MatchingControllerTest {
     @DisplayName("GET /api/v1/matching/daily - Returns daily matches successfully")
     void testGetDailyMatchesSuccess() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "matches", List.of(),
@@ -106,7 +106,7 @@ class MatchingControllerTest {
     @DisplayName("GET /api/v1/matching/daily - Returns matches with content")
     void testGetDailyMatchesWithContent() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, Object> mockResult = Map.of(
                 "matches", List.of(Map.of("userId", 123L, "score", 85)),
@@ -126,7 +126,7 @@ class MatchingControllerTest {
     @DisplayName("GET /api/v1/matching/daily - Handles service exception")
     void testGetDailyMatchesException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.when(matchingService.getDailyMatches())
                 .thenThrow(new RuntimeException("Matching service error"));
@@ -141,7 +141,7 @@ class MatchingControllerTest {
     @DisplayName("GET /api/v1/matching/compatibility/{matchUuid} - Returns compatibility explanation")
     void testGetCompatibilityExplanation() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         String matchUuid = "550e8400-e29b-41d4-a716-446655440000";
         CompatibilityExplanationDto mockDto = new CompatibilityExplanationDto();
@@ -157,7 +157,7 @@ class MatchingControllerTest {
     @DisplayName("GET /api/v1/matching/compatibility/{matchUuid} - Handles invalid UUID")
     void testGetCompatibilityExplanationInvalidUuid() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         String matchUuid = "invalid-uuid";
         Mockito.when(matchingService.getCompatibilityExplanation(matchUuid))
@@ -173,7 +173,7 @@ class MatchingControllerTest {
     @DisplayName("GET /api/v1/matching/compatibility/{matchUuid} - Handles match not found")
     void testGetCompatibilityExplanationNotFound() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         String matchUuid = "550e8400-e29b-41d4-a716-446655440000";
         Mockito.when(matchingService.getCompatibilityExplanation(matchUuid))
@@ -189,7 +189,7 @@ class MatchingControllerTest {
     @DisplayName("GET /api/v1/matching/compatibility/{matchUuid} - Returns detailed compatibility info")
     void testGetCompatibilityExplanationDetailed() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         String matchUuid = "550e8400-e29b-41d4-a716-446655440000";
         CompatibilityExplanationDto mockDto = new CompatibilityExplanationDto();
@@ -218,7 +218,7 @@ class MatchingControllerTest {
     @DisplayName("GET /api/v1/matching/compatibility/{matchUuid} - Path variable is properly bound")
     void testCompatibilityPathVariableBinding() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         String matchUuid = "123e4567-e89b-12d3-a456-426614174000";
         CompatibilityExplanationDto mockDto = new CompatibilityExplanationDto();

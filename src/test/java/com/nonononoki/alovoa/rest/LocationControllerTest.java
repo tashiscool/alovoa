@@ -100,7 +100,7 @@ class LocationControllerTest {
     @DisplayName("GET /location/areas - Returns user's location areas")
     void testGetMyAreas() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<UserLocationArea> mockAreas = new ArrayList<>();
         Mockito.when(locationService.getMyAreas()).thenReturn(mockAreas);
@@ -115,7 +115,7 @@ class LocationControllerTest {
     @DisplayName("POST /location/areas - Adds new location area")
     void testAddArea() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocationController.AreaRequest request = new LocationController.AreaRequest();
         request.neighborhood = "Downtown";
@@ -145,7 +145,7 @@ class LocationControllerTest {
     @DisplayName("POST /location/areas - Handles exception when adding area")
     void testAddAreaException() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocationController.AreaRequest request = new LocationController.AreaRequest();
         request.neighborhood = "Downtown";
@@ -168,10 +168,10 @@ class LocationControllerTest {
     @DisplayName("PUT /location/areas/{areaId} - Updates existing area")
     void testUpdateArea() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocationController.AreaUpdateRequest request = new LocationController.AreaUpdateRequest();
-        request.displayLevel = UserLocationArea.DisplayLevel.STATE;
+        request.displayLevel = UserLocationArea.DisplayLevel.REGION;
         request.displayAs = "California";
         request.label = UserLocationArea.AreaLabel.WORK;
         request.visibleOnProfile = false;
@@ -185,7 +185,7 @@ class LocationControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        Mockito.verify(locationService).updateArea(1L, UserLocationArea.DisplayLevel.STATE,
+        Mockito.verify(locationService).updateArea(1L, UserLocationArea.DisplayLevel.REGION,
                 "California", UserLocationArea.AreaLabel.WORK, false);
     }
 
@@ -194,7 +194,7 @@ class LocationControllerTest {
     @DisplayName("DELETE /location/areas/{areaId} - Removes area")
     void testRemoveArea() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.doNothing().when(locationService).removeArea(1L);
 
@@ -214,7 +214,7 @@ class LocationControllerTest {
     @DisplayName("GET /location/preferences - Returns user preferences")
     void testGetPreferences() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserLocationPreferences mockPrefs = new UserLocationPreferences();
         Mockito.when(locationService.getMyPreferences()).thenReturn(mockPrefs);
@@ -228,7 +228,7 @@ class LocationControllerTest {
     @DisplayName("PUT /location/preferences - Updates preferences")
     void testUpdatePreferences() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocationController.PreferencesRequest request = new LocationController.PreferencesRequest();
         request.maxTravelMinutes = 30;
@@ -252,7 +252,7 @@ class LocationControllerTest {
     @DisplayName("POST /location/moving-to - Sets moving to location")
     void testSetMovingTo() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocationController.MovingToRequest request = new LocationController.MovingToRequest();
         request.city = "Austin";
@@ -276,7 +276,7 @@ class LocationControllerTest {
     @DisplayName("DELETE /location/moving-to - Clears moving to location")
     void testClearMovingTo() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserLocationPreferences mockPrefs = new UserLocationPreferences();
         Mockito.when(locationService.setMovingTo(null, null, null)).thenReturn(mockPrefs);
@@ -296,7 +296,7 @@ class LocationControllerTest {
     @DisplayName("GET /location/traveling - Returns traveling mode when active")
     void testGetTravelingModeActive() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserTravelingMode mockTraveling = new UserTravelingMode();
         Mockito.when(locationService.getMyTravelingMode()).thenReturn(Optional.of(mockTraveling));
@@ -310,7 +310,7 @@ class LocationControllerTest {
     @DisplayName("GET /location/traveling - Returns inactive when not traveling")
     void testGetTravelingModeInactive() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.when(locationService.getMyTravelingMode()).thenReturn(Optional.empty());
 
@@ -324,7 +324,7 @@ class LocationControllerTest {
     @DisplayName("POST /location/traveling - Enables traveling mode")
     void testEnableTravelingMode() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         LocationController.TravelingRequest request = new LocationController.TravelingRequest();
         request.destinationCity = "New York";
@@ -353,7 +353,7 @@ class LocationControllerTest {
     @DisplayName("DELETE /location/traveling - Disables traveling mode")
     void testDisableTravelingMode() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Mockito.doNothing().when(locationService).disableTravelingMode();
 
@@ -373,7 +373,7 @@ class LocationControllerTest {
     @DisplayName("GET /location/date-spots - Returns date spots in user's areas")
     void testGetDateSpots() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, List<DateSpotSuggestion>> mockSpots = new HashMap<>();
         mockSpots.put("Downtown", new ArrayList<>());
@@ -389,7 +389,7 @@ class LocationControllerTest {
     @DisplayName("GET /location/date-spots/safe - Returns safe spots by neighborhood")
     void testGetSafeSpots() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<DateSpotSuggestion> mockSpots = new ArrayList<>();
         Mockito.when(dateSpotService.getSafeSpots("Downtown")).thenReturn(mockSpots);
@@ -407,7 +407,7 @@ class LocationControllerTest {
     @DisplayName("GET /location/date-spots/daytime - Returns daytime-friendly spots")
     void testGetDaytimeSpots() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<DateSpotSuggestion> mockSpots = new ArrayList<>();
         Mockito.when(dateSpotService.getDaytimeSpots("Downtown")).thenReturn(mockSpots);
@@ -425,7 +425,7 @@ class LocationControllerTest {
     @DisplayName("GET /location/date-spots/budget - Returns budget-friendly spots")
     void testGetBudgetSpots() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<DateSpotSuggestion> mockSpots = new ArrayList<>();
         Mockito.when(dateSpotService.getBudgetFriendlySpots("Downtown")).thenReturn(mockSpots);
@@ -443,10 +443,10 @@ class LocationControllerTest {
     @DisplayName("GET /location/date-spots/type/{venueType} - Returns spots by venue type")
     void testGetSpotsByType() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<DateSpotSuggestion> mockSpots = new ArrayList<>();
-        Mockito.when(dateSpotService.getSpotsByType("Downtown", DateSpotSuggestion.VenueType.CAFE))
+        Mockito.when(dateSpotService.getSpotsByType("Downtown", DateSpotSuggestion.VenueType.COFFEE_SHOP))
                 .thenReturn(mockSpots);
 
         mockMvc.perform(get("/location/date-spots/type/CAFE")
@@ -454,7 +454,7 @@ class LocationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
 
-        Mockito.verify(dateSpotService).getSpotsByType("Downtown", DateSpotSuggestion.VenueType.CAFE);
+        Mockito.verify(dateSpotService).getSpotsByType("Downtown", DateSpotSuggestion.VenueType.COFFEE_SHOP);
     }
 
     // ============================================
@@ -467,7 +467,7 @@ class LocationControllerTest {
     void testCheckOverlap() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         UserLocationArea mockArea = new UserLocationArea();
         mockArea.setUser(user1);
@@ -491,7 +491,7 @@ class LocationControllerTest {
     void testCheckOverlapNoAreas() throws Exception {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Mockito.when(locationService.getMyAreas()).thenReturn(new ArrayList<>());
 

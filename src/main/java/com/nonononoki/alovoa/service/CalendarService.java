@@ -2,10 +2,11 @@ package com.nonononoki.alovoa.service;
 
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.VideoDate;
+import com.nonononoki.alovoa.model.AlovoaException;
 import com.nonononoki.alovoa.entity.user.UserCalendarSettings;
 import com.nonononoki.alovoa.entity.user.UserCalendarSettings.CalendarProvider;
 import com.nonononoki.alovoa.repo.UserCalendarSettingsRepository;
-import com.nonononoki.alovoa.repo.VideoDatRepository;
+import com.nonononoki.alovoa.repo.VideoDateRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class CalendarService {
     private UserCalendarSettingsRepository settingsRepo;
 
     @Autowired
-    private VideoDatRepository videoDateRepo;
+    private VideoDateRepository videoDateRepo;
 
     @Autowired
     private AuthService authService;
@@ -160,7 +161,7 @@ public class CalendarService {
     /**
      * Get or create calendar settings for the current user.
      */
-    public UserCalendarSettings getSettings() {
+    public UserCalendarSettings getSettings() throws AlovoaException {
         User user = authService.getCurrentUser(true);
         return settingsRepo.findByUser(user)
                 .orElseGet(() -> {
@@ -174,7 +175,7 @@ public class CalendarService {
      * Update calendar settings.
      */
     @Transactional
-    public UserCalendarSettings updateSettings(UserCalendarSettings updates) {
+    public UserCalendarSettings updateSettings(UserCalendarSettings updates) throws AlovoaException {
         User user = authService.getCurrentUser(true);
         UserCalendarSettings settings = settingsRepo.findByUser(user)
                 .orElseGet(() -> {

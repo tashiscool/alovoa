@@ -87,7 +87,7 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         RelationshipDto dto = relationshipService.sendRequest(
                 user2.getUuid(),
@@ -109,7 +109,7 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         Date anniversary = new Date();
         RelationshipDto dto = relationshipService.sendRequest(
@@ -123,9 +123,9 @@ class RelationshipServiceTest {
 
     @Test
     @DisplayName("Cannot send request to self")
-    void testCannotRequestSelf() {
+    void testCannotRequestSelf() throws Exception {
         User user1 = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         assertThrows(AlovoaException.class, () -> {
             relationshipService.sendRequest(user1.getUuid(), RelationshipType.DATING, null);
@@ -138,7 +138,7 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
         // Try to send another request
@@ -154,11 +154,11 @@ class RelationshipServiceTest {
         User user2 = testUsers.get(1);
 
         // User1 sends request
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto sentDto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
         // User2 accepts
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         RelationshipDto acceptedDto = relationshipService.acceptRequest(sentDto.getUuid());
 
         assertEquals(RelationshipStatus.CONFIRMED, acceptedDto.getStatus());
@@ -173,17 +173,17 @@ class RelationshipServiceTest {
         User user2 = testUsers.get(1);
         User user3 = testUsers.get(2);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
         // User3 (not involved) tries to accept
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user3);
+        Mockito.doReturn(user3).when(authService).getCurrentUser(true);
         assertThrows(AlovoaException.class, () -> {
             relationshipService.acceptRequest(dto.getUuid());
         });
 
         // User1 (sender) tries to accept their own request
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         assertThrows(AlovoaException.class, () -> {
             relationshipService.acceptRequest(dto.getUuid());
         });
@@ -195,10 +195,10 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         relationshipService.declineRequest(dto.getUuid());
 
         // Verify it's declined
@@ -213,7 +213,7 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
         relationshipService.cancelRequest(dto.getUuid());
@@ -229,11 +229,11 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
         // User2 (recipient) tries to cancel
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         assertThrows(AlovoaException.class, () -> {
             relationshipService.cancelRequest(dto.getUuid());
         });
@@ -246,14 +246,14 @@ class RelationshipServiceTest {
         User user2 = testUsers.get(1);
 
         // Create and accept relationship
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         relationshipService.acceptRequest(dto.getUuid());
 
         // User1 ends the relationship
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         relationshipService.endRelationship(dto.getUuid());
 
         Optional<UserRelationship> rel = relationshipRepo.findByUuid(dto.getUuid());
@@ -267,10 +267,10 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         relationshipService.acceptRequest(dto.getUuid());
 
         // User2 (recipient) ends the relationship - should work
@@ -286,10 +286,10 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         relationshipService.acceptRequest(dto.getUuid());
 
         // Update from DATING to ENGAGED
@@ -303,10 +303,10 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         relationshipService.acceptRequest(dto.getUuid());
 
         // Default should be public
@@ -327,11 +327,11 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
         // Check from user2's perspective
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         List<RelationshipDto> pending = relationshipService.getPendingRequests();
 
         assertEquals(1, pending.size());
@@ -344,7 +344,7 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
         List<RelationshipDto> sent = relationshipService.getSentRequests();
@@ -358,14 +358,14 @@ class RelationshipServiceTest {
         User user1 = testUsers.get(0);
         User user2 = testUsers.get(1);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.MARRIED, null);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         relationshipService.acceptRequest(dto.getUuid());
 
         // Check from user1's perspective
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         Optional<RelationshipDto> myRel = relationshipService.getMyRelationship();
 
         assertTrue(myRel.isPresent());
@@ -381,14 +381,14 @@ class RelationshipServiceTest {
         User user3 = testUsers.get(2);
 
         // User1 and User2 get into a relationship
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), RelationshipType.DATING, null);
 
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user2);
+        Mockito.doReturn(user2).when(authService).getCurrentUser(true);
         relationshipService.acceptRequest(dto.getUuid());
 
         // User1 tries to start another relationship with User3
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
         assertThrows(AlovoaException.class, () -> {
             relationshipService.sendRequest(user3.getUuid(), RelationshipType.DATING, null);
         });
@@ -404,7 +404,7 @@ class RelationshipServiceTest {
             // Clean up any existing relationships
             relationshipRepo.deleteAll();
 
-            Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+            Mockito.doReturn(user1).when(authService).getCurrentUser(true);
             RelationshipDto dto = relationshipService.sendRequest(user2.getUuid(), type, null);
 
             assertNotNull(dto);

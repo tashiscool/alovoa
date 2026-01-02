@@ -77,7 +77,7 @@ public class UserSettingsServiceTest {
     void testUpdateUserSettings() throws AlovoaException {
         User user1 = testUsers.get(0);
         Mockito.when(authService.getCurrentUser()).thenReturn(user1);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user1);
+        Mockito.doReturn(user1).when(authService).getCurrentUser(true);
 
         assertEquals(3, userSettingsRepo.count());
 

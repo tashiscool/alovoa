@@ -87,7 +87,7 @@ class IntakeControllerTest {
     @DisplayName("GET /intake/progress - Get intake progress")
     void testGetProgress() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/intake/progress"))
                 .andExpect(status().isOk())
@@ -101,7 +101,7 @@ class IntakeControllerTest {
     @DisplayName("GET /intake/questions - Get core questions")
     void testGetCoreQuestions() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/intake/questions"))
                 .andExpect(status().isOk())
@@ -117,7 +117,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/questions/submit - Submit answers successfully")
     void testSubmitAnswers() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
@@ -135,7 +135,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/questions/submit - Empty responses returns error")
     void testSubmitEmptyAnswers() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         List<AssessmentResponseDto> responses = new ArrayList<>();
 
@@ -151,7 +151,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/questions/submit - Null responses returns error")
     void testSubmitNullAnswers() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/intake/questions/submit")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -165,7 +165,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/video - Upload video successfully")
     void testUploadVideo() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         MockMultipartFile video = new MockMultipartFile(
                 "file",
@@ -185,7 +185,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/video - Upload video with skip AI")
     void testUploadVideoSkipAi() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         MockMultipartFile video = new MockMultipartFile(
                 "file",
@@ -205,7 +205,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/profile-info - Submit manual profile info")
     void testSubmitProfileInfo() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Map<String, String> profileInfo = new HashMap<>();
         profileInfo.put("worldview", "I believe in kindness and compassion");
@@ -223,7 +223,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/video/skip-analysis - Skip video analysis")
     void testSkipVideoAnalysis() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/intake/video/skip-analysis"))
                 .andExpect(status().isOk());
@@ -234,7 +234,7 @@ class IntakeControllerTest {
     @DisplayName("GET /intake/video/status/{videoId} - Get video status")
     void testGetVideoStatus() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/intake/video/status/1"))
                 .andExpect(status().isOk())
@@ -249,7 +249,7 @@ class IntakeControllerTest {
     @DisplayName("GET /intake/video/status/{videoId} - Non-existent video returns 404")
     void testGetVideoStatusNotFound() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/intake/video/status/999999"))
                 .andExpect(status().isNotFound());
@@ -260,7 +260,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/video/retry/{videoId} - Retry video analysis")
     void testRetryVideoAnalysis() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(post("/intake/video/retry/1"))
                 .andExpect(status().isOk())
@@ -273,7 +273,7 @@ class IntakeControllerTest {
     @DisplayName("POST /intake/audio - Upload audio successfully")
     void testUploadAudio() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         MockMultipartFile audio = new MockMultipartFile(
                 "file",
@@ -314,7 +314,7 @@ class IntakeControllerTest {
     @DisplayName("GET /intake/encouragement/{step} - Get step encouragement")
     void testGetStepEncouragement() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/intake/encouragement/questions"))
                 .andExpect(status().isOk())
@@ -326,7 +326,7 @@ class IntakeControllerTest {
     @DisplayName("GET /intake/life-stats - Get personalized life stats")
     void testGetLifeStats() throws Exception {
         User user = testUsers.get(0);
-        Mockito.when(authService.getCurrentUser(true)).thenReturn(user);
+        Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         mockMvc.perform(get("/intake/life-stats"))
                 .andExpect(status().isOk());
