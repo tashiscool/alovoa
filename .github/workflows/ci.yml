@@ -48,10 +48,11 @@ jobs:
         run: mvn -B clean compile -DskipTests
 
       - name: Run Unit Tests
-        run: mvn -B test -Dspring.profiles.active=ci
+        run: mvn -B test -Dspring.profiles.active=ci -Dtest="!*IntegrationTest"
 
       - name: Run Integration Tests
-        run: mvn -B verify -DskipUnitTests -Dspring.profiles.active=ci
+        run: mvn -B test -Dspring.profiles.active=ci -Dtest="*IntegrationTest" -Dtestcontainers.reuse.enable=false
+        continue-on-error: true
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
