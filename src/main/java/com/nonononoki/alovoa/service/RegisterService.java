@@ -106,10 +106,12 @@ public class RegisterService {
     public String register(RegisterDto dto)
             throws NoSuchAlgorithmException, AlovoaException, MessagingException, IOException {
 
-        // Validate captcha first
-        if (dto.getCaptchaId() == null || dto.getCaptchaText() == null ||
-                !captchaService.isValid(dto.getCaptchaId(), dto.getCaptchaText())) {
-            throw new AlovoaException("captcha_invalid");
+        // Validate captcha in production only (captcha validation involves IP hash checking)
+        if (!profile.equals(Tools.DEV) && !profile.equals(Tools.TEST)) {
+            if (dto.getCaptchaId() == null || dto.getCaptchaText() == null ||
+                    !captchaService.isValid(dto.getCaptchaId(), dto.getCaptchaText())) {
+                throw new AlovoaException("captcha_invalid");
+            }
         }
 
         dto.setEmail(Tools.cleanEmail(dto.getEmail()));
