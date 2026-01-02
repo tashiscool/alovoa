@@ -449,12 +449,14 @@ public class AssessmentService {
             questionData.put("id", q.getId());
             questionData.put("externalId", q.getExternalId());
             questionData.put("text", q.getText());
+            questionData.put("category", q.getCategory().name()); // Include category for filtering tests
             questionData.put("responseScale", q.getResponseScale().name());
             questionData.put("answered", answeredQuestionIds.contains(q.getId()));
 
             if (q.getDomain() != null) questionData.put("domain", q.getDomain());
             if (q.getFacet() != null) questionData.put("facet", q.getFacet());
             if (q.getSubcategory() != null) questionData.put("subcategory", q.getSubcategory());
+            if (q.getSuggestedImportance() != null) questionData.put("suggestedImportance", q.getSuggestedImportance());
 
             // Include existing response if answered
             if (answeredQuestionIds.contains(q.getId())) {

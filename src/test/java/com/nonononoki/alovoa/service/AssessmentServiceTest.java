@@ -1011,6 +1011,9 @@ class AssessmentServiceTest {
         UserAssessmentProfile profile1 = profileRepo.findByUser(user).orElse(null);
         assertNotNull(profile1);
 
+        // Snapshot the first score before reset (JPA entities are mutable)
+        Double firstAnxietyScore = profile1.getAttachmentAnxietyScore();
+
         // Reset and retake
         assessmentService.resetAssessment("ATTACHMENT");
 
@@ -1025,7 +1028,7 @@ class AssessmentServiceTest {
         assertNotNull(profile2);
 
         // Scores should be different
-        assertNotEquals(profile1.getAttachmentAnxietyScore(), profile2.getAttachmentAnxietyScore());
+        assertNotEquals(firstAnxietyScore, profile2.getAttachmentAnxietyScore());
     }
 
     @Test
