@@ -58,7 +58,7 @@ public abstract class BaseIntegrationTest {
             .withPassword("alovoa_test")
             .withUrlParam("serverTimezone", "UTC")
             .withUrlParam("useLegacyDatetimeCode", "false")
-            .withReuse(true);
+            .withStartupTimeout(Duration.ofMinutes(3));
 
     @Container
     static GenericContainer<?> minioContainer = new GenericContainer<>(DockerImageName.parse("minio/minio:latest"))
@@ -69,8 +69,7 @@ public abstract class BaseIntegrationTest {
             .waitingFor(new HttpWaitStrategy()
                     .forPath("/minio/health/live")
                     .forPort(MINIO_PORT)
-                    .withStartupTimeout(Duration.ofMinutes(2)))
-            .withReuse(true);
+                    .withStartupTimeout(Duration.ofMinutes(2)));
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -78,6 +77,13 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.url", mariaDBContainer::getJdbcUrl);
         registry.add("spring.datasource.username", mariaDBContainer::getUsername);
         registry.add("spring.datasource.password", mariaDBContainer::getPassword);
+
+        // HikariCP connection pool settings for test stability
+        registry.add("spring.datasource.hikari.maximum-pool-size", () -> "5");
+        registry.add("spring.datasource.hikari.minimum-idle", () -> "1");
+        registry.add("spring.datasource.hikari.connection-timeout", () -> "30000");
+        registry.add("spring.datasource.hikari.idle-timeout", () -> "600000");
+        registry.add("spring.datasource.hikari.max-lifetime", () -> "1800000");
 
         // S3/MinIO configuration
         registry.add("app.storage.s3.enabled", () -> "true");
