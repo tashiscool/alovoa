@@ -582,6 +582,9 @@ public class AssessmentService {
             answeredCount.merge(question.getCategory(), 1, Integer::sum);
         }
 
+        // Flush responses to ensure count queries see them
+        responseRepo.flush();
+
         // Update profile question counts
         updateProfileQuestionCounts(user, profile);
 
