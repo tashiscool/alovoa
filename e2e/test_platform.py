@@ -426,6 +426,99 @@ class TestAuraAppCapabilities(unittest.TestCase):
             print("    Database: Health details not exposed (security config)")
 
 
+class TestAuraAppEndpoints(unittest.TestCase):
+    """Smoke tests for all AURA application REST endpoints"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = SERVICES["aura-app"].url
+
+    def test_personality_assessment_endpoint(self):
+        """Test /personality/assessment endpoint exists"""
+        response = requests.get(f"{self.base_url}/personality/assessment", timeout=REQUEST_TIMEOUT)
+        # May return 401/403 for unauthenticated, but endpoint should exist
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Personality Assessment: Status {response.status_code}")
+
+    def test_reputation_endpoint(self):
+        """Test /api/v1/reputation endpoints exist"""
+        endpoints = ["/api/v1/reputation/me", "/api/v1/reputation/badges"]
+        for endpoint in endpoints:
+            response = requests.get(f"{self.base_url}{endpoint}", timeout=REQUEST_TIMEOUT)
+            self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Reputation Endpoints: Accessible")
+
+    def test_accountability_categories(self):
+        """Test /api/v1/accountability/categories endpoint"""
+        response = requests.get(f"{self.base_url}/api/v1/accountability/categories", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Accountability Categories: Status {response.status_code}")
+
+    def test_video_verification_status(self):
+        """Test /video/verification/status endpoint"""
+        response = requests.get(f"{self.base_url}/video/verification/status", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Video Verification Status: Status {response.status_code}")
+
+    def test_intake_progress(self):
+        """Test /intake/progress endpoint"""
+        response = requests.get(f"{self.base_url}/intake/progress", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Intake Progress: Status {response.status_code}")
+
+    def test_intake_questions(self):
+        """Test /intake/questions endpoint"""
+        response = requests.get(f"{self.base_url}/intake/questions", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Intake Questions: Status {response.status_code}")
+
+    def test_scaffolding_prompts(self):
+        """Test /intake/scaffolding/prompts endpoint"""
+        response = requests.get(f"{self.base_url}/intake/scaffolding/prompts", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Scaffolding Prompts: Status {response.status_code}")
+
+    def test_match_window_current(self):
+        """Test match window endpoints"""
+        response = requests.get(f"{self.base_url}/match-window/current", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Match Window: Status {response.status_code}")
+
+    def test_location_areas(self):
+        """Test location area endpoints"""
+        response = requests.get(f"{self.base_url}/location/areas", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Location Areas: Status {response.status_code}")
+
+    def test_waitlist_status(self):
+        """Test waitlist status endpoint"""
+        response = requests.get(f"{self.base_url}/waitlist/status", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Waitlist Status: Status {response.status_code}")
+
+    def test_api_search_keyword(self):
+        """Test API keyword search endpoint exists"""
+        response = requests.post(
+            f"{self.base_url}/api/v1/search/keyword",
+            json={"keyword": "test", "globalSearch": False},
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    API Keyword Search: Status {response.status_code}")
+
+    def test_essay_prompts(self):
+        """Test essay prompts endpoint"""
+        response = requests.get(f"{self.base_url}/essay/prompts", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Essay Prompts: Status {response.status_code}")
+
+    def test_matching_recommendations(self):
+        """Test matching recommendations endpoint"""
+        response = requests.get(f"{self.base_url}/matching/recommendations", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 401, 403])
+        print(f"    Matching Recommendations: Status {response.status_code}")
+
+
 class TestIntegrationScenarios(unittest.TestCase):
     """Integration scenarios testing multiple services together"""
 
@@ -567,6 +660,7 @@ def main():
     suite.addTests(loader.loadTestsFromTestCase(TestMediaServiceCapabilities))
     suite.addTests(loader.loadTestsFromTestCase(TestAIServiceCapabilities))
     suite.addTests(loader.loadTestsFromTestCase(TestAuraAppCapabilities))
+    suite.addTests(loader.loadTestsFromTestCase(TestAuraAppEndpoints))
     suite.addTests(loader.loadTestsFromTestCase(TestIntegrationScenarios))
 
     # Run tests
