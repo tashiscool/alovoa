@@ -53,7 +53,8 @@ public class CaptchaService {
 
 		OxCaptcha ox = generateCaptchaImage();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(ox.getImage(), "webp", baos);
+		// Use PNG format - WebP requires native libraries not available on all platforms
+		ImageIO.write(ox.getImage(), "png", baos);
 		byte[] ba = baos.toByteArray();
 		String encoded = Base64.getEncoder().encodeToString(ba);
 		Captcha captcha = new Captcha();

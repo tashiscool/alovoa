@@ -53,6 +53,39 @@ public class UserAssessmentResponse {
     @Column
     private Date updatedAt;
 
+    // === OKCupid-Style Matching Fields ===
+
+    /**
+     * User's importance rating for this question.
+     * Values: irrelevant, a_little, somewhat, very, mandatory
+     * Default: somewhat (weight 10)
+     */
+    @Column(length = 20)
+    private String importance;
+
+    /**
+     * JSON array of acceptable answers (OkCupid-style).
+     * For Likert 1-5, might be: [1,2] meaning only "strongly disagree" or "disagree" acceptable
+     * For multiple choice with options a-g, might be: ["a","b","c"]
+     * If null, defaults to "same answer or within 1 point"
+     */
+    @Column(columnDefinition = "text")
+    private String acceptableAnswers;
+
+    /**
+     * Optional explanation for why this answer matters to the user.
+     * Shown to matches to provide context.
+     */
+    @Column(length = 500)
+    private String explanation;
+
+    /**
+     * Whether this question should be shown publicly on profile.
+     * Default: false (private, used only for matching)
+     */
+    @Column
+    private Boolean publicVisible = false;
+
     @PrePersist
     protected void onCreate() {
         if (answeredAt == null) {

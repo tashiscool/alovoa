@@ -561,6 +561,20 @@ public class AssessmentService {
                 response.setNumericResponse(dto.getNumericResponse());
             }
 
+            // Set OKCupid-style matching fields (Marriage Machine feature)
+            if (dto.getImportance() != null && !dto.getImportance().isEmpty()) {
+                response.setImportance(dto.getImportance());
+            }
+            if (dto.getAcceptableAnswers() != null && !dto.getAcceptableAnswers().isEmpty()) {
+                response.setAcceptableAnswers(dto.getAcceptableAnswers());
+            }
+            if (dto.getExplanation() != null && !dto.getExplanation().isEmpty()) {
+                response.setExplanation(dto.getExplanation());
+            }
+            if (dto.getPublicVisible() != null) {
+                response.setPublicVisible(dto.getPublicVisible());
+            }
+
             responseRepo.save(response);
             savedQuestionIds.add(dto.getQuestionId());
 
@@ -908,11 +922,20 @@ public class AssessmentService {
 
             AssessmentQuestion question = myResponse.getQuestion();
 
-            // Get importance weight (default to "somewhat" = 10)
-            double weight = IMPORTANCE_WEIGHTS.getOrDefault("somewhat", 10.0);
+            // Get importance weight from user's actual selection (OKCupid-style)
+            // Default to "somewhat" = 10 if not specified
+            String importanceLevel = myResponse.getImportance();
+            if (importanceLevel == null || importanceLevel.isEmpty()) {
+                importanceLevel = "somewhat";
+            }
+            double weight = IMPORTANCE_WEIGHTS.getOrDefault(importanceLevel.toLowerCase(), 10.0);
 
-            // Check if their answer is acceptable to me
-            // For simplicity: same answer = fully satisfied, adjacent = partially
+            // Skip if user marked as irrelevant (weight = 0)
+            if (weight == 0) {
+                continue;
+            }
+
+            // Check if their answer is acceptable to me using OKCupid-style acceptable answers
             boolean satisfied = isAnswerAcceptable(myResponse, theirResponse, question);
 
             totalWeight += weight;
@@ -936,11 +959,25 @@ public class AssessmentService {
             return true; // Can't compare, assume acceptable
         }
 
-        // Check if their answer is a red flag
-        String theirAnswerStr = String.valueOf(theirAnswer);
-        // Red flags would be checked against question metadata in a full implementation
+        // OKCupid-style: Check against user's explicitly selected acceptable answers
+        String acceptableAnswersJson = myResponse.getAcceptableAnswers();
+        if (acceptableAnswersJson != null && !acceptableAnswersJson.trim().isEmpty()) {
+            try {
+                // Parse JSON array of acceptable answers
+                List<Integer> acceptable = objectMapper.readValue(
+                        acceptableAnswersJson,
+                        new TypeReference<List<Integer>>() {}
+                );
+                // Their answer must be in my acceptable list
+                return acceptable.contains(theirAnswer);
+            } catch (Exception e) {
+                // If JSON parsing fails, fall back to proximity matching
+                LOGGER.debug("Failed to parse acceptable answers JSON, using proximity matching", e);
+            }
+        }
 
-        // Simple matching: same answer or within 1 point is acceptable
+        // Fallback: same answer or within 1 point is acceptable
+        // This is the default behavior for users who haven't set acceptable answers
         int diff = Math.abs(myAnswer - theirAnswer);
         return diff <= 1;
     }
@@ -956,7 +993,23 @@ public class AssessmentService {
 
             AssessmentQuestion question = responseA.getQuestion();
 
-            // Check if this is a dealbreaker category question
+            // Check if EITHER user marked this question as mandatory (OKCupid-style)
+            boolean aMandatory = "mandatory".equalsIgnoreCase(responseA.getImportance());
+            boolean bMandatory = "mandatory".equalsIgnoreCase(responseB.getImportance());
+
+            if (aMandatory || bMandatory) {
+                // If mandatory, check if the other's answer is NOT acceptable
+                if (aMandatory && !isAnswerAcceptable(responseA, responseB, question)) {
+                    LOGGER.debug("Mandatory conflict: User A requires specific answer on question {}", questionId);
+                    return true;
+                }
+                if (bMandatory && !isAnswerAcceptable(responseB, responseA, question)) {
+                    LOGGER.debug("Mandatory conflict: User B requires specific answer on question {}", questionId);
+                    return true;
+                }
+            }
+
+            // Also check dealbreaker category questions with critical severity
             if (question.getCategory() == QuestionCategory.DEALBREAKER) {
                 Integer answerA = responseA.getNumericResponse();
                 Integer answerB = responseB.getNumericResponse();
@@ -1209,17 +1262,20 @@ public class AssessmentService {
 
     /**
      * Submit a single answer with validation.
+     * OKCupid-style: includes importance weighting and acceptable answers.
      */
     @Transactional
     public Map<String, Object> submitSingleAnswer(String questionId, Integer numericResponse,
-                                                   String textResponse, String importance) throws Exception {
+                                                   String textResponse, String importance,
+                                                   String acceptableAnswers, String explanation,
+                                                   Boolean publicVisible) throws Exception {
         // Validate first
         Map<String, Object> validation = validateAnswer(questionId, numericResponse, textResponse);
         if (!Boolean.TRUE.equals(validation.get("valid"))) {
             return validation;
         }
 
-        // Create DTO and submit
+        // Create DTO and submit with all OKCupid-style fields
         AssessmentResponseDto dto = new AssessmentResponseDto();
         dto.setQuestionId(questionId);
         dto.setNumericResponse(numericResponse);
@@ -1227,8 +1283,26 @@ public class AssessmentService {
         if (importance != null) {
             dto.setImportance(importance);
         }
+        if (acceptableAnswers != null) {
+            dto.setAcceptableAnswers(acceptableAnswers);
+        }
+        if (explanation != null) {
+            dto.setExplanation(explanation);
+        }
+        if (publicVisible != null) {
+            dto.setPublicVisible(publicVisible);
+        }
 
         return submitResponses(List.of(dto));
+    }
+
+    /**
+     * Convenience method for basic answer submission (backwards compatibility).
+     */
+    @Transactional
+    public Map<String, Object> submitSingleAnswer(String questionId, Integer numericResponse,
+                                                   String textResponse, String importance) throws Exception {
+        return submitSingleAnswer(questionId, numericResponse, textResponse, importance, null, null, null);
     }
 
     private Map<String, Object> buildQuestionResponse(AssessmentQuestion question, int answered, int total) {

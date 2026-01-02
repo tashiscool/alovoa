@@ -114,6 +114,52 @@ public class MatchWindow {
     @JoinColumn(name = "conversation_id")
     private Conversation conversation;
 
+    // === INTRO MESSAGE FEATURE (OkCupid-style "personality leads") ===
+
+    /**
+     * Intro message from User A before match confirmation.
+     * This is the "first message" feature that lets personality lead.
+     * Max 500 chars to encourage thoughtful, concise openers.
+     */
+    @Column(length = 500)
+    private String introMessageFromA;
+
+    /**
+     * When User A sent their intro message (null if not sent)
+     */
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date introMessageFromASentAt;
+
+    /**
+     * Intro message from User B before match confirmation.
+     */
+    @Column(length = 500)
+    private String introMessageFromB;
+
+    /**
+     * When User B sent their intro message (null if not sent)
+     */
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date introMessageFromBSentAt;
+
+    /**
+     * OkCupid-style match percentage cached in window.
+     * Displayed prominently during decision window.
+     */
+    private Double matchPercentage;
+
+    /**
+     * Category breakdown JSON for match details.
+     * e.g., {"VALUES": 94.5, "LIFESTYLE": 78.2, "ATTACHMENT": 85.0}
+     */
+    @Column(columnDefinition = "text")
+    private String matchCategoryBreakdown;
+
+    /**
+     * Whether a mandatory dealbreaker conflict exists.
+     */
+    private Boolean hasMandatoryConflict = false;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Date createdAt;
@@ -223,5 +269,69 @@ public class MatchWindow {
                (status == WindowStatus.PENDING_BOTH ||
                 status == WindowStatus.PENDING_USER_A ||
                 status == WindowStatus.PENDING_USER_B);
+    }
+
+    // === INTRO MESSAGE HELPERS ===
+
+    /**
+     * Get intro message from a specific user
+     */
+    public String getIntroMessageFrom(User user) {
+        if (user.getId().equals(userA.getId())) {
+            return introMessageFromA;
+        } else if (user.getId().equals(userB.getId())) {
+            return introMessageFromB;
+        }
+        return null;
+    }
+
+    /**
+     * Check if a user has sent an intro message
+     */
+    public boolean hasIntroMessageFrom(User user) {
+        String msg = getIntroMessageFrom(user);
+        return msg != null && !msg.trim().isEmpty();
+    }
+
+    /**
+     * Get intro message sent TO a specific user (from the other user)
+     */
+    public String getIntroMessageTo(User user) {
+        return getIntroMessageFrom(getOtherUser(user));
+    }
+
+    /**
+     * Check if this user has received an intro message
+     */
+    public boolean hasReceivedIntroMessage(User user) {
+        return hasIntroMessageFrom(getOtherUser(user));
+    }
+
+    /**
+     * Set intro message from a user
+     */
+    public void setIntroMessageFrom(User user, String message) {
+        if (user.getId().equals(userA.getId())) {
+            this.introMessageFromA = message;
+            this.introMessageFromASentAt = new Date();
+        } else if (user.getId().equals(userB.getId())) {
+            this.introMessageFromB = message;
+            this.introMessageFromBSentAt = new Date();
+        }
+    }
+
+    /**
+     * Can this user still send an intro message?
+     * Only allowed if: window not expired, no message sent yet, user is participant
+     */
+    public boolean canSendIntroMessage(User user) {
+        if (isExpired()) return false;
+        if (status == WindowStatus.CONFIRMED ||
+            status == WindowStatus.DECLINED_BY_A ||
+            status == WindowStatus.DECLINED_BY_B ||
+            status == WindowStatus.EXPIRED) {
+            return false;
+        }
+        return !hasIntroMessageFrom(user);
     }
 }

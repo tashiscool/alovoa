@@ -369,12 +369,16 @@ public class MatchingService {
                     dto.setUserId(matchUser.getId());
                     dto.setUserUuid(matchUser.getUuid().toString());
                     dto.setCompatibilityScore(score.getOverallScore());
+                    dto.setEnemyScore(score.getEnemyScore());
 
                     // Add travel time info to match
                     dto.setTravelTimeMinutes(travelInfo.getMinutes());
                     dto.setTravelTimeDisplay(travelInfo.getDisplay());
                     dto.setHasOverlappingAreas(travelInfo.isHasOverlappingAreas());
                     dto.setOverlappingAreas(travelInfo.getOverlappingAreas());
+
+                    // Add OKCupid-style match percentage (Marriage Machine feature)
+                    populateOkCupidMatchData(dto, user, matchUser);
 
                     matches.add(dto);
                 }
@@ -907,13 +911,32 @@ public class MatchingService {
     }
 
     private List<MatchRecommendationDto> convertToMatchRecommendations(List<Map<String, Object>> rawList) {
-        return rawList.stream().map(item -> {
-            MatchRecommendationDto dto = new MatchRecommendationDto();
-            dto.setUserId(((Number) item.get("user_id")).longValue());
-            dto.setUserUuid((String) item.get("uuid"));
-            dto.setCompatibilityScore(((Number) item.get("compatibility_score")).doubleValue());
-            return dto;
-        }).collect(Collectors.toList());
+        try {
+            User currentUser = authService.getCurrentUser(true);
+
+            return rawList.stream().map(item -> {
+                MatchRecommendationDto dto = new MatchRecommendationDto();
+                Long userId = ((Number) item.get("user_id")).longValue();
+                dto.setUserId(userId);
+                dto.setUserUuid((String) item.get("uuid"));
+                dto.setCompatibilityScore(((Number) item.get("compatibility_score")).doubleValue());
+
+                // Try to populate OKCupid-style data if possible
+                try {
+                    User matchUser = userRepo.findById(userId).orElse(null);
+                    if (matchUser != null && currentUser != null) {
+                        populateOkCupidMatchData(dto, currentUser, matchUser);
+                    }
+                } catch (Exception e) {
+                    LOGGER.debug("Could not populate OKCupid data for user {}", userId, e);
+                }
+
+                return dto;
+            }).collect(Collectors.toList());
+        } catch (Exception e) {
+            LOGGER.error("Failed to convert match recommendations", e);
+            return Collections.emptyList();
+        }
     }
 
     private void updateShownUserIds(UserDailyMatchLimit limit, List<MatchRecommendationDto> matches) {
@@ -929,6 +952,166 @@ public class MatchingService {
             limit.setShownUserIds(objectMapper.writeValueAsString(existingIds));
         } catch (JsonProcessingException e) {
             LOGGER.error("Failed to update shown user IDs", e);
+        }
+    }
+
+    /**
+     * Populate OKCupid-style match data into the MatchRecommendationDto.
+     * This is the "Marriage Machine" feature that made OKCupid/eHarmony successful.
+     *
+     * Uses:
+     * - Importance-weighted matching (user decides what matters)
+     * - Acceptable answers (what partner answers are OK)
+     * - Geometric mean formula: sqrt(your_satisfaction * their_satisfaction) * 100
+     * - Category breakdown for transparency
+     * - Mandatory conflict detection (dealbreakers)
+     */
+    @SuppressWarnings("unchecked")
+    private void populateOkCupidMatchData(MatchRecommendationDto dto, User currentUser, User matchUser) {
+        try {
+            // Get OKCupid-style match percentage with importance weighting
+            Map<String, Object> matchData = assessmentService.calculateOkCupidMatch(currentUser, matchUser);
+
+            // Set match percentage (the KEY metric for marriage machines)
+            Double matchPercentage = (Double) matchData.get("matchPercentage");
+            dto.setMatchPercentage(matchPercentage != null ? matchPercentage : 50.0);
+
+            // Set common questions count (reliability indicator)
+            Integer commonQuestions = (Integer) matchData.get("commonQuestions");
+            dto.setCommonQuestionsCount(commonQuestions != null ? commonQuestions : 0);
+
+            // Set mandatory conflict flag (dealbreaker detected)
+            Boolean hasMandatoryConflict = (Boolean) matchData.get("hasMandatoryConflict");
+            dto.setHasMandatoryConflict(hasMandatoryConflict != null ? hasMandatoryConflict : false);
+
+            // Get detailed explanation with category breakdown
+            Map<String, Object> explanation = assessmentService.getMatchExplanation(currentUser, matchUser);
+
+            // Set category breakdown
+            Map<String, Double> categoryBreakdown = (Map<String, Double>) explanation.get("categoryBreakdown");
+            if (categoryBreakdown != null && !categoryBreakdown.isEmpty()) {
+                dto.setCategoryBreakdown(categoryBreakdown);
+
+                // Generate top compatibility areas from category scores
+                dto.setTopCompatibilityAreas(generateTopCompatibilityAreas(categoryBreakdown));
+
+                // Generate areas to discuss (moderate mismatches)
+                dto.setAreasToDiscuss(generateAreasToDiscuss(categoryBreakdown));
+            }
+
+            // Generate match insight summary
+            dto.setMatchInsight(generateMatchInsight(dto, categoryBreakdown));
+
+        } catch (Exception e) {
+            LOGGER.warn("Failed to populate OKCupid match data, using defaults", e);
+            // Set safe defaults
+            dto.setMatchPercentage(dto.getCompatibilityScore() != null ? dto.getCompatibilityScore() : 50.0);
+            dto.setCommonQuestionsCount(0);
+            dto.setHasMandatoryConflict(false);
+        }
+    }
+
+    /**
+     * Generate top 3 compatibility areas from category scores.
+     * Shows users WHERE they're compatible.
+     */
+    private List<String> generateTopCompatibilityAreas(Map<String, Double> categoryBreakdown) {
+        List<String> topAreas = new ArrayList<>();
+
+        // Sort categories by score descending
+        List<Map.Entry<String, Double>> sorted = categoryBreakdown.entrySet().stream()
+                .filter(e -> e.getValue() >= 70) // Only show high-compatibility areas
+                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+                .limit(3)
+                .collect(Collectors.toList());
+
+        for (Map.Entry<String, Double> entry : sorted) {
+            String category = formatCategoryName(entry.getKey());
+            int score = entry.getValue().intValue();
+            topAreas.add(category + ": " + score + "%");
+        }
+
+        if (topAreas.isEmpty()) {
+            topAreas.add("You have unique qualities that complement each other");
+        }
+
+        return topAreas;
+    }
+
+    /**
+     * Generate areas that need discussion (moderate mismatches).
+     * These aren't dealbreakers but worth talking about.
+     */
+    private List<String> generateAreasToDiscuss(Map<String, Double> categoryBreakdown) {
+        List<String> areasToDiscuss = new ArrayList<>();
+
+        for (Map.Entry<String, Double> entry : categoryBreakdown.entrySet()) {
+            double score = entry.getValue();
+            // Areas between 40-60% are worth discussing
+            if (score >= 40 && score < 60) {
+                String area = getDiscussionPoint(entry.getKey(), score);
+                if (area != null) {
+                    areasToDiscuss.add(area);
+                }
+            }
+        }
+
+        // Limit to top 3 discussion points
+        return areasToDiscuss.stream().limit(3).collect(Collectors.toList());
+    }
+
+    private String getDiscussionPoint(String category, double score) {
+        return switch (category.toUpperCase()) {
+            case "BIG_FIVE" -> "Different personality styles - could complement each other";
+            case "ATTACHMENT" -> "Different attachment needs - worth discussing expectations";
+            case "VALUES" -> "Some different perspectives on values - explore through conversation";
+            case "LIFESTYLE" -> "Different lifestyle preferences - find common ground";
+            case "DEALBREAKER" -> "Some preferences differ - clarify what matters most";
+            default -> null;
+        };
+    }
+
+    private String formatCategoryName(String category) {
+        return switch (category.toUpperCase()) {
+            case "BIG_FIVE" -> "Personality";
+            case "ATTACHMENT" -> "Attachment style";
+            case "VALUES" -> "Core values";
+            case "LIFESTYLE" -> "Lifestyle";
+            case "DEALBREAKER" -> "Compatibility";
+            default -> category.substring(0, 1).toUpperCase() +
+                       category.substring(1).toLowerCase().replace("_", " ");
+        };
+    }
+
+    /**
+     * Generate a brief insight about the match.
+     * This helps users understand WHY they match, not just a percentage.
+     */
+    private String generateMatchInsight(MatchRecommendationDto dto, Map<String, Double> categoryBreakdown) {
+        Double matchPercentage = dto.getMatchPercentage();
+
+        if (Boolean.TRUE.equals(dto.getHasMandatoryConflict())) {
+            return "⚠️ Potential dealbreaker detected - review compatibility carefully";
+        }
+
+        if (matchPercentage == null) {
+            return "Answer more questions to improve match accuracy";
+        }
+
+        if (dto.getCommonQuestionsCount() != null && dto.getCommonQuestionsCount() < 10) {
+            return "Based on " + dto.getCommonQuestionsCount() + " shared questions - answer more for better accuracy";
+        }
+
+        if (matchPercentage >= 90) {
+            return "Exceptional compatibility! Strong alignment across all areas";
+        } else if (matchPercentage >= 80) {
+            return "High compatibility - you share important values and perspectives";
+        } else if (matchPercentage >= 70) {
+            return "Good compatibility - similar outlook with room for discovery";
+        } else if (matchPercentage >= 60) {
+            return "Moderate compatibility - some differences could add variety";
+        } else {
+            return "Different perspectives - could challenge each other in healthy ways";
         }
     }
 }
