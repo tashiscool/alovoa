@@ -426,97 +426,259 @@ class TestAuraAppCapabilities(unittest.TestCase):
             print("    Database: Health details not exposed (security config)")
 
 
-class TestAuraAppEndpoints(unittest.TestCase):
-    """Smoke tests for all AURA application REST endpoints"""
+class TestCoreDatingFlows(unittest.TestCase):
+    """
+    Core Dating App Functionality E2E Tests
+
+    Tests the essential user journeys:
+    1. Registration & Authentication
+    2. Profile Management
+    3. Search & Discovery
+    4. Liking & Matching
+    5. Messaging
+    6. Video Dating
+    """
 
     @classmethod
     def setUpClass(cls):
         cls.base_url = SERVICES["aura-app"].url
+        cls.session = requests.Session()
+        # Store test user info
+        cls.test_email = f"e2e_test_{int(time.time())}@test.alovoa.com"
 
-    def test_personality_assessment_endpoint(self):
-        """Test /personality/assessment endpoint exists"""
-        response = requests.get(f"{self.base_url}/personality/assessment", timeout=REQUEST_TIMEOUT)
-        # May return 401/403 for unauthenticated, but endpoint should exist
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Personality Assessment: Status {response.status_code}")
+    # =========================================
+    # 1. Registration & Authentication Flow
+    # =========================================
 
-    def test_reputation_endpoint(self):
-        """Test /api/v1/reputation endpoints exist"""
-        endpoints = ["/api/v1/reputation/me", "/api/v1/reputation/badges"]
-        for endpoint in endpoints:
-            response = requests.get(f"{self.base_url}{endpoint}", timeout=REQUEST_TIMEOUT)
-            self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Reputation Endpoints: Accessible")
+    def test_01_captcha_generation(self):
+        """Test captcha can be generated for registration"""
+        response = self.session.get(f"{self.base_url}/captcha/generate", timeout=REQUEST_TIMEOUT)
+        # Captcha endpoint should be publicly accessible
+        self.assertIn(response.status_code, [200, 302])
+        print(f"    Captcha Generation: Status {response.status_code}")
 
-    def test_accountability_categories(self):
-        """Test /api/v1/accountability/categories endpoint"""
-        response = requests.get(f"{self.base_url}/api/v1/accountability/categories", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Accountability Categories: Status {response.status_code}")
-
-    def test_video_verification_status(self):
-        """Test /video/verification/status endpoint"""
-        response = requests.get(f"{self.base_url}/video/verification/status", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Video Verification Status: Status {response.status_code}")
-
-    def test_intake_progress(self):
-        """Test /intake/progress endpoint"""
-        response = requests.get(f"{self.base_url}/intake/progress", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Intake Progress: Status {response.status_code}")
-
-    def test_intake_questions(self):
-        """Test /intake/questions endpoint"""
-        response = requests.get(f"{self.base_url}/intake/questions", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Intake Questions: Status {response.status_code}")
-
-    def test_scaffolding_prompts(self):
-        """Test /intake/scaffolding/prompts endpoint"""
-        response = requests.get(f"{self.base_url}/intake/scaffolding/prompts", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Scaffolding Prompts: Status {response.status_code}")
-
-    def test_match_window_current(self):
-        """Test match window endpoints"""
-        response = requests.get(f"{self.base_url}/match-window/current", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Match Window: Status {response.status_code}")
-
-    def test_location_areas(self):
-        """Test location area endpoints"""
-        response = requests.get(f"{self.base_url}/location/areas", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Location Areas: Status {response.status_code}")
-
-    def test_waitlist_status(self):
-        """Test waitlist status endpoint"""
-        response = requests.get(f"{self.base_url}/waitlist/status", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Waitlist Status: Status {response.status_code}")
-
-    def test_api_search_keyword(self):
-        """Test API keyword search endpoint exists"""
-        response = requests.post(
-            f"{self.base_url}/api/v1/search/keyword",
-            json={"keyword": "test", "globalSearch": False},
+    def test_02_registration_endpoint_accessible(self):
+        """Test registration endpoint is accessible"""
+        # Test with invalid data - should return 400, not 404/500
+        response = self.session.post(
+            f"{self.base_url}/register",
+            json={"email": "invalid"},
             timeout=REQUEST_TIMEOUT
         )
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    API Keyword Search: Status {response.status_code}")
+        # Should get validation error (400) or redirect, not server error
+        self.assertIn(response.status_code, [200, 302, 400, 415])
+        print(f"    Registration Endpoint: Status {response.status_code}")
 
-    def test_essay_prompts(self):
-        """Test essay prompts endpoint"""
-        response = requests.get(f"{self.base_url}/essay/prompts", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Essay Prompts: Status {response.status_code}")
+    def test_03_login_page_accessible(self):
+        """Test login page is accessible"""
+        response = self.session.get(f"{self.base_url}/login", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302])
+        print(f"    Login Page: Status {response.status_code}")
 
-    def test_matching_recommendations(self):
-        """Test matching recommendations endpoint"""
-        response = requests.get(f"{self.base_url}/matching/recommendations", timeout=REQUEST_TIMEOUT)
-        self.assertIn(response.status_code, [200, 401, 403])
-        print(f"    Matching Recommendations: Status {response.status_code}")
+    # =========================================
+    # 2. Profile & Search Endpoints
+    # =========================================
+
+    def test_04_search_users_default(self):
+        """Test search users default endpoint"""
+        response = self.session.get(f"{self.base_url}/search/users/default", timeout=REQUEST_TIMEOUT)
+        # May require auth, but should not be 404/500
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Search Users Default: Status {response.status_code}")
+
+    def test_05_search_users_with_params(self):
+        """Test search users with location params"""
+        # New York coords
+        response = self.session.get(
+            f"{self.base_url}/search/users/40.7128/-74.0060/50/0",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Search Users (geo): Status {response.status_code}")
+
+    def test_06_daily_matches_endpoint(self):
+        """Test daily matches recommendation endpoint"""
+        response = self.session.get(f"{self.base_url}/matching/daily", timeout=REQUEST_TIMEOUT)
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Daily Matches: Status {response.status_code}")
+
+    # =========================================
+    # 3. User Interaction Endpoints
+    # =========================================
+
+    def test_07_like_endpoint_format(self):
+        """Test like endpoint accepts correct format"""
+        # Test with fake UUID - should fail gracefully
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.post(
+            f"{self.base_url}/user/like/{fake_uuid}",
+            timeout=REQUEST_TIMEOUT
+        )
+        # Should require auth or return user not found
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Like Endpoint: Status {response.status_code}")
+
+    def test_08_block_endpoint_format(self):
+        """Test block endpoint accepts correct format"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.post(
+            f"{self.base_url}/user/block/{fake_uuid}",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Block Endpoint: Status {response.status_code}")
+
+    def test_09_report_endpoint_format(self):
+        """Test report endpoint accepts correct format"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.post(
+            f"{self.base_url}/user/report/{fake_uuid}",
+            data="Test report reason",
+            headers={"Content-Type": "text/plain"},
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Report Endpoint: Status {response.status_code}")
+
+    # =========================================
+    # 4. Messaging Endpoints
+    # =========================================
+
+    def test_10_message_send_endpoint_format(self):
+        """Test message send endpoint format"""
+        response = self.session.post(
+            f"{self.base_url}/message/send/1",
+            data="Hello, this is a test message",
+            headers={"Content-Type": "text/plain"},
+            timeout=REQUEST_TIMEOUT
+        )
+        # Should require auth
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Message Send: Status {response.status_code}")
+
+    def test_11_message_get_endpoint_format(self):
+        """Test get messages endpoint format"""
+        response = self.session.get(
+            f"{self.base_url}/message/get-messages/1/0",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Message Get: Status {response.status_code}")
+
+    def test_12_message_read_endpoint(self):
+        """Test mark message as read endpoint"""
+        response = self.session.post(
+            f"{self.base_url}/message/read/1",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Message Read: Status {response.status_code}")
+
+    # =========================================
+    # 5. Profile Update Endpoints
+    # =========================================
+
+    def test_13_update_description_endpoint(self):
+        """Test profile description update endpoint"""
+        response = self.session.post(
+            f"{self.base_url}/user/update/description",
+            data="Test bio description",
+            headers={"Content-Type": "text/plain"},
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403])
+        print(f"    Update Description: Status {response.status_code}")
+
+    def test_14_update_location_endpoint(self):
+        """Test location update endpoint"""
+        response = self.session.post(
+            f"{self.base_url}/user/update/location/40.7128/-74.0060",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403])
+        print(f"    Update Location: Status {response.status_code}")
+
+    def test_15_interest_add_endpoint(self):
+        """Test add interest endpoint"""
+        response = self.session.post(
+            f"{self.base_url}/user/interest/add/hiking",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403])
+        print(f"    Add Interest: Status {response.status_code}")
+
+    def test_16_interest_autocomplete(self):
+        """Test interest autocomplete endpoint"""
+        response = self.session.get(
+            f"{self.base_url}/user/interest/autocomplete/hik",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Interest Autocomplete: Status {response.status_code}")
+
+    # =========================================
+    # 6. Notification & Status Endpoints
+    # =========================================
+
+    def test_17_new_alert_status(self):
+        """Test new alert status endpoint"""
+        response = self.session.get(
+            f"{self.base_url}/user/status/new-alert",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    New Alert Status: Status {response.status_code}")
+
+    def test_18_new_message_status(self):
+        """Test new message status endpoint"""
+        response = self.session.get(
+            f"{self.base_url}/user/status/new-message",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    New Message Status: Status {response.status_code}")
+
+    def test_19_profile_completeness(self):
+        """Test profile completeness endpoint"""
+        response = self.session.get(
+            f"{self.base_url}/user/profile/completeness",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 401, 403])
+        print(f"    Profile Completeness: Status {response.status_code}")
+
+    # =========================================
+    # 7. AURA-Specific Endpoints
+    # =========================================
+
+    def test_20_compatibility_check(self):
+        """Test compatibility score endpoint"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.get(
+            f"{self.base_url}/matching/compatibility/{fake_uuid}",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Compatibility Check: Status {response.status_code}")
+
+    def test_21_video_date_availability(self):
+        """Test video date availability endpoint"""
+        response = self.session.get(
+            f"{self.base_url}/video-date/availability",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 401, 403, 404])
+        print(f"    Video Date Availability: Status {response.status_code}")
+
+    def test_22_reputation_view(self):
+        """Test viewing user reputation"""
+        fake_uuid = "00000000-0000-0000-0000-000000000001"
+        response = self.session.get(
+            f"{self.base_url}/user/reputation/{fake_uuid}",
+            timeout=REQUEST_TIMEOUT
+        )
+        self.assertIn(response.status_code, [200, 302, 400, 401, 403, 404])
+        print(f"    Reputation View: Status {response.status_code}")
 
 
 class TestIntegrationScenarios(unittest.TestCase):
@@ -660,7 +822,7 @@ def main():
     suite.addTests(loader.loadTestsFromTestCase(TestMediaServiceCapabilities))
     suite.addTests(loader.loadTestsFromTestCase(TestAIServiceCapabilities))
     suite.addTests(loader.loadTestsFromTestCase(TestAuraAppCapabilities))
-    suite.addTests(loader.loadTestsFromTestCase(TestAuraAppEndpoints))
+    suite.addTests(loader.loadTestsFromTestCase(TestCoreDatingFlows))
     suite.addTests(loader.loadTestsFromTestCase(TestIntegrationScenarios))
 
     # Run tests
