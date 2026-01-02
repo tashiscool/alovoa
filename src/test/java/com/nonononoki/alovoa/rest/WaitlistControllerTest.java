@@ -177,7 +177,7 @@ class WaitlistControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/v1/waitlist/signup - Duplicate email returns error")
+    @DisplayName("POST /api/v1/waitlist/signup - Duplicate email returns existing entry (idempotent)")
     void testWaitlistSignup_DuplicateEmail() throws Exception {
         Map<String, String> request = new HashMap<>();
         request.put("email", "duplicate@example.com");
@@ -186,17 +186,23 @@ class WaitlistControllerTest {
         request.put("location", "dc");
 
         // First signup
-        mockMvc.perform(post("/api/v1/waitlist/signup")
+        String response1 = mockMvc.perform(post("/api/v1/waitlist/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andReturn().getResponse().getContentAsString();
 
-        // Second signup with same email
+        Map<String, Object> result1 = objectMapper.readValue(response1, Map.class);
+        String inviteCode = (String) result1.get("inviteCode");
+
+        // Second signup with same email - idempotent, returns success with same invite code
         mockMvc.perform(post("/api/v1/waitlist/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.inviteCode").value(inviteCode));
     }
 
     @Test
@@ -283,8 +289,9 @@ class WaitlistControllerTest {
 
         Mockito.doReturn(regularUser).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(get("/api/v1/waitlist/stats"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test

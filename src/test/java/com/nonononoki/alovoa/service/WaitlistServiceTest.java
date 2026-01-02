@@ -217,7 +217,8 @@ class WaitlistServiceTest {
                 null, null, null, null
         );
 
-        assertEquals("INVALID-CODE", entry.getReferredBy());
+        // Invalid referral codes are not stored - only valid ones are recorded
+        assertNull(entry.getReferredBy());
         // No exception thrown, just no boost applied
     }
 

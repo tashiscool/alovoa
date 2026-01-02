@@ -113,12 +113,20 @@ class IntakeEncouragementServiceTest {
 
         String message = (String) stats.get("personalMessage");
         assertNotNull(message);
-        assertTrue(message.contains(String.valueOf(daysAlive)));
+        // Message uses %,d format (locale-specific grouping), so check for formatted number
+        String formattedDays = String.format("%,d", daysAlive);
+        assertTrue(message.contains(formattedDays), "Message should contain formatted days: " + formattedDays);
     }
 
     @Test
     void testGetLifeStats_NoBirthday() throws Exception {
         User user = testUsers.get(0);
+        // Ensure no birthday is set (test isolation)
+        if (user.getDates() != null) {
+            user.getDates().setDateOfBirth(null);
+        } else {
+            user.setDates(new UserDates());
+        }
 
         Map<String, Object> stats = encouragementService.getLifeStats(user);
 
@@ -311,6 +319,12 @@ class IntakeEncouragementServiceTest {
     @Test
     void testGetIntakeEncouragement_WithoutBirthday() throws Exception {
         User user = testUsers.get(0);
+        // Ensure no birthday is set (test isolation)
+        if (user.getDates() != null) {
+            user.getDates().setDateOfBirth(null);
+        } else {
+            user.setDates(new UserDates());
+        }
 
         Map<String, Object> encouragement = encouragementService.getIntakeEncouragement(user, "questions");
 

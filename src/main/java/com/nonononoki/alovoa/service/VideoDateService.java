@@ -406,6 +406,10 @@ public class VideoDateService {
             throw new Exception("Cannot schedule video date in the past");
         }
 
+        if (initiator.getId().equals(participant.getId())) {
+            throw new Exception("Cannot schedule video date with yourself");
+        }
+
         // Find or create conversation
         Conversation conversation = conversationRepo.findByUsers(initiator.getId(), participant.getId())
                 .orElseGet(() -> {
@@ -415,14 +419,14 @@ public class VideoDateService {
                     return conversationRepo.save(newConv);
                 });
 
-        // Create video date
+        // Create video date as a proposal for the participant to accept/decline
         VideoDate videoDate = new VideoDate();
         videoDate.setConversation(conversation);
         videoDate.setUserA(initiator);
         videoDate.setUserB(participant);
         videoDate.setScheduledAt(scheduledTime);
         videoDate.setDurationSeconds(durationMinutes * 60);
-        videoDate.setStatus(VideoDate.DateStatus.SCHEDULED);
+        videoDate.setStatus(VideoDate.DateStatus.PROPOSED);
 
         return videoDateRepo.save(videoDate);
     }
@@ -462,13 +466,14 @@ public class VideoDateService {
 
     /**
      * Convenience method: Reschedule a video date.
+     * Rescheduling sets the status back to PROPOSED so participant can accept new time.
      */
     public VideoDate rescheduleDate(String videoDateId, Date newTime) throws Exception {
         Long id = Long.parseLong(videoDateId);
         VideoDate videoDate = videoDateRepo.findById(id)
                 .orElseThrow(() -> new Exception("Video date not found"));
         videoDate.setScheduledAt(newTime);
-        videoDate.setStatus(DateStatus.SCHEDULED);
+        videoDate.setStatus(DateStatus.PROPOSED);
         return videoDateRepo.save(videoDate);
     }
 

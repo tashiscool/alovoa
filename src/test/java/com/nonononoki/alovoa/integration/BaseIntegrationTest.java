@@ -1,7 +1,9 @@
 package com.nonononoki.alovoa.integration;
 
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -24,7 +26,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * </pre>
  */
 @Testcontainers
+@EnabledIf("isDockerAvailable")
 public abstract class BaseIntegrationTest {
+
+    static boolean isDockerAvailable() {
+        try {
+            DockerClientFactory.instance().client();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     @Container
     static MariaDBContainer<?> mariaDBContainer = new MariaDBContainer<>("mariadb:10.11")

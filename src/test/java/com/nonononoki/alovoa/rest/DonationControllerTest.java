@@ -94,7 +94,7 @@ class DonationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tier").exists())
                 .andExpect(jsonPath("$.totalDonations").exists())
-                .andExpect(jsonPath("$.donationCount").exists());
+                .andExpect(jsonPath("$.streakMonths").exists());
     }
 
     @Test
@@ -223,8 +223,9 @@ class DonationControllerTest {
 
         Mockito.doReturn(regularUser).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(get("/api/v1/donation/stats"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -271,10 +272,10 @@ class DonationControllerTest {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
-        // Initial state - NO_DONATION
+        // Initial state - NONE
         mockMvc.perform(get("/api/v1/donation/info"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.tier").value("NO_DONATION"));
+                .andExpect(jsonPath("$.tier").value("NONE"));
 
         // Record a donation
         donationService.recordDonation(user, new BigDecimal("50.00"), null);
@@ -283,10 +284,10 @@ class DonationControllerTest {
         user = userRepo.findById(user.getId()).orElseThrow();
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
-        // Check updated info
+        // Check updated info - $50 is BELIEVER tier ($21-50), BUILDER is $51+
         mockMvc.perform(get("/api/v1/donation/info"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.tier").value("BUILDER"))
+                .andExpect(jsonPath("$.tier").value("BELIEVER"))
                 .andExpect(jsonPath("$.totalDonations").value(50.00));
     }
 

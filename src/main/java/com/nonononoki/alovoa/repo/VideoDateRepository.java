@@ -21,5 +21,11 @@ public interface VideoDateRepository extends JpaRepository<VideoDate, Long> {
     @Query("SELECT v FROM VideoDate v WHERE v.scheduledAt < :date AND v.status = 'SCHEDULED'")
     List<VideoDate> findExpiredScheduledDates(@Param("date") Date date);
 
+    @Query("SELECT v FROM VideoDate v WHERE v.createdAt < :date AND v.status = 'PROPOSED'")
+    List<VideoDate> findExpiredProposals(@Param("date") Date date);
+
+    @Query("SELECT v FROM VideoDate v WHERE v.scheduledAt < :date AND v.status IN ('SCHEDULED', 'ACCEPTED')")
+    List<VideoDate> findMissedDates(@Param("date") Date date);
+
     Optional<VideoDate> findByConversationAndStatus(Conversation conversation, VideoDate.DateStatus status);
 }

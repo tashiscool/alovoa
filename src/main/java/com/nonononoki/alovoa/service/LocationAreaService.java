@@ -231,8 +231,12 @@ public class LocationAreaService {
             throw new Exception("Arrival date must be before leaving date");
         }
 
-        // Remove existing traveling mode if any
-        travelingRepo.findByUser(user).ifPresent(travelingRepo::delete);
+        // Remove existing traveling mode if any - must flush to avoid unique constraint violation
+        Optional<UserTravelingMode> existing = travelingRepo.findByUser(user);
+        if (existing.isPresent()) {
+            travelingRepo.delete(existing.get());
+            travelingRepo.flush();
+        }
 
         UserTravelingMode traveling = new UserTravelingMode();
         traveling.setUser(user);

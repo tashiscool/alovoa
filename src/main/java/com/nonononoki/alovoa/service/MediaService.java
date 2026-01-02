@@ -104,7 +104,12 @@ public class MediaService {
 
         HttpHeaders headers = new HttpHeaders();
         String[] parts = mimeType.split("/");
-        headers.setContentType(new MediaType(parts[0], parts.length > 1 ? parts[1] : "wav"));
+        String subtype = parts.length > 1 ? parts[1] : "wav";
+        // Strip any parameters like ;charset=utf-8
+        if (subtype.contains(";")) {
+            subtype = subtype.split(";")[0];
+        }
+        headers.setContentType(new MediaType(parts[0], subtype));
         headers.setContentLength(bytes.length);
         return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
     }

@@ -142,10 +142,11 @@ class MessageControllerTest {
         User sender = testUsers.get(0);
         Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/message/send/999999")
                         .contentType("text/plain")
                         .content("Test message"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -155,10 +156,11 @@ class MessageControllerTest {
         User nonParticipant = testUsers.get(2);
         Mockito.doReturn(nonParticipant).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Test message"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -192,8 +194,9 @@ class MessageControllerTest {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/message/read/999999"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -263,10 +266,11 @@ class MessageControllerTest {
         User reactor = testUsers.get(1);
         Mockito.doReturn(reactor).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/message/999999/react")
                         .contentType("text/plain")
                         .content("❤️"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -288,10 +292,11 @@ class MessageControllerTest {
 
         // Non-participant tries to react
         Mockito.doReturn(nonParticipant).when(authService).getCurrentUser(true);
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/message/" + message.getId() + "/react")
                         .contentType("text/plain")
                         .content("❤️"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -334,8 +339,9 @@ class MessageControllerTest {
         User reactor = testUsers.get(1);
         Mockito.doReturn(reactor).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(delete("/message/999999/react"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -367,8 +373,9 @@ class MessageControllerTest {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(get("/message/get-messages/999999/1"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -378,8 +385,9 @@ class MessageControllerTest {
         User nonParticipant = testUsers.get(2);
         Mockito.doReturn(nonParticipant).when(authService).getCurrentUser(true);
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(get("/message/get-messages/" + testConversation.getId() + "/1"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -394,8 +402,9 @@ class MessageControllerTest {
 
         // User1 tries to get messages
         Mockito.doReturn(user1).when(authService).getCurrentUser(true);
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(get("/message/get-messages/" + testConversation.getId() + "/1"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -410,10 +419,11 @@ class MessageControllerTest {
 
         // Sender tries to send message
         Mockito.doReturn(sender).when(authService).getCurrentUser(true);
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Test message"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -427,10 +437,11 @@ class MessageControllerTest {
         Mockito.when(moderationService.moderateContent(any(String.class), any(User.class), any(String.class)))
                 .thenReturn(ModerationResult.blocked(0.9, Collections.singletonList("PROFANITY"), "Blocked"));
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/message/send/" + testConversation.getId())
                         .contentType("text/plain")
                         .content("Bad content"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     // ============================================

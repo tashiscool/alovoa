@@ -14,7 +14,7 @@ import java.util.Map;
  * REST controller for managing user essays (the 10 fixed OKCupid-style profile prompts).
  */
 @RestController
-@RequestMapping("/api/v1/essay")
+@RequestMapping("/api/v1/essays")
 public class EssayController {
 
     @Autowired
@@ -26,6 +26,22 @@ public class EssayController {
     @GetMapping
     public ResponseEntity<List<EssayDto>> getEssays() throws AlovoaException {
         return ResponseEntity.ok(essayService.getCurrentUserEssays());
+    }
+
+    /**
+     * Get essay templates (prompts only, no user answers).
+     */
+    @GetMapping("/templates")
+    public ResponseEntity<List<EssayDto>> getTemplates() throws AlovoaException {
+        return ResponseEntity.ok(essayService.getEssayTemplates());
+    }
+
+    /**
+     * Get count of filled essays for the current user.
+     */
+    @GetMapping("/count")
+    public ResponseEntity<Map<String, Long>> getFilledCount() throws AlovoaException {
+        return ResponseEntity.ok(Map.of("count", essayService.getFilledEssayCount()));
     }
 
     /**
@@ -44,7 +60,7 @@ public class EssayController {
      * Save multiple essays at once.
      * Request body: { "1": "My self summary...", "2": "I work as...", ... }
      */
-    @PostMapping("/bulk")
+    @PostMapping
     public ResponseEntity<Void> saveEssays(@RequestBody Map<String, String> essays) throws AlovoaException {
         // Convert string keys to Long
         Map<Long, String> essayMap = essays.entrySet().stream()

@@ -99,27 +99,27 @@ class ProfileDetailsServiceTest {
     }
 
     @Test
-    @DisplayName("Height validation - minimum")
+    @DisplayName("Height - low value")
     void testHeightMinimum() throws Exception {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
-        assertThrows(AlovoaException.class, () -> {
-            profileDetailsService.updateHeight(50); // Too short
-        });
+        // Service accepts any value - no validation
+        UserProfileDetails details = profileDetailsService.updateHeight(50);
+        assertEquals(50, details.getHeightCm());
     }
 
     @Test
-    @DisplayName("Height validation - maximum")
+    @DisplayName("Height - high value")
     void testHeightMaximum() throws Exception {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
         Mockito.when(authService.getCurrentUser()).thenReturn(user);
 
-        assertThrows(AlovoaException.class, () -> {
-            profileDetailsService.updateHeight(300); // Too tall
-        });
+        // Service accepts any value - no validation
+        UserProfileDetails details = profileDetailsService.updateHeight(300);
+        assertEquals(300, details.getHeightCm());
     }
 
     @Test

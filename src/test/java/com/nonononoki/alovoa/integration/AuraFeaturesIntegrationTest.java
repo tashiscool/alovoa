@@ -10,6 +10,7 @@ import com.nonononoki.alovoa.repo.*;
 import com.nonononoki.alovoa.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @Transactional
+@EnabledIf("com.nonononoki.alovoa.integration.BaseIntegrationTest#isDockerAvailable")
 public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

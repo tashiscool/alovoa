@@ -325,7 +325,7 @@ class StripeServiceTest {
         BigDecimal expected = new BigDecimal("10.00");
 
         BigDecimal actual = BigDecimal.valueOf(amountCents).divide(BigDecimal.valueOf(100));
-        assertEquals(expected, actual);
+        assertEquals(0, expected.compareTo(actual), "Expected $10.00 from 1000 cents");
     }
 
     @Test
@@ -335,7 +335,7 @@ class StripeServiceTest {
         BigDecimal expected = new BigDecimal("1000.00");
 
         BigDecimal actual = BigDecimal.valueOf(amountCents).divide(BigDecimal.valueOf(100));
-        assertEquals(expected, actual);
+        assertEquals(0, expected.compareTo(actual), "Expected $1000.00 from 100000 cents");
     }
 
     @Test
@@ -345,7 +345,7 @@ class StripeServiceTest {
         BigDecimal expected = new BigDecimal("1.00");
 
         BigDecimal actual = BigDecimal.valueOf(amountCents).divide(BigDecimal.valueOf(100));
-        assertEquals(expected, actual);
+        assertEquals(0, expected.compareTo(actual), "Expected $1.00 from 100 cents");
     }
 
     // ============================================

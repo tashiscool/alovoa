@@ -3,6 +3,7 @@ package com.nonononoki.alovoa.service;
 import com.nonononoki.alovoa.entity.CompatibilityScore;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserDailyMatchLimit;
+import com.nonononoki.alovoa.entity.user.UserIntakeProgress;
 import com.nonononoki.alovoa.entity.user.UserPersonalityProfile;
 import com.nonononoki.alovoa.entity.user.UserPoliticalAssessment;
 import com.nonononoki.alovoa.entity.user.UserPoliticalAssessment.*;
@@ -49,6 +50,9 @@ class MatchingServiceTest {
 
     @Autowired
     private UserPoliticalAssessmentRepository politicalAssessmentRepo;
+
+    @Autowired
+    private UserIntakeProgressRepository intakeProgressRepo;
 
     @Autowired
     private RegisterService registerService;
@@ -311,13 +315,27 @@ class MatchingServiceTest {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
-        // Setup rejected assessment (capital class conservative)
-        politicalAssessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_500K_1M,
-                IncomeSource.INVESTMENTS_DIVIDENDS, WealthBracket.OVER_10M, true, true, true);
-        politicalAssessmentService.submitPoliticalValues(user, PoliticalOrientation.CONSERVATIVE,
-                1, 1, 1, 1, 5, 5, null);
-        politicalAssessmentService.completeAssessment(user);
+        // Complete intake first (required before political assessment check)
+        completeIntake(user);
 
+        // Setup rejected assessment (capital class conservative)
+        // Each step returns the saved assessment - chain them to ensure consistency
+        UserPoliticalAssessment assessment = politicalAssessmentService.submitEconomicClass(
+                user, IncomeBracket.BRACKET_500K_1M,
+                IncomeSource.INVESTMENTS_DIVIDENDS, WealthBracket.OVER_10M, true, true, true);
+        // Verify economic class is set
+        assertNotNull(assessment.getEconomicClass(), "Economic class should be set after submitEconomicClass");
+        assertEquals(UserPoliticalAssessment.EconomicClass.CAPITAL_CLASS, assessment.getEconomicClass());
+
+        assessment = politicalAssessmentService.submitPoliticalValues(user, PoliticalOrientation.CONSERVATIVE,
+                1, 1, 1, 1, 5, 5, null);
+        // Verify political orientation is set
+        assertNotNull(assessment.getPoliticalOrientation(), "Political orientation should be set after submitPoliticalValues");
+
+        politicalAssessmentService.submitReproductiveView(user, ReproductiveRightsView.FULL_BODILY_AUTONOMY);
+        assessment = politicalAssessmentService.completeAssessment(user);
+
+        // Capital class + conservative should result in REJECTED
         Map<String, Object> result = matchingService.getDailyMatches();
 
         assertTrue((Boolean) result.get("gated"));
@@ -326,7 +344,25 @@ class MatchingServiceTest {
 
     // Helper methods
 
+    private void completeIntake(User user) {
+        UserIntakeProgress progress = intakeProgressRepo.findByUser(user).orElseGet(() -> {
+            UserIntakeProgress newProgress = new UserIntakeProgress();
+            newProgress.setUser(user);
+            return newProgress;
+        });
+        progress.setQuestionsComplete(true);
+        progress.setVideoIntroComplete(true);
+        progress.setPicturesComplete(true);
+        progress.setIntakeComplete(true);
+        progress.setCompletedAt(new java.util.Date());
+        intakeProgressRepo.save(progress);
+    }
+
     private void setupApprovedAssessment(User user) {
+        // Complete the intake process first (required before matching)
+        completeIntake(user);
+
+        // Then complete political assessment
         politicalAssessmentService.submitEconomicClass(user, IncomeBracket.BRACKET_50K_75K,
                 IncomeSource.WAGES_SALARY, WealthBracket.BRACKET_10K_50K, false, false, false);
         politicalAssessmentService.submitPoliticalValues(user, PoliticalOrientation.PROGRESSIVE,

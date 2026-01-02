@@ -29,7 +29,7 @@ public class UserVideo {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private VideoType videoType;
+    private VideoType videoType = VideoType.INTRO;
 
     @Column(length = 500)
     private String videoUrl;

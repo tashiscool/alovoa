@@ -69,7 +69,10 @@ public class PoliticalAssessmentService {
                 assessment.setGateStatus(GateStatus.PENDING_ASSESSMENT);
                 assessment.setCreatedAt(new Date());
                 assessment.setAssessmentVersion(CURRENT_ASSESSMENT_VERSION);
-                return assessmentRepo.save(assessment);
+                UserPoliticalAssessment saved = assessmentRepo.save(assessment);
+                // Set bidirectional relationship so user.getPoliticalGateStatus() works
+                user.setPoliticalAssessment(saved);
+                return saved;
             });
     }
 

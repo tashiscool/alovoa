@@ -99,8 +99,8 @@ public class MessageService {
 		m.setContent(message);
 		m.setConversation(c);
 		m.setDate(new Date());
-		m.setUserFrom(user);
-		m.setUserTo(c.getPartner(user));
+		m.setUserFrom(currUser);  // Current user is the sender
+		m.setUserTo(user);        // Partner is the recipient
 		
 		if(Tools.isURLValid(message)) {
 			m.setAllowedFormatting(true);

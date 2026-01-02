@@ -9,6 +9,7 @@ import com.nonononoki.alovoa.service.AuthService;
 import com.nonononoki.alovoa.service.CaptchaService;
 import com.nonononoki.alovoa.service.RegisterService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @Transactional
+@EnabledIf("com.nonononoki.alovoa.integration.BaseIntegrationTest#isDockerAvailable")
 public class UserRegistrationIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

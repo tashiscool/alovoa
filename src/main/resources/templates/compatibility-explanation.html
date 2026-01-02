@@ -10,137 +10,278 @@
 <!-- Hero Section -->
 <div class="aura-hero">
     <h1><i class="fas fa-heart mr-2"></i> Compatibility Breakdown</h1>
-    <p>Understanding your connection</p>
+    <p>Understanding your connection with <span id="match-name">your match</span></p>
 </div>
 
 <div class="aura-container">
-    <!-- Overall Compatibility Card -->
+    <!-- Dealbreaker Warning (if applicable) -->
+    <div id="dealbreaker-warning" class="dealbreaker-card aura-animate-fade-up" style="display: none;">
+        <div class="dealbreaker-header">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Potential Dealbreaker Detected</span>
+        </div>
+        <div class="dealbreaker-content">
+            <p id="dealbreaker-text">One or more mandatory question conflicts were found.</p>
+            <div id="dealbreaker-details" class="dealbreaker-details"></div>
+        </div>
+    </div>
+
+    <!-- Overall Compatibility Card (OKCupid-style) -->
     <div class="aura-card aura-animate-fade-up">
         <div class="aura-card-header">
-            <div class="aura-card-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="aura-card-icon"><i class="fas fa-percentage"></i></div>
             <div>
-                <div class="aura-card-title">Overall Compatibility</div>
-                <div class="aura-card-subtitle" id="compatibility-summary">Loading...</div>
+                <div class="aura-card-title">Match Percentage</div>
+                <div class="aura-card-subtitle" id="compatibility-summary">Calculating compatibility...</div>
             </div>
         </div>
 
         <div style="padding: 1.5rem;">
-            <!-- Overall Score Display -->
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <div style="font-size: 4rem; font-weight: bold; color: var(--aura-primary);" id="overall-score">--</div>
-                <div style="font-size: 1.2rem; color: var(--text-light);">Match Score</div>
-
-                <!-- Enemy Score (if significant) -->
-                <div id="enemy-score-container" style="margin-top: 1rem; display: none;">
-                    <div style="font-size: 2rem; font-weight: bold; color: #e74c3c;" id="enemy-score">--</div>
-                    <div style="font-size: 1rem; color: var(--text-light);">Incompatibility %</div>
-                </div>
-            </div>
-
-            <!-- Progress Bars for Each Dimension -->
-            <div style="margin-top: 2rem;">
-                <h3 style="margin-bottom: 1rem; font-weight: 600;">Compatibility Dimensions</h3>
-
-                <div class="compatibility-dimension">
-                    <div class="dimension-label">
-                        <i class="fas fa-heart"></i>
-                        <span>Values & Beliefs</span>
+            <!-- OKCupid-style Match Display -->
+            <div class="okcupid-match-display">
+                <div class="match-circle-container">
+                    <div class="match-circle" id="overall-circle">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="match-circle-bg" cx="50" cy="50" r="45"/>
+                            <circle class="match-circle-fg" id="match-progress" cx="50" cy="50" r="45"/>
+                        </svg>
+                        <div class="match-circle-text">
+                            <span class="match-percent" id="overall-score">--</span>
+                            <span class="match-label">Match</span>
+                        </div>
                     </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="values-bar" style="width: 0%"></div>
-                    </div>
-                    <div class="dimension-score" id="values-score">--</div>
                 </div>
 
-                <div class="compatibility-dimension">
-                    <div class="dimension-label">
-                        <i class="fas fa-user"></i>
-                        <span>Personality</span>
+                <!-- Bidirectional scores (OKCupid formula) -->
+                <div class="bidirectional-scores">
+                    <div class="score-direction">
+                        <div class="score-arrow">
+                            <span>You</span>
+                            <i class="fas fa-arrow-right"></i>
+                            <span id="match-name-short">Them</span>
+                        </div>
+                        <div class="score-value" id="your-score">--%</div>
+                        <div class="score-explanation">How much they match what you want</div>
                     </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="personality-bar" style="width: 0%"></div>
+                    <div class="score-direction">
+                        <div class="score-arrow">
+                            <span id="match-name-short2">Them</span>
+                            <i class="fas fa-arrow-right"></i>
+                            <span>You</span>
+                        </div>
+                        <div class="score-value" id="their-score">--%</div>
+                        <div class="score-explanation">How much you match what they want</div>
                     </div>
-                    <div class="dimension-score" id="personality-score">--</div>
                 </div>
 
-                <div class="compatibility-dimension">
-                    <div class="dimension-label">
-                        <i class="fas fa-coffee"></i>
-                        <span>Lifestyle</span>
+                <!-- Enemy Score (OKCupid feature) -->
+                <div id="enemy-score-container" class="enemy-score-section" style="display: none;">
+                    <div class="enemy-label">
+                        <i class="fas fa-bolt"></i> Enemy Percentage
                     </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="lifestyle-bar" style="width: 0%"></div>
-                    </div>
-                    <div class="dimension-score" id="lifestyle-score">--</div>
-                </div>
-
-                <div class="compatibility-dimension">
-                    <div class="dimension-label">
-                        <i class="fas fa-bolt"></i>
-                        <span>Attraction</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="attraction-bar" style="width: 0%"></div>
-                    </div>
-                    <div class="dimension-score" id="attraction-score">--</div>
-                </div>
-
-                <div class="compatibility-dimension">
-                    <div class="dimension-label">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>Circumstantial</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="circumstantial-bar" style="width: 0%"></div>
-                    </div>
-                    <div class="dimension-score" id="circumstantial-score">--</div>
-                </div>
-
-                <div class="compatibility-dimension">
-                    <div class="dimension-label">
-                        <i class="fas fa-seedling"></i>
-                        <span>Growth Potential</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="growth-bar" style="width: 0%"></div>
-                    </div>
-                    <div class="dimension-score" id="growth-score">--</div>
+                    <div class="enemy-value" id="enemy-score">--%</div>
+                    <div class="enemy-explanation">Based on questions where you directly conflict</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Top Compatibilities Card -->
+    <!-- Category Breakdown (Marriage Machine categories) -->
     <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
         <div class="aura-card-header">
-            <div class="aura-card-icon" style="background: #27ae60;"><i class="fas fa-check-circle"></i></div>
+            <div class="aura-card-icon"><i class="fas fa-chart-bar"></i></div>
             <div>
-                <div class="aura-card-title">Your Strengths Together</div>
-                <div class="aura-card-subtitle">What makes you compatible</div>
+                <div class="aura-card-title">Category Breakdown</div>
+                <div class="aura-card-subtitle">How you match in each area</div>
             </div>
         </div>
 
         <div style="padding: 1.5rem;">
-            <ul id="top-compatibilities" class="compatibility-list">
-                <li>Loading...</li>
+            <!-- Big Five Personality -->
+            <div class="compatibility-dimension">
+                <div class="dimension-label">
+                    <i class="fas fa-brain"></i>
+                    <span>Personality (Big Five)</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="big-five-bar" style="width: 0%"></div>
+                </div>
+                <div class="dimension-score" id="big-five-score">--</div>
+            </div>
+
+            <!-- Attachment Style -->
+            <div class="compatibility-dimension">
+                <div class="dimension-label">
+                    <i class="fas fa-link"></i>
+                    <span>Attachment Style</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="attachment-bar" style="width: 0%"></div>
+                </div>
+                <div class="dimension-score" id="attachment-score">--</div>
+            </div>
+
+            <!-- Values & Ethics -->
+            <div class="compatibility-dimension">
+                <div class="dimension-label">
+                    <i class="fas fa-heart"></i>
+                    <span>Values & Ethics</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="values-bar" style="width: 0%"></div>
+                </div>
+                <div class="dimension-score" id="values-score">--</div>
+            </div>
+
+            <!-- Lifestyle -->
+            <div class="compatibility-dimension">
+                <div class="dimension-label">
+                    <i class="fas fa-home"></i>
+                    <span>Lifestyle</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="lifestyle-bar" style="width: 0%"></div>
+                </div>
+                <div class="dimension-score" id="lifestyle-score">--</div>
+            </div>
+
+            <!-- Sex & Intimacy -->
+            <div class="compatibility-dimension">
+                <div class="dimension-label">
+                    <i class="fas fa-fire"></i>
+                    <span>Sex & Intimacy</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="sex-bar" style="width: 0%"></div>
+                </div>
+                <div class="dimension-score" id="sex-score">--</div>
+            </div>
+
+            <!-- Communication -->
+            <div class="compatibility-dimension">
+                <div class="dimension-label">
+                    <i class="fas fa-comments"></i>
+                    <span>Communication</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="communication-bar" style="width: 0%"></div>
+                </div>
+                <div class="dimension-score" id="communication-score">--</div>
+            </div>
+
+            <!-- Relationship Goals -->
+            <div class="compatibility-dimension">
+                <div class="dimension-label">
+                    <i class="fas fa-ring"></i>
+                    <span>Relationship Goals</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="relationship-bar" style="width: 0%"></div>
+                </div>
+                <div class="dimension-score" id="relationship-score">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Compatibility Areas -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon" style="background: #27ae60;"><i class="fas fa-star"></i></div>
+            <div>
+                <div class="aura-card-title">Where You Click</div>
+                <div class="aura-card-subtitle">Your strongest compatibility areas</div>
+            </div>
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <ul id="top-compatibilities" class="compatibility-list strength-list">
+                <li class="loading-item"><i class="fas fa-spinner fa-spin"></i> Analyzing your answers...</li>
             </ul>
         </div>
     </div>
 
-    <!-- Potential Challenges Card -->
+    <!-- Areas to Discuss -->
     <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
         <div class="aura-card-header">
-            <div class="aura-card-icon" style="background: #e67e22;"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="aura-card-icon" style="background: #f39c12;"><i class="fas fa-comments"></i></div>
             <div>
-                <div class="aura-card-title">Areas to Navigate</div>
-                <div class="aura-card-subtitle">Differences to be aware of</div>
+                <div class="aura-card-title">Topics to Discuss</div>
+                <div class="aura-card-subtitle">Areas where you differ (great conversation starters!)</div>
             </div>
         </div>
 
         <div style="padding: 1.5rem;">
-            <ul id="potential-challenges" class="compatibility-list">
-                <li>Loading...</li>
+            <ul id="areas-to-discuss" class="compatibility-list discuss-list">
+                <li class="loading-item"><i class="fas fa-spinner fa-spin"></i> Finding interesting differences...</li>
             </ul>
+            <div class="discuss-tip">
+                <i class="fas fa-lightbulb"></i>
+                <span>Differences can strengthen relationships when discussed openly!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Match Details (expandable) -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header" onclick="toggleQuestionDetails()" style="cursor: pointer;">
+            <div class="aura-card-icon"><i class="fas fa-list-check"></i></div>
+            <div style="flex: 1;">
+                <div class="aura-card-title">Question-by-Question Analysis</div>
+                <div class="aura-card-subtitle">
+                    <span id="questions-answered">--</span> questions compared
+                </div>
+            </div>
+            <i class="fas fa-chevron-down expand-icon" id="expand-icon"></i>
+        </div>
+
+        <div id="question-details" class="question-details-container" style="display: none;">
+            <div id="question-matches" class="question-matches">
+                <div class="loading-item"><i class="fas fa-spinner fa-spin"></i> Loading question details...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How This Works -->
+    <div class="aura-card aura-animate-fade-up" style="margin-top: 1rem;">
+        <div class="aura-card-header">
+            <div class="aura-card-icon" style="background: #9b59b6;"><i class="fas fa-info-circle"></i></div>
+            <div>
+                <div class="aura-card-title">How We Calculate Match %</div>
+                <div class="aura-card-subtitle">Based on OKCupid's proven algorithm</div>
+            </div>
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <div class="formula-explanation">
+                <div class="formula-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>You answer questions</strong>
+                        <p>And indicate which answers you'd accept from a partner</p>
+                    </div>
+                </div>
+                <div class="formula-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Importance weighting</strong>
+                        <p>Irrelevant (0), A Little (1), Somewhat (10), Very (50), Mandatory (250)</p>
+                    </div>
+                </div>
+                <div class="formula-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Bidirectional scoring</strong>
+                        <p>We calculate how well they match YOUR preferences AND how well YOU match theirs</p>
+                    </div>
+                </div>
+                <div class="formula-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <strong>Geometric mean</strong>
+                        <p>Match % = sqrt(Your Satisfaction x Their Satisfaction) x 100</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -148,6 +289,169 @@
 <footer th:replace="~{fragments :: footer}"></footer>
 
 <style>
+/* Dealbreaker Warning */
+.dealbreaker-card {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.dealbreaker-header {
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dealbreaker-content {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.dealbreaker-details {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* OKCupid-style Match Display */
+.okcupid-match-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.match-circle-container {
+    position: relative;
+}
+
+.match-circle {
+    width: 180px;
+    height: 180px;
+    position: relative;
+}
+
+.match-circle svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.match-circle-bg {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 8;
+}
+
+.match-circle-fg {
+    fill: none;
+    stroke: var(--aura-primary);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;
+}
+
+.match-circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.match-percent {
+    display: block;
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--text-dark);
+    line-height: 1;
+}
+
+.match-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-top: 0.25rem;
+}
+
+/* Bidirectional Scores */
+.bidirectional-scores {
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.score-direction {
+    text-align: center;
+    padding: 1rem 1.5rem;
+    background: var(--bg-light);
+    border-radius: 12px;
+    min-width: 160px;
+}
+
+.score-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.score-arrow i {
+    color: var(--aura-primary);
+}
+
+.score-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--aura-primary);
+}
+
+.score-explanation {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-top: 0.25rem;
+}
+
+/* Enemy Score */
+.enemy-score-section {
+    padding: 1rem;
+    background: #fef3e7;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #f5d5b8;
+}
+
+.enemy-label {
+    font-weight: 500;
+    color: #d35400;
+    margin-bottom: 0.25rem;
+}
+
+.enemy-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.enemy-explanation {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-top: 0.25rem;
+}
+
+/* Dimension Bars */
 .compatibility-dimension {
     display: flex;
     align-items: center;
@@ -156,7 +460,7 @@
 }
 
 .dimension-label {
-    min-width: 180px;
+    min-width: 200px;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -166,6 +470,7 @@
 .dimension-label i {
     color: var(--aura-primary);
     width: 20px;
+    text-align: center;
 }
 
 .progress-bar-container {
@@ -174,27 +479,23 @@
     background: #e0e0e0;
     border-radius: 12px;
     overflow: hidden;
-    position: relative;
 }
 
 .progress-bar {
     height: 100%;
     background: linear-gradient(90deg, #3498db, #2ecc71);
     border-radius: 12px;
-    transition: width 0.6s ease-in-out;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: 8px;
+    transition: width 0.8s ease-out;
 }
 
 .dimension-score {
-    min-width: 40px;
+    min-width: 45px;
     text-align: right;
     font-weight: 600;
     color: var(--text-dark);
 }
 
+/* Compatibility Lists */
 .compatibility-list {
     list-style: none;
     padding: 0;
@@ -202,26 +503,205 @@
 }
 
 .compatibility-list li {
-    padding: 0.75rem;
+    padding: 0.75rem 1rem;
     margin-bottom: 0.5rem;
     background: var(--bg-light);
     border-radius: 8px;
-    border-left: 4px solid var(--aura-primary);
     font-size: 0.95rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
 }
 
 .compatibility-list li:before {
-    content: "• ";
-    color: var(--aura-primary);
+    content: none;
+}
+
+.strength-list li {
+    border-left: 4px solid #27ae60;
+}
+
+.strength-list li:before {
+    content: "\f00c";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: #27ae60;
+}
+
+.discuss-list li {
+    border-left: 4px solid #f39c12;
+}
+
+.discuss-list li:before {
+    content: "\f075";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: #f39c12;
+}
+
+.loading-item {
+    border-left-color: #bdc3c7 !important;
+    color: var(--text-light);
+}
+
+.discuss-tip {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #fef9e7;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #7d6608;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.discuss-tip i {
+    color: #f1c40f;
+}
+
+/* Question Details */
+.expand-icon {
+    transition: transform 0.3s ease;
+    color: var(--text-light);
+}
+
+.expand-icon.expanded {
+    transform: rotate(180deg);
+}
+
+.question-details-container {
+    border-top: 1px solid #eee;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.question-matches {
+    padding: 1rem 1.5rem;
+}
+
+.question-match-item {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    border-left: 4px solid var(--aura-primary);
+}
+
+.question-match-item.match {
+    border-left-color: #27ae60;
+}
+
+.question-match-item.partial {
+    border-left-color: #f39c12;
+}
+
+.question-match-item.conflict {
+    border-left-color: #e74c3c;
+}
+
+.question-text {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.answer-comparison {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    flex-wrap: wrap;
+}
+
+.your-answer, .their-answer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.importance-tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: #e8e8e8;
+}
+
+.importance-tag.mandatory {
+    background: #fde8e8;
+    color: #c0392b;
+}
+
+.importance-tag.very {
+    background: #fef3e7;
+    color: #d35400;
+}
+
+/* Formula Explanation */
+.formula-explanation {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formula-step {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    background: var(--aura-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: bold;
-    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content p {
+    margin: 0.25rem 0 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
 }
 
 :root {
     --aura-primary: #3498db;
     --text-dark: #2c3e50;
     --text-light: #7f8c8d;
-    --bg-light: #ecf0f1;
+    --bg-light: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+    .dimension-label {
+        min-width: 140px;
+        font-size: 0.9rem;
+    }
+
+    .bidirectional-scores {
+        gap: 1rem;
+    }
+
+    .score-direction {
+        min-width: 140px;
+        padding: 0.75rem 1rem;
+    }
+
+    .match-circle {
+        width: 150px;
+        height: 150px;
+    }
+
+    .match-percent {
+        font-size: 2.5rem;
+    }
 }
 </style>
 
@@ -230,75 +710,248 @@
 const urlParams = new URLSearchParams(window.location.search);
 const matchUuid = urlParams.get('matchUuid');
 
+// Category mapping for Marriage Machine categories
+const categoryMap = {
+    'BIG_FIVE': { id: 'big-five', label: 'Personality (Big Five)' },
+    'ATTACHMENT': { id: 'attachment', label: 'Attachment Style' },
+    'VALUES': { id: 'values', label: 'Values & Ethics' },
+    'LIFESTYLE': { id: 'lifestyle', label: 'Lifestyle' },
+    'SEX': { id: 'sex', label: 'Sex & Intimacy' },
+    'COMMUNICATION': { id: 'communication', label: 'Communication' },
+    'RELATIONSHIP': { id: 'relationship', label: 'Relationship Goals' },
+    // Fallback mappings for old dimension names
+    'personality': { id: 'big-five', label: 'Personality' },
+    'values': { id: 'values', label: 'Values' },
+    'lifestyle': { id: 'lifestyle', label: 'Lifestyle' }
+};
+
 if (matchUuid) {
-    // Fetch compatibility explanation from API
-    fetch(`/api/v1/matching/compatibility/${matchUuid}`)
-        .then(response => response.json())
-        .then(data => {
-            // Update overall score
-            document.getElementById('overall-score').textContent = Math.round(data.overallScore || 0);
-
-            // Update enemy score if significant
-            if (data.enemyScore && data.enemyScore > 10) {
-                document.getElementById('enemy-score-container').style.display = 'block';
-                document.getElementById('enemy-score').textContent = Math.round(data.enemyScore) + '%';
-            }
-
-            // Update summary
-            document.getElementById('compatibility-summary').textContent = data.summary || '';
-
-            // Update dimension scores and progress bars
-            if (data.dimensionScores) {
-                updateDimension('values', data.dimensionScores.values);
-                updateDimension('personality', data.dimensionScores.personality);
-                updateDimension('lifestyle', data.dimensionScores.lifestyle);
-                updateDimension('attraction', data.dimensionScores.attraction);
-                updateDimension('circumstantial', data.dimensionScores.circumstantial);
-                updateDimension('growth', data.dimensionScores.growth);
-            }
-
-            // Update top compatibilities
-            if (data.topCompatibilities && data.topCompatibilities.length > 0) {
-                const list = document.getElementById('top-compatibilities');
-                list.innerHTML = '';
-                data.topCompatibilities.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    list.appendChild(li);
-                });
-            }
-
-            // Update potential challenges
-            if (data.potentialChallenges && data.potentialChallenges.length > 0) {
-                const list = document.getElementById('potential-challenges');
-                list.innerHTML = '';
-                data.potentialChallenges.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    list.appendChild(li);
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching compatibility data:', error);
-            document.getElementById('compatibility-summary').textContent = 'Unable to load compatibility data';
-        });
+    loadCompatibilityData();
 }
 
-function updateDimension(name, score) {
-    const roundedScore = Math.round(score || 50);
-    document.getElementById(`${name}-score`).textContent = roundedScore;
-    document.getElementById(`${name}-bar`).style.width = roundedScore + '%';
+async function loadCompatibilityData() {
+    try {
+        const response = await fetch(`/api/v1/matching/compatibility/${matchUuid}`);
+        if (!response.ok) throw new Error('Failed to load compatibility data');
+        const data = await response.json();
 
-    // Color code the bar based on score
-    const bar = document.getElementById(`${name}-bar`);
-    if (roundedScore >= 70) {
-        bar.style.background = 'linear-gradient(90deg, #27ae60, #2ecc71)';
-    } else if (roundedScore >= 50) {
-        bar.style.background = 'linear-gradient(90deg, #3498db, #5dade2)';
-    } else {
-        bar.style.background = 'linear-gradient(90deg, #e67e22, #f39c12)';
+        // Update match name
+        if (data.matchName) {
+            document.getElementById('match-name').textContent = data.matchName;
+            document.getElementById('match-name-short').textContent = data.matchName.split(' ')[0];
+            document.getElementById('match-name-short2').textContent = data.matchName.split(' ')[0];
+        }
+
+        // Update overall score with animation
+        const overallScore = Math.round(data.overallScore || data.matchPercentage || 0);
+        animateScore('overall-score', overallScore);
+        animateCircle(overallScore);
+        updateCircleColor(overallScore);
+
+        // Update bidirectional scores (OKCupid feature)
+        if (data.yourSatisfaction !== undefined) {
+            document.getElementById('your-score').textContent = Math.round(data.yourSatisfaction * 100) + '%';
+        }
+        if (data.theirSatisfaction !== undefined) {
+            document.getElementById('their-score').textContent = Math.round(data.theirSatisfaction * 100) + '%';
+        }
+
+        // Update enemy score if significant
+        if (data.enemyScore && data.enemyScore > 10) {
+            document.getElementById('enemy-score-container').style.display = 'block';
+            document.getElementById('enemy-score').textContent = Math.round(data.enemyScore) + '%';
+        }
+
+        // Update summary
+        document.getElementById('compatibility-summary').textContent =
+            data.summary || getMatchSummary(overallScore);
+
+        // Handle dealbreakers
+        if (data.hasDealbreaker || data.mandatoryConflicts) {
+            const dealbreakers = data.dealbreakers || data.mandatoryConflicts || [];
+            showDealbreakers(dealbreakers);
+        }
+
+        // Update category breakdown (Marriage Machine categories)
+        if (data.categoryBreakdown) {
+            Object.entries(data.categoryBreakdown).forEach(([category, score]) => {
+                updateCategory(category, score);
+            });
+        } else if (data.dimensionScores) {
+            // Fallback to old dimension format
+            Object.entries(data.dimensionScores).forEach(([dim, score]) => {
+                updateCategory(dim, score);
+            });
+        }
+
+        // Update top compatibilities
+        renderListItems('top-compatibilities',
+            data.topCompatibilities || data.matchInsight?.topAreas || [],
+            'strength');
+
+        // Update areas to discuss
+        renderListItems('areas-to-discuss',
+            data.potentialChallenges || data.areasToDiscuss || data.matchInsight?.areasToDiscuss || [],
+            'discuss');
+
+        // Update question count
+        if (data.questionsCompared) {
+            document.getElementById('questions-answered').textContent = data.questionsCompared;
+        }
+
+        // Render question details if available
+        if (data.questionMatches) {
+            renderQuestionDetails(data.questionMatches);
+        }
+
+    } catch (error) {
+        console.error('Error fetching compatibility data:', error);
+        document.getElementById('compatibility-summary').textContent = 'Unable to load compatibility data';
     }
+}
+
+function animateScore(elementId, targetScore) {
+    const element = document.getElementById(elementId);
+    let current = 0;
+    const increment = targetScore / 50;
+    const interval = setInterval(() => {
+        current += increment;
+        if (current >= targetScore) {
+            current = targetScore;
+            clearInterval(interval);
+        }
+        element.textContent = Math.round(current) + '%';
+    }, 20);
+}
+
+function animateCircle(score) {
+    const circle = document.getElementById('match-progress');
+    const circumference = 283; // 2 * PI * 45
+    const offset = circumference - (score / 100) * circumference;
+    setTimeout(() => {
+        circle.style.strokeDashoffset = offset;
+    }, 100);
+}
+
+function updateCircleColor(score) {
+    const circle = document.getElementById('match-progress');
+    if (score >= 80) {
+        circle.style.stroke = '#27ae60';
+    } else if (score >= 60) {
+        circle.style.stroke = '#3498db';
+    } else if (score >= 40) {
+        circle.style.stroke = '#f39c12';
+    } else {
+        circle.style.stroke = '#e74c3c';
+    }
+}
+
+function updateCategory(category, score) {
+    const mapping = categoryMap[category] || categoryMap[category.toLowerCase()];
+    if (!mapping) return;
+
+    const barEl = document.getElementById(`${mapping.id}-bar`);
+    const scoreEl = document.getElementById(`${mapping.id}-score`);
+
+    if (barEl && scoreEl) {
+        const roundedScore = Math.round(score);
+        scoreEl.textContent = roundedScore + '%';
+
+        setTimeout(() => {
+            barEl.style.width = roundedScore + '%';
+            // Color based on score
+            if (roundedScore >= 70) {
+                barEl.style.background = 'linear-gradient(90deg, #27ae60, #2ecc71)';
+            } else if (roundedScore >= 50) {
+                barEl.style.background = 'linear-gradient(90deg, #3498db, #5dade2)';
+            } else {
+                barEl.style.background = 'linear-gradient(90deg, #e67e22, #f39c12)';
+            }
+        }, 100);
+    }
+}
+
+function showDealbreakers(dealbreakers) {
+    const container = document.getElementById('dealbreaker-warning');
+    const details = document.getElementById('dealbreaker-details');
+
+    container.style.display = 'block';
+
+    if (dealbreakers.length > 0) {
+        details.innerHTML = dealbreakers.map(d => `
+            <div style="margin-bottom: 0.5rem;">
+                <strong>${d.question || d.category}</strong><br/>
+                <small>You: ${d.yourAnswer} | They: ${d.theirAnswer}</small>
+            </div>
+        `).join('');
+    }
+}
+
+function renderListItems(containerId, items, type) {
+    const container = document.getElementById(containerId);
+
+    if (!items || items.length === 0) {
+        container.innerHTML = `<li class="${type === 'strength' ? '' : 'discuss-item'}">No specific ${type === 'strength' ? 'strengths' : 'discussion areas'} identified yet</li>`;
+        return;
+    }
+
+    container.innerHTML = items.map(item => {
+        const text = typeof item === 'string' ? item : (item.description || item.text || item);
+        const icon = type === 'strength' ? 'fa-check' : 'fa-comments';
+        return `<li><i class="fas ${icon}"></i> ${text}</li>`;
+    }).join('');
+}
+
+function renderQuestionDetails(matches) {
+    const container = document.getElementById('question-matches');
+
+    if (!matches || matches.length === 0) {
+        container.innerHTML = '<div class="loading-item">No question data available</div>';
+        return;
+    }
+
+    container.innerHTML = matches.map(m => {
+        const matchClass = m.isMatch ? 'match' : (m.isPartialMatch ? 'partial' : 'conflict');
+        const importanceClass = m.importance === 'mandatory' ? 'mandatory' :
+                               (m.importance === 'very' ? 'very' : '');
+
+        return `
+            <div class="question-match-item ${matchClass}">
+                <div class="question-text">${m.questionText}</div>
+                <div class="answer-comparison">
+                    <div class="your-answer">
+                        <strong>You:</strong> ${m.yourAnswer}
+                        ${m.yourImportance ? `<span class="importance-tag ${importanceClass}">${m.yourImportance}</span>` : ''}
+                    </div>
+                    <div class="their-answer">
+                        <strong>They:</strong> ${m.theirAnswer}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleQuestionDetails() {
+    const details = document.getElementById('question-details');
+    const icon = document.getElementById('expand-icon');
+
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+        icon.classList.add('expanded');
+    } else {
+        details.style.display = 'none';
+        icon.classList.remove('expanded');
+    }
+}
+
+function getMatchSummary(score) {
+    if (score >= 90) return 'Exceptionally high compatibility!';
+    if (score >= 80) return 'Very strong match with great potential';
+    if (score >= 70) return 'Good compatibility in most areas';
+    if (score >= 60) return 'Moderate compatibility - some differences to explore';
+    if (score >= 50) return 'Some shared values, but notable differences';
+    return 'Limited compatibility - significant differences detected';
 }
 </script>
 

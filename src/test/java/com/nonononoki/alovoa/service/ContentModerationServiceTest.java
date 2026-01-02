@@ -23,6 +23,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashSet;
@@ -102,6 +104,17 @@ class ContentModerationServiceTest {
 
         // Setup default keyword lists for testing
         setupKeywordLists();
+
+        // Reset and inject mock RestTemplate into the service
+        Mockito.reset(restTemplate);
+        ReflectionTestUtils.setField(moderationService, "restTemplate", restTemplate);
+
+        // Reset moderation settings to defaults for test isolation
+        ReflectionTestUtils.setField(moderationService, "moderationEnabled", true);
+        ReflectionTestUtils.setField(moderationService, "perspectiveApiKey", "");
+        ReflectionTestUtils.setField(moderationService, "toxicityThreshold", 0.7);
+        ReflectionTestUtils.setField(moderationService, "insultThreshold", 0.8);
+        ReflectionTestUtils.setField(moderationService, "profanityThreshold", 0.9);
     }
 
     @AfterEach
@@ -219,12 +232,13 @@ class ContentModerationServiceTest {
                 }
                 """;
 
-        Mockito.when(restTemplate.exchange(
-                anyString(),
-                any(),
-                any(),
-                eq(String.class)
-        )).thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+        Mockito.doReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK))
+                .when(restTemplate).exchange(
+                        anyString(),
+                        any(HttpMethod.class),
+                        any(HttpEntity.class),
+                        eq(String.class)
+                );
 
         ModerationResult result = moderationService.moderateContent(toxicContent);
 
@@ -252,8 +266,8 @@ class ContentModerationServiceTest {
                 }
                 """;
 
-        Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+        Mockito.doReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK))
+                .when(restTemplate).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(String.class));
 
         ModerationResult result = moderationService.moderateContent(insultContent);
 
@@ -279,8 +293,8 @@ class ContentModerationServiceTest {
                 }
                 """;
 
-        Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+        Mockito.doReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK))
+                .when(restTemplate).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(String.class));
 
         ModerationResult result = moderationService.moderateContent(profaneContent);
 
@@ -306,8 +320,8 @@ class ContentModerationServiceTest {
                 }
                 """;
 
-        Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+        Mockito.doReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK))
+                .when(restTemplate).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(String.class));
 
         ModerationResult result = moderationService.moderateContent(multiViolationContent);
 
@@ -338,8 +352,8 @@ class ContentModerationServiceTest {
                 }
                 """;
 
-        Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+        Mockito.doReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK))
+                .when(restTemplate).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(String.class));
 
         ModerationResult result = moderationService.moderateContent(mildContent);
 
@@ -353,8 +367,8 @@ class ContentModerationServiceTest {
         String content = "This has badword1";
 
         // Mock API failure
-        Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(String.class)))
-                .thenThrow(new RuntimeException("API Error"));
+        Mockito.doThrow(new RuntimeException("API Error"))
+                .when(restTemplate).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(String.class));
 
         ModerationResult result = moderationService.moderateContent(content);
 
@@ -485,8 +499,8 @@ class ContentModerationServiceTest {
                 }
                 """;
 
-        Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+        Mockito.doReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK))
+                .when(restTemplate).exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(String.class));
 
         ModerationResult result = moderationService.moderateContent(content);
 

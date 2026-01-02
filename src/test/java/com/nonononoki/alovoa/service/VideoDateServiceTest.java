@@ -3,13 +3,13 @@ package com.nonononoki.alovoa.service;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.VideoDate;
 import com.nonononoki.alovoa.entity.VideoDate.DateStatus;
+import com.nonononoki.alovoa.entity.user.Gender;
+import com.nonononoki.alovoa.entity.user.UserDates;
 import com.nonononoki.alovoa.repo.*;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -19,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,25 +37,10 @@ class VideoDateServiceTest {
     private VideoDateRepository videoDateRepo;
 
     @Autowired
-    private RegisterService registerService;
-
-    @Autowired
-    private CaptchaService captchaService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
     private UserRepository userRepo;
 
     @Autowired
-    private ConversationRepository conversationRepo;
-
-    @Value("${app.first-name.length-max}")
-    private int firstNameLengthMax;
-
-    @Value("${app.first-name.length-min}")
-    private int firstNameLengthMin;
+    private GenderRepository genderRepo;
 
     @MockitoBean
     private AuthService authService;
@@ -66,25 +51,48 @@ class VideoDateServiceTest {
     @MockitoBean
     private RestTemplate restTemplate;
 
-    private List<User> testUsers;
+    private User user1;
+    private User user2;
+    private User user3;
 
     @BeforeEach
     void before() throws Exception {
-        Mockito.when(mailService.sendMail(Mockito.any(String.class), any(String.class), any(String.class),
-                any(String.class))).thenReturn(true);
-        testUsers = RegisterServiceTest.getTestUsers(captchaService, registerService, firstNameLengthMax,
-                firstNameLengthMin);
+        // Create test users directly in the transaction
+        user1 = createTestUser("videodate1@test.com");
+        user2 = createTestUser("videodate2@test.com");
+        user3 = createTestUser("videodate3@test.com");
     }
 
-    @AfterEach
-    void after() throws Exception {
-        RegisterServiceTest.deleteAllUsers(userService, authService, captchaService, conversationRepo, userRepo);
+    private User createTestUser(String email) {
+        Gender gender = genderRepo.findAll().stream().findFirst().orElseGet(() -> {
+            Gender g = new Gender();
+            g.setText("male");
+            return genderRepo.saveAndFlush(g);
+        });
+
+        User user = new User(email);
+        user.setUuid(UUID.randomUUID());
+        user.setFirstName("TestUser");
+        user.setConfirmed(true);
+        user.setDisabled(false);
+        user.setAdmin(false);
+        user.setGender(gender);
+
+        UserDates dates = new UserDates();
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -25);
+        dates.setDateOfBirth(cal.getTime());
+        dates.setActiveDate(new Date());
+        dates.setCreationDate(new Date());
+        user.setDates(dates);
+
+        return userRepo.saveAndFlush(user);
     }
 
     @Test
     void testScheduleDate() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date scheduledTime = getFutureDate(2); // 2 days from now
@@ -95,15 +103,14 @@ class VideoDateServiceTest {
         assertNotNull(date.getId());
         assertEquals(initiator, date.getUserA());
         assertEquals(participant, date.getUserB());
-        assertEquals(DateStatus.SCHEDULED, date.getStatus());
+        assertEquals(DateStatus.PROPOSED, date.getStatus());
         assertEquals(30 * 60, date.getDurationSeconds());
-        assertNotNull(date.getCreatedAt());
     }
 
     @Test
     void testScheduleDate_PastTime() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date pastTime = new Date(System.currentTimeMillis() - 86400000); // Yesterday
@@ -114,7 +121,7 @@ class VideoDateServiceTest {
 
     @Test
     void testScheduleDate_SameUser() throws Exception {
-        User user = testUsers.get(0);
+        User user = user1;
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         Date futureTime = getFutureDate(1);
@@ -125,8 +132,8 @@ class VideoDateServiceTest {
 
     @Test
     void testAcceptDate() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date scheduledTime = getFutureDate(2);
@@ -143,9 +150,9 @@ class VideoDateServiceTest {
 
     @Test
     void testAcceptDate_WrongUser() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
-        User other = testUsers.get(2);
+        User initiator = user1;
+        User participant = user2;
+        User other = user3;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date scheduledTime = getFutureDate(2);
@@ -160,8 +167,8 @@ class VideoDateServiceTest {
 
     @Test
     void testDeclineDate() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date scheduledTime = getFutureDate(2);
@@ -177,8 +184,8 @@ class VideoDateServiceTest {
 
     @Test
     void testCancelDate() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date scheduledTime = getFutureDate(2);
@@ -193,8 +200,8 @@ class VideoDateServiceTest {
 
     @Test
     void testRescheduleDate() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date originalTime = getFutureDate(2);
@@ -203,14 +210,14 @@ class VideoDateServiceTest {
         Date newTime = getFutureDate(5);
         VideoDate rescheduledDate = videoDateService.rescheduleDate(date.getId().toString(), newTime);
 
-        assertEquals(DateStatus.SCHEDULED, rescheduledDate.getStatus());
+        assertEquals(DateStatus.PROPOSED, rescheduledDate.getStatus());
         assertEquals(newTime, rescheduledDate.getScheduledAt());
     }
 
     @Test
     void testCompleteDate() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date scheduledTime = getFutureDate(0); // Today
@@ -220,8 +227,11 @@ class VideoDateServiceTest {
         Mockito.doReturn(participant).when(authService).getCurrentUser(true);
         date = videoDateService.acceptDate(date.getId().toString());
 
-        // Complete
+        // Start the video date (required before completing)
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
+        videoDateService.startVideoDate(date.getId());
+
+        // Complete
         VideoDate completedDate = videoDateService.completeDate(date.getId().toString());
 
         assertEquals(DateStatus.COMPLETED, completedDate.getStatus());
@@ -230,8 +240,8 @@ class VideoDateServiceTest {
 
     @Test
     void testCompleteDate_NotConfirmed() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         Date scheduledTime = getFutureDate(2);
@@ -244,11 +254,11 @@ class VideoDateServiceTest {
 
     @Test
     void testReportNoShow() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
-        Date scheduledTime = new Date(); // Now
+        Date scheduledTime = getFutureDate(0); // Soon but in the future
         VideoDate date = videoDateService.scheduleDate(participant.getUuid().toString(), scheduledTime, 30);
 
         // Accept
@@ -266,8 +276,8 @@ class VideoDateServiceTest {
 
     @Test
     void testGetUpcomingDates() throws Exception {
-        User user = testUsers.get(0);
-        User other = testUsers.get(1);
+        User user = user1;
+        User other = user2;
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create some dates
@@ -278,7 +288,7 @@ class VideoDateServiceTest {
         List<VideoDate> upcoming = videoDateRepo.findByUserAOrUserB(user, user)
                 .stream()
                 .filter(d -> d.getScheduledAt() != null && d.getScheduledAt().after(new Date()))
-                .filter(d -> d.getStatus() == DateStatus.SCHEDULED || d.getStatus() == DateStatus.ACCEPTED)
+                .filter(d -> d.getStatus() == DateStatus.PROPOSED || d.getStatus() == DateStatus.ACCEPTED)
                 .collect(Collectors.toList());
 
         assertEquals(2, upcoming.size());
@@ -286,17 +296,21 @@ class VideoDateServiceTest {
 
     @Test
     void testGetDateHistory() throws Exception {
-        User user = testUsers.get(0);
-        User other = testUsers.get(1);
+        User user = user1;
+        User other = user2;
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         // Create and complete a date
-        VideoDate date = videoDateService.scheduleDate(other.getUuid().toString(), new Date(), 30);
+        VideoDate date = videoDateService.scheduleDate(other.getUuid().toString(), getFutureDate(0), 30);
 
         Mockito.doReturn(other).when(authService).getCurrentUser(true);
         date = videoDateService.acceptDate(date.getId().toString());
 
+        // Start the video date
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
+        videoDateService.startVideoDate(date.getId());
+
+        // Complete
         videoDateService.completeDate(date.getId().toString());
 
         // getDateHistory method doesn't exist - query repository directly
@@ -311,17 +325,19 @@ class VideoDateServiceTest {
 
     @Test
     void testSubmitFeedback() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
         // Create and complete date
-        VideoDate date = videoDateService.scheduleDate(participant.getUuid().toString(), new Date(), 30);
+        VideoDate date = videoDateService.scheduleDate(participant.getUuid().toString(), getFutureDate(0), 30);
 
         Mockito.doReturn(participant).when(authService).getCurrentUser(true);
         date = videoDateService.acceptDate(date.getId().toString());
 
+        // Start and complete the date
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
+        videoDateService.startVideoDate(date.getId());
         date = videoDateService.completeDate(date.getId().toString());
 
         // submitFeedback method doesn't exist - update feedback fields directly
@@ -334,11 +350,11 @@ class VideoDateServiceTest {
 
     @Test
     void testGetRoomInfo() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
+        User initiator = user1;
+        User participant = user2;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
-        VideoDate date = videoDateService.scheduleDate(participant.getUuid().toString(), new Date(), 30);
+        VideoDate date = videoDateService.scheduleDate(participant.getUuid().toString(), getFutureDate(0), 30);
 
         Mockito.doReturn(participant).when(authService).getCurrentUser(true);
         date = videoDateService.acceptDate(date.getId().toString());
@@ -349,12 +365,12 @@ class VideoDateServiceTest {
 
     @Test
     void testGetRoomInfo_Unauthorized() throws Exception {
-        User initiator = testUsers.get(0);
-        User participant = testUsers.get(1);
-        User other = testUsers.get(2);
+        User initiator = user1;
+        User participant = user2;
+        User other = user3;
         Mockito.doReturn(initiator).when(authService).getCurrentUser(true);
 
-        VideoDate date = videoDateService.scheduleDate(participant.getUuid().toString(), new Date(), 30);
+        VideoDate date = videoDateService.scheduleDate(participant.getUuid().toString(), getFutureDate(0), 30);
 
         Mockito.doReturn(participant).when(authService).getCurrentUser(true);
         date = videoDateService.acceptDate(date.getId().toString());

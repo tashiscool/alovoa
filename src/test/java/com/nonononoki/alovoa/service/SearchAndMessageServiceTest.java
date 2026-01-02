@@ -102,6 +102,9 @@ class SearchAndMessageServiceTest {
     @MockitoBean
     private MailService mailService;
 
+    @MockitoBean
+    private S3StorageService s3StorageService;
+
     private static final Long INTENTION_TEST = 1L;
 
     private static final int USER1_AGE = 18;

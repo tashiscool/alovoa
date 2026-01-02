@@ -46,6 +46,9 @@ public class ContentModerationService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     private Set<String> blockedWords;
     private Set<String> warningWords;
     private List<Pattern> blockedPatterns;
@@ -136,7 +139,6 @@ public class ContentModerationService {
     private ModerationResult moderateWithPerspectiveAPI(String content) {
         String url = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=" + perspectiveApiKey;
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 

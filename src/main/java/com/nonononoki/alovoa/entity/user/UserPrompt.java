@@ -22,6 +22,7 @@ public class UserPrompt {
 
 	private Long promptId;
 
+	@Column(length = 2500)
 	private String text;
 
 	@Override

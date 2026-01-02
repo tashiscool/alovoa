@@ -149,4 +149,32 @@ public class EssayService {
                 .filter(p -> p.getText() != null && !p.getText().isBlank())
                 .count();
     }
+
+    /**
+     * Get essay templates (prompts only, no user answers).
+     */
+    public List<EssayDto> getEssayTemplates() {
+        List<EssayPromptTemplate> templates = getAllTemplates();
+        return templates.stream()
+                .map(template -> EssayDto.builder()
+                        .promptId(template.getPromptId())
+                        .title(template.getTitle())
+                        .placeholder(template.getPlaceholder())
+                        .helpText(template.getHelpText())
+                        .displayOrder(template.getDisplayOrder())
+                        .minLength(template.getMinLength())
+                        .maxLength(template.getMaxLength())
+                        .required(template.getRequired())
+                        .answer(null)
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get filled essay count for the current user.
+     */
+    public long getFilledEssayCount() throws AlovoaException {
+        User user = authService.getCurrentUser(true);
+        return getFilledEssayCount(user);
+    }
 }

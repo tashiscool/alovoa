@@ -145,13 +145,13 @@ class IntakeServiceTest {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
-        // Create test question
+        // Get the existing core question for dealbreakers_safety (created in @BeforeEach)
         AssessmentQuestion question = createSingleCoreQuestion("dealbreakers_safety", "Q1");
 
-        // Submit answer
+        // Submit answer using the actual question's external ID
         List<AssessmentResponseDto> responses = new ArrayList<>();
         AssessmentResponseDto dto = new AssessmentResponseDto();
-        dto.setQuestionId("Q1");
+        dto.setQuestionId(question.getExternalId());
         dto.setNumericResponse(3);
         responses.add(dto);
 
@@ -172,12 +172,13 @@ class IntakeServiceTest {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
+        // Get the existing core question (created in @BeforeEach)
         AssessmentQuestion question = createSingleCoreQuestion("dealbreakers_safety", "Q2");
 
-        // Submit initial answer
+        // Submit initial answer using the actual question's external ID
         List<AssessmentResponseDto> responses = new ArrayList<>();
         AssessmentResponseDto dto = new AssessmentResponseDto();
-        dto.setQuestionId("Q2");
+        dto.setQuestionId(question.getExternalId());
         dto.setNumericResponse(3);
         responses.add(dto);
         intakeService.submitCoreAnswers(responses);
@@ -471,18 +472,20 @@ class IntakeServiceTest {
         User user = testUsers.get(0);
         UserIntakeProgress progress = getOrCreateProgress(user);
 
-        // Initially can't proceed
+        // Initially can't proceed (on QUESTIONS step, questions not complete)
         assertFalse(intakeService.canProceedToNext(progress));
 
-        // After questions complete
+        // After questions complete, current step becomes VIDEO
         progress.setQuestionsComplete(true);
-        assertTrue(intakeService.canProceedToNext(progress));
+        // Now on VIDEO step, can't proceed until video is complete
+        assertFalse(intakeService.canProceedToNext(progress));
 
-        // After video complete
+        // After video complete, current step becomes PHOTOS
         progress.setVideoIntroComplete(true);
-        assertTrue(intakeService.canProceedToNext(progress));
+        // Now on PHOTOS step, can't proceed until photos are complete
+        assertFalse(intakeService.canProceedToNext(progress));
 
-        // After photos complete
+        // After photos complete, all steps done
         progress.setPicturesComplete(true);
         assertTrue(intakeService.canProceedToNext(progress));
     }
@@ -569,31 +572,52 @@ class IntakeServiceTest {
     void testProgressPercentageCalculation() throws Exception {
         User user = testUsers.get(0);
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
+        Mockito.when(s3StorageService.uploadMedia(any(), any(), any())).thenReturn("test-s3-key");
 
-        // 0% initially
+        // 0% initially (no answers, no video, no photos)
         IntakeProgressDto progress = intakeService.getIntakeProgress();
         assertEquals(0, progress.getCompletionPercentage());
 
-        // Complete questions
+        // Answer all core questions to complete the questions step
+        // (getIntakeProgress recalculates questionsComplete from actual answers)
+        answerAllCoreQuestions(user);
+        progress = intakeService.getIntakeProgress();
+        assertTrue(progress.isQuestionsComplete(), "Questions should be complete after answering all");
+        assertTrue(progress.getCompletionPercentage() >= 33, "Should be at least 33% after questions");
+        assertTrue(progress.getCompletionPercentage() < 100, "Should be less than 100% without video/photos");
+
+        // Upload video to complete video step
         UserIntakeProgress dbProgress = getOrCreateProgress(user);
         dbProgress.setQuestionsComplete(true);
         intakeProgressRepo.save(dbProgress);
+        MockMultipartFile videoFile = new MockMultipartFile("video", "test.mp4", "video/mp4", "test".getBytes());
+        intakeService.uploadVideoIntroduction(videoFile);
         progress = intakeService.getIntakeProgress();
-        assertTrue(progress.getCompletionPercentage() > 0);
-        assertTrue(progress.getCompletionPercentage() < 100);
+        assertTrue(progress.isVideoIntroComplete(), "Video should be complete after upload");
+        assertTrue(progress.getCompletionPercentage() >= 66, "Should be at least 66% after video");
+        assertTrue(progress.getCompletionPercentage() < 100, "Should be less than 100% without photos");
 
-        // Complete video
-        dbProgress.setVideoIntroComplete(true);
-        intakeProgressRepo.save(dbProgress);
+        // Set profile picture to complete photos step
+        user.setProfilePicture(new com.nonononoki.alovoa.entity.user.UserProfilePicture());
         progress = intakeService.getIntakeProgress();
-        assertTrue(progress.getCompletionPercentage() > 33);
-        assertTrue(progress.getCompletionPercentage() < 100);
+        assertEquals(100, progress.getCompletionPercentage(), "Should be 100% after all steps");
+    }
 
-        // Complete photos
-        dbProgress.setPicturesComplete(true);
-        intakeProgressRepo.save(dbProgress);
-        progress = intakeService.getIntakeProgress();
-        assertEquals(100, progress.getCompletionPercentage());
+    private void answerAllCoreQuestions(User user) throws Exception {
+        List<String> coreCategories = List.of(
+                "dealbreakers_safety", "relationship_dynamics", "attachment_emotional",
+                "lifestyle_compatibility", "family_future", "sex_intimacy",
+                "personality_temperament", "hypotheticals_scenarios", "location_specific", "values_politics"
+        );
+        for (String category : coreCategories) {
+            AssessmentQuestion question = createSingleCoreQuestion(category, "PROGRESS_" + category);
+            List<AssessmentResponseDto> responses = new ArrayList<>();
+            AssessmentResponseDto dto = new AssessmentResponseDto();
+            dto.setQuestionId(question.getExternalId());
+            dto.setNumericResponse(3);
+            responses.add(dto);
+            intakeService.submitCoreAnswers(responses);
+        }
     }
 
     // Helper methods
@@ -631,6 +655,12 @@ class IntakeServiceTest {
     private AssessmentQuestion createSingleCoreQuestion(String subcategory, String externalId) {
         if (questionRepo.existsByExternalId(externalId)) {
             return questionRepo.findByExternalId(externalId).get();
+        }
+
+        // Check if a core question already exists for this subcategory (created by createTestQuestions)
+        Optional<AssessmentQuestion> existingCore = questionRepo.findBySubcategoryAndCoreQuestionTrue(subcategory);
+        if (existingCore.isPresent()) {
+            return existingCore.get();
         }
 
         AssessmentQuestion question = new AssessmentQuestion();

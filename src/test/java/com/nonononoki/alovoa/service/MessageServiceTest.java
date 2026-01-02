@@ -152,9 +152,10 @@ class MessageServiceTest {
         User sender = testUsers.get(0);
         Mockito.doReturn(sender).when(authService).getCurrentUser(true);
 
-        String messageWithURL = "Check this out: https://example.com";
+        // Message must be a valid URL (entire content) for allowedFormatting to be enabled
+        String validURL = "https://example.com";
 
-        messageService.send(testConversation.getId(), messageWithURL);
+        messageService.send(testConversation.getId(), validURL);
 
         testConversation = conversationRepo.findById(testConversation.getId()).orElse(null);
         Message lastMessage = testConversation.getMessages().get(testConversation.getMessages().size() - 1);

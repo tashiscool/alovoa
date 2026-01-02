@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -152,8 +153,10 @@ class LocationControllerTest {
         request.city = "San Francisco";
         request.state = "CA";
 
+        // Use nullable() for parameters that may be null
         Mockito.when(locationService.addArea(anyString(), anyString(), anyString(),
-                any(), anyString(), any(), anyBoolean()))
+                nullable(UserLocationArea.DisplayLevel.class), nullable(String.class),
+                nullable(UserLocationArea.AreaLabel.class), anyBoolean()))
                 .thenThrow(new RuntimeException("Too many areas"));
 
         mockMvc.perform(post("/location/areas")
@@ -299,6 +302,15 @@ class LocationControllerTest {
         Mockito.doReturn(user).when(authService).getCurrentUser(true);
 
         UserTravelingMode mockTraveling = new UserTravelingMode();
+        // Set required fields to avoid serialization issues
+        mockTraveling.setDestinationCity("New York");
+        mockTraveling.setDestinationState("NY");
+        mockTraveling.setShowMeThere(true);
+        mockTraveling.setShowLocalsToMe(true);
+        // Set dates to prevent NPE in isCurrentlyActive(), isUpcoming(), hasEnded()
+        mockTraveling.setArrivingDate(new Date());
+        mockTraveling.setLeavingDate(new Date(System.currentTimeMillis() + 86400000)); // tomorrow
+        mockTraveling.setDisplayAs("New York, NY");
         Mockito.when(locationService.getMyTravelingMode()).thenReturn(Optional.of(mockTraveling));
 
         mockMvc.perform(get("/location/traveling"))
@@ -330,11 +342,20 @@ class LocationControllerTest {
         request.destinationCity = "New York";
         request.destinationState = "NY";
         request.arrivingDate = new Date();
-        request.leavingDate = new Date();
+        request.leavingDate = new Date(System.currentTimeMillis() + 86400000);
         request.showMeThere = true;
         request.showLocalsToMe = false;
 
         UserTravelingMode mockTraveling = new UserTravelingMode();
+        // Set required fields to avoid serialization issues
+        mockTraveling.setDestinationCity("New York");
+        mockTraveling.setDestinationState("NY");
+        mockTraveling.setShowMeThere(true);
+        mockTraveling.setShowLocalsToMe(false);
+        // Set dates to prevent NPE in isCurrentlyActive(), isUpcoming(), hasEnded()
+        mockTraveling.setArrivingDate(request.arrivingDate);
+        mockTraveling.setLeavingDate(request.leavingDate);
+        mockTraveling.setDisplayAs("New York, NY");
         Mockito.when(locationService.enableTravelingMode(anyString(), anyString(),
                 any(Date.class), any(Date.class), anyBoolean(), anyBoolean()))
                 .thenReturn(mockTraveling);
@@ -449,7 +470,8 @@ class LocationControllerTest {
         Mockito.when(dateSpotService.getSpotsByType("Downtown", DateSpotSuggestion.VenueType.COFFEE_SHOP))
                 .thenReturn(mockSpots);
 
-        mockMvc.perform(get("/location/date-spots/type/CAFE")
+        // Use valid VenueType enum value (COFFEE_SHOP, not CAFE)
+        mockMvc.perform(get("/location/date-spots/type/COFFEE_SHOP")
                         .param("neighborhood", "Downtown"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());

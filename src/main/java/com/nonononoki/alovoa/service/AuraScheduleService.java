@@ -62,15 +62,14 @@ public class AuraScheduleService {
         LOGGER.info("Running video date proposal expiration...");
 
         Date cutoff = Date.from(Instant.now().minus(proposalExpiryHours, ChronoUnit.HOURS));
-        List<VideoDate> expiredProposals = videoDateRepo.findExpiredScheduledDates(cutoff);
+        // Use the query that finds PROPOSED dates
+        List<VideoDate> expiredProposals = videoDateRepo.findExpiredProposals(cutoff);
 
         int count = 0;
         for (VideoDate vd : expiredProposals) {
-            if (vd.getStatus() == DateStatus.PROPOSED) {
-                vd.setStatus(DateStatus.EXPIRED);
-                videoDateRepo.save(vd);
-                count++;
-            }
+            vd.setStatus(DateStatus.EXPIRED);
+            videoDateRepo.save(vd);
+            count++;
         }
 
         LOGGER.info("Expired {} video date proposals", count);
@@ -86,15 +85,14 @@ public class AuraScheduleService {
         // Find dates that were scheduled more than 30 minutes ago but never started
         Date cutoff = Date.from(Instant.now().minus(30, ChronoUnit.MINUTES));
 
-        List<VideoDate> scheduledDates = videoDateRepo.findExpiredScheduledDates(cutoff);
-        for (VideoDate vd : scheduledDates) {
-            if (vd.getStatus() == DateStatus.ACCEPTED || vd.getStatus() == DateStatus.SCHEDULED) {
-                // Mark as no-show for both users (could be more sophisticated)
-                vd.setStatus(DateStatus.EXPIRED);
-                videoDateRepo.save(vd);
+        // Use the query that finds SCHEDULED and ACCEPTED dates
+        List<VideoDate> missedDates = videoDateRepo.findMissedDates(cutoff);
+        for (VideoDate vd : missedDates) {
+            // Mark as no-show for both users
+            vd.setStatus(DateStatus.EXPIRED);
+            videoDateRepo.save(vd);
 
-                LOGGER.info("Video date {} marked as expired (missed)", vd.getId());
-            }
+            LOGGER.info("Video date {} marked as expired (missed)", vd.getId());
         }
     }
 

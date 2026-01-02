@@ -28,10 +28,10 @@ public class Conversation {
 	private Long id;
 
 	@ManyToMany
-	private List<User> users;
+	private List<User> users = new ArrayList<>();
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "conversation")
-	private List<Message> messages;
+	private List<Message> messages = new ArrayList<>();
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "conversation")
 	private List<ConversationCheckedDate> checkedDates;

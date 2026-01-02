@@ -133,6 +133,14 @@
                 </div>
             </div>
 
+            <!-- Match Insights Card (Marriage Machine feature) -->
+            <div class="match-insights-card" th:id="'insights-' + ${window.uuid}">
+                <!-- Insights loaded via JavaScript from /api/v1/matching/compatibility/{uuid} -->
+                <div class="insights-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading compatibility insights...
+                </div>
+            </div>
+
             <!-- Countdown Timer -->
             <div class="countdown-timer"
                  th:classappend="${window.getHoursRemaining() <= 4} ? 'urgent' : ''"
@@ -607,6 +615,115 @@
     gap: 0.5rem;
 }
 
+/* Match Insights Card (Marriage Machine feature) */
+.match-insights-card {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.03), rgba(6, 182, 212, 0.03));
+    border: 1px solid rgba(124, 58, 237, 0.15);
+    border-radius: var(--aura-radius);
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.insights-loading {
+    text-align: center;
+    color: var(--aura-gray-500);
+    font-size: 0.875rem;
+    padding: 0.5rem;
+}
+
+.insights-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--aura-primary);
+}
+
+.insights-summary {
+    font-size: 0.9375rem;
+    color: var(--aura-gray-700);
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: rgba(124, 58, 237, 0.05);
+    border-radius: var(--aura-radius);
+    border-left: 3px solid var(--aura-primary);
+}
+
+.insights-section {
+    margin-bottom: 0.75rem;
+}
+
+.insights-section-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--aura-gray-600);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.insights-section-title.strengths i {
+    color: var(--aura-success);
+}
+
+.insights-section-title.discuss i {
+    color: #f59e0b;
+}
+
+.insights-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.insights-list li {
+    font-size: 0.875rem;
+    color: var(--aura-gray-600);
+    padding: 0.375rem 0.625rem;
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 0.375rem;
+    border-left: 2px solid var(--aura-primary);
+}
+
+.insights-list.discuss li {
+    border-left-color: #f59e0b;
+}
+
+.category-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--aura-radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.category-chip.high {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--aura-success);
+}
+
+.category-chip.medium {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--aura-info);
+}
+
+.category-chip.low {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
 /* Countdown Timer */
 .countdown-timer {
     display: flex;
@@ -1077,6 +1194,102 @@ document.querySelectorAll('.intro-message-input').forEach(textarea => {
         }
     });
 });
+
+// Load match insights for all windows (Marriage Machine feature)
+document.querySelectorAll('.match-insights-card').forEach(async card => {
+    const windowUuid = card.id.replace('insights-', '');
+    try {
+        const response = await fetch(`/api/v1/matching/compatibility/${windowUuid}`);
+        if (!response.ok) throw new Error('Failed to load');
+        const data = await response.json();
+        renderMatchInsights(card, data);
+    } catch (error) {
+        console.error('Error loading insights:', error);
+        card.innerHTML = `
+            <div class="insights-header">
+                <i class="fas fa-chart-line"></i>
+                Compatibility Insights
+            </div>
+            <div style="font-size: 0.875rem; color: var(--aura-gray-500);">
+                <a href="/compatibility-explanation?matchUuid=${windowUuid}">View full breakdown →</a>
+            </div>
+        `;
+    }
+});
+
+function renderMatchInsights(card, data) {
+    let html = `
+        <div class="insights-header">
+            <i class="fas fa-chart-line"></i>
+            Compatibility Insights
+        </div>
+    `;
+
+    // Summary/Insight
+    if (data.summary) {
+        html += `<div class="insights-summary">${data.summary}</div>`;
+    }
+
+    // Top compatibility areas
+    if (data.topCompatibilities && data.topCompatibilities.length > 0) {
+        html += `
+            <div class="insights-section">
+                <div class="insights-section-title strengths">
+                    <i class="fas fa-check-circle"></i>
+                    Your Strengths
+                </div>
+                <ul class="insights-list">
+                    ${data.topCompatibilities.slice(0, 3).map(item => `<li>${item}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    // Areas to discuss (potential challenges)
+    if (data.potentialChallenges && data.potentialChallenges.length > 0) {
+        html += `
+            <div class="insights-section">
+                <div class="insights-section-title discuss">
+                    <i class="fas fa-comments"></i>
+                    Worth Discussing
+                </div>
+                <ul class="insights-list discuss">
+                    ${data.potentialChallenges.slice(0, 2).map(item => `<li>${item}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    // Category breakdown chips
+    if (data.dimensionScores) {
+        const categories = Object.entries(data.dimensionScores)
+            .filter(([key, value]) => value != null)
+            .slice(0, 5);
+
+        if (categories.length > 0) {
+            html += `<div class="category-breakdown">`;
+            categories.forEach(([name, score]) => {
+                const level = score >= 70 ? 'high' : score >= 50 ? 'medium' : 'low';
+                const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+                html += `<span class="category-chip ${level}">${displayName}: ${Math.round(score)}%</span>`;
+            });
+            html += `</div>`;
+        }
+    }
+
+    // Link to full breakdown
+    const matchUuid = card.id.replace('insights-', '');
+    html += `
+        <div style="margin-top: 0.75rem; text-align: center;">
+            <a href="/compatibility-explanation?matchUuid=${matchUuid}"
+               style="font-size: 0.8125rem; color: var(--aura-primary); text-decoration: none;">
+                View full breakdown →
+            </a>
+        </div>
+    `;
+
+    card.innerHTML = html;
+}
 
 // Simple notification function
 function showNotification(message, type = 'info') {

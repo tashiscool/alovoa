@@ -455,6 +455,81 @@
         animation: bounceIn 0.5s ease;
     }
 
+    /* OKCupid-style Acceptable Answers Selector (Marriage Machine feature) */
+    .acceptable-section {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.05), rgba(16, 185, 129, 0.05));
+        border: 1px solid rgba(6, 182, 212, 0.2);
+        border-radius: var(--aura-radius);
+    }
+
+    .acceptable-label {
+        font-weight: 600;
+        color: var(--aura-gray-700);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .acceptable-label i {
+        color: #06b6d4;
+    }
+
+    .acceptable-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .acceptable-option {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem 0.875rem;
+        border: 2px solid var(--aura-gray-200);
+        border-radius: var(--aura-radius);
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+    }
+
+    .acceptable-option:hover {
+        border-color: #06b6d4;
+        background: rgba(6, 182, 212, 0.05);
+    }
+
+    .acceptable-option.selected {
+        border-color: #06b6d4;
+        background: rgba(6, 182, 212, 0.1);
+    }
+
+    .acceptable-option input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #06b6d4;
+    }
+
+    .acceptable-text {
+        flex: 1;
+        color: var(--aura-gray-700);
+    }
+
+    .acceptable-hint {
+        margin-top: 0.75rem;
+        font-size: 0.8125rem;
+        color: var(--aura-gray-500);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .acceptable-hint i {
+        color: #06b6d4;
+    }
+
     /* OKCupid-style Importance Selector (Marriage Machine feature) */
     .importance-section {
         margin-top: 1.5rem;
@@ -668,6 +743,43 @@
     // Store importance for each question (OKCupid-style)
     let questionImportance = {};
 
+    // Store acceptable answers for each question (OKCupid-style)
+    let acceptableAnswers = {};
+
+    // Get default acceptable answers (same answer ±1)
+    function getDefaultAcceptable(selectedAnswer, totalOptions) {
+        if (selectedAnswer === undefined) return [];
+        const acceptable = [selectedAnswer];
+        if (selectedAnswer > 0) acceptable.push(selectedAnswer - 1);
+        if (selectedAnswer < totalOptions - 1) acceptable.push(selectedAnswer + 1);
+        return acceptable.sort((a, b) => a - b);
+    }
+
+    // Toggle an acceptable answer
+    function toggleAcceptable(questionId, optionIndex) {
+        if (!acceptableAnswers[questionId]) {
+            // Initialize with default if not set
+            const question = questions.find(q => q.id === questionId);
+            acceptableAnswers[questionId] = getDefaultAcceptable(
+                answers[questionId],
+                question?.options?.length || 5
+            );
+        }
+
+        const idx = acceptableAnswers[questionId].indexOf(optionIndex);
+        if (idx > -1) {
+            // Don't allow removing the user's own answer
+            if (optionIndex === answers[questionId]) {
+                return; // Can't uncheck your own answer
+            }
+            acceptableAnswers[questionId].splice(idx, 1);
+        } else {
+            acceptableAnswers[questionId].push(optionIndex);
+            acceptableAnswers[questionId].sort((a, b) => a - b);
+        }
+        renderCurrentQuestion();
+    }
+
     function renderCurrentQuestion() {
         const question = questions[currentQuestionIndex];
         document.getElementById('current-question').textContent = currentQuestionIndex + 1;
@@ -682,6 +794,38 @@
                     </div>
                 `;
             });
+        }
+
+        // Get current importance selection (default: 'somewhat')
+        const currentImportance = questionImportance[question.id] || 'somewhat';
+
+        // Get acceptable answers for this question (default: same answer ±1)
+        const currentAcceptable = acceptableAnswers[question.id] || getDefaultAcceptable(answers[question.id], question.options?.length || 5);
+
+        // OKCupid-style acceptable answers selector (Marriage Machine feature)
+        let acceptableHtml = '';
+        if (answers[question.id] !== undefined && question.options) {
+            acceptableHtml = `
+                <div class="acceptable-section">
+                    <div class="acceptable-label">
+                        <i class="fas fa-check-double"></i> What answers would you accept from a partner?
+                    </div>
+                    <div class="acceptable-options">
+                        ${question.options.map((opt, idx) => `
+                            <label class="acceptable-option ${currentAcceptable.includes(idx) ? 'selected' : ''}">
+                                <input type="checkbox"
+                                       ${currentAcceptable.includes(idx) ? 'checked' : ''}
+                                       onchange="toggleAcceptable(${question.id}, ${idx})">
+                                <span class="acceptable-text">${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                    <div class="acceptable-hint">
+                        <i class="fas fa-lightbulb"></i>
+                        Select all answers you'd find acceptable. Your match's answer must be one you selected.
+                    </div>
+                </div>
+            `;
         }
 
         // Get current importance selection (default: 'somewhat')
@@ -734,6 +878,7 @@
                 </div>
                 <div class="question-text">${question.text}</div>
                 <div class="answer-options">${optionsHtml}</div>
+                ${acceptableHtml}
                 ${importanceHtml}
             </div>
         `;
@@ -773,12 +918,24 @@
     });
 
     async function submitAnswers() {
-        // Build submissions with OKCupid-style importance (Marriage Machine feature)
-        const submissions = Object.entries(answers).map(([questionId, optionIndex]) => ({
-            questionId: questionId.toString(),
-            numericResponse: optionIndex + 1, // Convert to 1-based for Likert scale
-            importance: questionImportance[questionId] || 'somewhat'
-        }));
+        // Build submissions with OKCupid-style importance AND acceptable answers (Marriage Machine feature)
+        const submissions = Object.entries(answers).map(([questionId, optionIndex]) => {
+            // Get acceptable answers (convert to 1-based for backend)
+            const question = questions.find(q => q.id == questionId);
+            let acceptable = acceptableAnswers[questionId];
+            if (!acceptable) {
+                acceptable = getDefaultAcceptable(optionIndex, question?.options?.length || 5);
+            }
+            // Convert to 1-based indices for backend
+            const acceptableOneBased = acceptable.map(i => i + 1);
+
+            return {
+                questionId: questionId.toString(),
+                numericResponse: optionIndex + 1, // Convert to 1-based for Likert scale
+                importance: questionImportance[questionId] || 'somewhat',
+                acceptableAnswers: JSON.stringify(acceptableOneBased)
+            };
+        });
 
         try {
             const response = await fetch('/intake/questions/submit', {

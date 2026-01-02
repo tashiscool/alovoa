@@ -1,5 +1,6 @@
 package com.nonononoki.alovoa.entity.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nonononoki.alovoa.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -27,6 +28,7 @@ public class UserLocationArea {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

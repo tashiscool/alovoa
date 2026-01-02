@@ -42,7 +42,12 @@ public class StripeWebhookController {
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(
             @RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String sigHeader) {
+            @RequestHeader(value = "Stripe-Signature", required = false) String sigHeader) {
+
+        if (sigHeader == null || sigHeader.isBlank()) {
+            LOGGER.error("Missing Stripe-Signature header");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing signature");
+        }
 
         try {
             stripeService.processWebhook(payload, sigHeader);

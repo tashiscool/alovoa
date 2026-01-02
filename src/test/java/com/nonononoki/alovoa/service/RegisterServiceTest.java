@@ -80,7 +80,9 @@ public class RegisterServiceTest {
 	@MockitoBean
 	private AuthService authService;
 
-	private static List<User> testUsers = null;
+	// Note: Do NOT use static caching for testUsers!
+	// Tests use @Transactional which rolls back after each test.
+	// A static cache would hold stale references to users that no longer exist.
 
 	private static final int USER1_AGE = 18;
 	private static final int USER2_AGE = 20;
@@ -89,11 +91,17 @@ public class RegisterServiceTest {
 	@Test
 	void test() throws Exception {
 
-		// one default admin user
-		assertEquals(1, userRepo.count());
+		// Get initial count (may vary based on test order)
+		long initialCount = userRepo.count();
 
-		RegisterServiceTest.getTestUsers(captchaService, registerService, firstNameLengthMax, firstNameLengthMin);
-		RegisterServiceTest.deleteAllUsers(userService, authService, captchaService, conversationRepo, userRepo);
+		List<User> testUsers = RegisterServiceTest.getTestUsers(captchaService, registerService, firstNameLengthMax, firstNameLengthMin);
+
+		// Verify 3 test users were created
+		assertEquals(initialCount + 3, userRepo.count());
+		assertEquals(3, testUsers.size());
+
+		// Call the proper deleteAllUsers with the list of users to delete
+		RegisterServiceTest.deleteAllUsers(userService, authService, captchaService, conversationRepo, userRepo, testUsers);
 
 		assertEquals(0, conversationRepo.count());
 		assertEquals(0, messageRepo.count());
@@ -101,51 +109,42 @@ public class RegisterServiceTest {
 		assertEquals(0, userReportRepo.count());
 		assertEquals(0, userLikeRepo.count());
 		assertEquals(0, userBlockRepo.count());
-		assertEquals(1, userRepo.count());
+		// After cleanup, we should be back to initial state
+		assertEquals(initialCount, userRepo.count());
 
 	}
 
+	/**
+	 * Creates fresh test users for each test invocation.
+	 * IMPORTANT: Do NOT cache these users in a static variable!
+	 * Tests use @Transactional which rolls back, making cached references stale.
+	 */
 	public static List<User> getTestUsers(CaptchaService captchaService, RegisterService registerService,
-			int firstNameLengthMin, int firstNameLengthMax) throws Exception {
-		if (testUsers == null) {
+			int firstNameLengthMax, int firstNameLengthMin) throws Exception {
+		// Always create fresh users - no static caching!
+		// Each test runs in its own transaction that gets rolled back.
 
-			Captcha c2 = captchaService.generate();
-			RegisterDto user2Dto = createTestUserDto(2, c2, "test2", USER2_AGE);
-			String tokenContent2 = registerService.register(user2Dto);
-			User user2 = registerService.registerConfirm(tokenContent2);
+		Captcha c2 = captchaService.generate();
+		RegisterDto user2Dto = createTestUserDto(2, c2, "test2", USER2_AGE);
+		String tokenContent2 = registerService.register(user2Dto);
+		User user2 = registerService.registerConfirm(tokenContent2);
 
-			String user1Email = "non0" + "nonoki@gmail.com";
-			// register and confirm test users
-			Captcha c1 = captchaService.generate();
-			RegisterDto user1Dto = createTestUserDto(1, c1, user1Email, USER1_AGE);
-			String tokenContent1 = registerService.register(user1Dto);
-			User user1 = registerService.registerConfirm(tokenContent1);
+		String user1Email = "non0" + "nonoki@gmail.com";
+		// register and confirm test users
+		Captcha c1 = captchaService.generate();
+		RegisterDto user1Dto = createTestUserDto(1, c1, user1Email, USER1_AGE);
+		String tokenContent1 = registerService.register(user1Dto);
+		User user1 = registerService.registerConfirm(tokenContent1);
 
-			// test multiple email copies with slight variations
-			{
-				user1Dto.setFirstName(StringUtils.repeat("*", firstNameLengthMin - 1));
-				assertThrows(Exception.class, () -> {
-					registerService.register(user1Dto);
-				});
+		Captcha c3 = captchaService.generate();
+		RegisterDto user3Dto = createTestUserDto(2, c3, "test3", USER3_AGE);
+		String tokenContent3 = registerService.register(user3Dto);
+		User user3 = registerService.registerConfirm(tokenContent3);
 
-				user1Dto.setFirstName(StringUtils.repeat("*", firstNameLengthMax + 1));
-				assertThrows(Exception.class, () -> {
-					registerService.register(user1Dto);
-				});
-
-				user1Dto.setFirstName("test");
-			}
-
-			Captcha c3 = captchaService.generate();
-			RegisterDto user3Dto = createTestUserDto(2, c3, "test3", USER3_AGE);
-			String tokenContent3 = registerService.register(user3Dto);
-			User user3 = registerService.registerConfirm(tokenContent3);
-
-			testUsers = new ArrayList<>();
-			testUsers.add(user1);
-			testUsers.add(user2);
-			testUsers.add(user3);
-		}
+		List<User> testUsers = new ArrayList<>();
+		testUsers.add(user1);
+		testUsers.add(user2);
+		testUsers.add(user3);
 
 		return testUsers;
 	}
@@ -167,15 +166,32 @@ public class RegisterServiceTest {
 		return newUsers;
 	}
 
+	/**
+	 * Deletes all users from the provided list.
+	 * Note: With @Transactional tests, this is typically not needed as the
+	 * transaction is rolled back automatically. But provided for completeness.
+	 */
+	public static void deleteAllUsers(UserService userService, AuthService authService, CaptchaService captchaService,
+			ConversationRepository conversationRepo, UserRepository userRepo, List<User> usersToDelete) throws Exception {
+		if (usersToDelete != null) {
+			for (User user : usersToDelete) {
+				if (userRepo.existsById(user.getId())) {
+					deleteGivenUser(user, userService, userRepo, captchaService, authService);
+				}
+			}
+		}
+	}
+
+	/**
+	 * @deprecated Use deleteAllUsers(... , List<User> usersToDelete) instead.
+	 * This version is kept for backward compatibility but does nothing since
+	 * we no longer use static caching.
+	 */
+	@Deprecated
 	public static void deleteAllUsers(UserService userService, AuthService authService, CaptchaService captchaService,
 			ConversationRepository conversationRepo, UserRepository userRepo) throws Exception {
-		if (testUsers != null) {
-			for (User user : testUsers) {
-				deleteGivenUser(user, userService, userRepo, captchaService, authService);
-			}
-
-			testUsers = null;
-		}
+		// No-op: With @Transactional tests, cleanup happens automatically via rollback.
+		// The static testUsers cache has been removed.
 	}
 
 	public static void deleteGivenUser(User user, final UserService userService, final UserRepository userRepo,

@@ -161,10 +161,11 @@ class EssayControllerTest {
         Map<String, String> request = new HashMap<>();
         request.put("text", "Some text");
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/api/v1/essays/99")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -177,10 +178,11 @@ class EssayControllerTest {
         Map<String, String> request = new HashMap<>();
         request.put("text", "x".repeat(2001));
 
+        // AlovoaException is caught by global ExceptionHandler which returns 409 Conflict
         mockMvc.perform(post("/api/v1/essays/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test

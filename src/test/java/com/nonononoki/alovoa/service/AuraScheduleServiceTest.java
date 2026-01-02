@@ -606,13 +606,13 @@ class AuraScheduleServiceTest {
     // Helper Methods
     // ====================
 
-    private VideoDate createVideoDate(User userA, User userB, VideoDate.DateStatus status, Date scheduledAt) {
+    private VideoDate createVideoDate(User userA, User userB, VideoDate.DateStatus status, Date createdAt) {
         VideoDate videoDate = new VideoDate();
         videoDate.setUserA(userA);
         videoDate.setUserB(userB);
         videoDate.setStatus(status);
-        videoDate.setScheduledAt(scheduledAt);
-        videoDate.setCreatedAt(new Date());
+        videoDate.setScheduledAt(createdAt); // For scheduling tests
+        videoDate.setCreatedAt(createdAt);   // For expiry tests - use same date for simplicity
         return videoDate;
     }
 }

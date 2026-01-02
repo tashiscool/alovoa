@@ -93,7 +93,10 @@ class ProfileCompletenessServiceTest {
         user.setDescription(null);
         user.setVideos(null);
         user.setAudio(null);
-        user.setInterests(new ArrayList<>());
+        // Clear interests instead of replacing collection (avoids orphan deletion issues)
+        if (user.getInterests() != null) {
+            user.getInterests().clear();
+        }
         user.setProfileDetails(null);
         // Video verification is checked via videoVerification entity, not a setter
         user.setVideoVerification(null);
@@ -135,18 +138,21 @@ class ProfileCompletenessServiceTest {
         userAudio.setUser(user);
         user.setAudio(userAudio);
 
-        // Set interests
+        // Set interests - add to existing collection to avoid orphan deletion issues
+        if (user.getInterests() == null) {
+            user.setInterests(new ArrayList<>());
+        } else {
+            user.getInterests().clear();
+        }
         UserInterest interest1 = new UserInterest();
         interest1.setText("Reading");
         UserInterest interest2 = new UserInterest();
         interest2.setText("Hiking");
         UserInterest interest3 = new UserInterest();
         interest3.setText("Cooking");
-        List<UserInterest> interests = new ArrayList<>();
-        interests.add(interest1);
-        interests.add(interest2);
-        interests.add(interest3);
-        user.setInterests(interests);
+        user.getInterests().add(interest1);
+        user.getInterests().add(interest2);
+        user.getInterests().add(interest3);
 
         // Set profile details
         UserProfileDetails details = new UserProfileDetails();
@@ -308,15 +314,18 @@ class ProfileCompletenessServiceTest {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
-        // Only 2 interests (need 3)
+        // Only 2 interests (need 3) - add to existing collection
+        if (user.getInterests() == null) {
+            user.setInterests(new ArrayList<>());
+        } else {
+            user.getInterests().clear();
+        }
         UserInterest interest1 = new UserInterest();
         interest1.setText("Reading");
         UserInterest interest2 = new UserInterest();
         interest2.setText("Hiking");
-        List<UserInterest> interests = new ArrayList<>();
-        interests.add(interest1);
-        interests.add(interest2);
-        user.setInterests(interests);
+        user.getInterests().add(interest1);
+        user.getInterests().add(interest2);
         user = userRepo.saveAndFlush(user);
 
         ProfileCompletenessDto completeness = profileCompletenessService.calculateCompleteness(user);
@@ -331,17 +340,21 @@ class ProfileCompletenessServiceTest {
         User user = testUsers.get(0);
         user = userRepo.findById(user.getId()).orElseThrow();
 
+        // Add to existing collection to avoid orphan deletion issues
+        if (user.getInterests() == null) {
+            user.setInterests(new ArrayList<>());
+        } else {
+            user.getInterests().clear();
+        }
         UserInterest interest1 = new UserInterest();
         interest1.setText("Reading");
         UserInterest interest2 = new UserInterest();
         interest2.setText("Hiking");
         UserInterest interest3 = new UserInterest();
         interest3.setText("Cooking");
-        List<UserInterest> interests = new ArrayList<>();
-        interests.add(interest1);
-        interests.add(interest2);
-        interests.add(interest3);
-        user.setInterests(interests);
+        user.getInterests().add(interest1);
+        user.getInterests().add(interest2);
+        user.getInterests().add(interest3);
         user = userRepo.saveAndFlush(user);
 
         ProfileCompletenessDto completeness = profileCompletenessService.calculateCompleteness(user);

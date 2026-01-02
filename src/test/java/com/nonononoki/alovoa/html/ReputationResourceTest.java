@@ -120,10 +120,11 @@ class ReputationResourceTest {
         ModelAndView mav = reputationResource.reputation();
 
         assertNotNull(mav);
-        assertEquals(85.0, mav.getModel().get("responseQuality"));
-        assertEquals(90.0, mav.getModel().get("respectScore"));
-        assertEquals(75.0, mav.getModel().get("authenticityScore"));
-        assertEquals(80.0, mav.getModel().get("investmentScore"));
+        // Math.round() returns long, so expect long values
+        assertEquals(85L, mav.getModel().get("responseQuality"));
+        assertEquals(90L, mav.getModel().get("respectScore"));
+        assertEquals(75L, mav.getModel().get("authenticityScore"));
+        assertEquals(80L, mav.getModel().get("investmentScore"));
         assertEquals(TrustLevel.TRUSTED.name(), mav.getModel().get("trustLevel"));
     }
 
