@@ -147,7 +147,7 @@ public class AuraFeaturesIntegrationTest extends BaseIntegrationTest {
         registerDto.setEmail("rollback-test-" + System.currentTimeMillis() + Tools.MAIL_TEST_DOMAIN);
         registerDto.setDateOfBirth(Tools.ageToDate(30));
         registerDto.setPassword("testPassword123");
-        registerDto.setFirstName("RollbackTest");
+        registerDto.setFirstName("Rollback");
         registerDto.setGender(1L);
         registerDto.setTermsConditions(true);
         registerDto.setPrivacy(true);
