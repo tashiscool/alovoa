@@ -53,6 +53,9 @@ public class UserVideoVerification {
     @Column(length = 100)
     private String sessionId;
 
+    @Column(columnDefinition = "TEXT")
+    private String captureMetadata;  // JSON with mimeType, duration, resolution, challenge timestamps
+
     public enum VerificationStatus {
         PENDING,
         PROCESSING,

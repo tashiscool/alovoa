@@ -4,17 +4,25 @@
  */
 
 // State management
-let mediaRecorder;
+let mediaRecorder = null;
 let recordedChunks = [];
-let stream;
+let stream = null;
 let isRecording = false;
 let recordingStartTime;
 let recordingTimer;
-let videoBlob;
-let uploadedVideoId;
-let pollInterval;
+let videoBlob = null;
+let uploadedVideoId = null;
+let playbackUrl = null; // Track object URL for cleanup
+
+// Polling state (non-overlapping)
+let isPolling = false;
+let stopPolling = false;
+let pollTimeoutId = null;
 
 const MAX_RECORDING_SECONDS = 120; // 2 minutes
+const MAX_VIDEO_SIZE_MB = 50; // Maximum upload size
+const MAX_POLL_COUNT = 120; // 2 minutes at 2s intervals
+let pollCount = 0;
 
 // Predefined tag options
 const TAG_OPTIONS = {
@@ -64,12 +72,70 @@ const selectedTags = {
     custom: new Set()
 };
 
+// ========================================
+// MIME TYPE NEGOTIATION (Safari/iOS support)
+// ========================================
+
 /**
- * Initialize the page
+ * Pick the best supported MIME type for MediaRecorder
+ * Includes Safari/iOS fallbacks
  */
+function pickIntroMimeType() {
+    const candidates = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm;codecs=vp8',
+        'video/webm',
+        'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+        'video/mp4'
+    ];
+    return candidates.find(t => MediaRecorder.isTypeSupported(t)) || '';
+}
+
+/**
+ * Check if MediaRecorder is available
+ */
+function isMediaRecorderSupported() {
+    return typeof MediaRecorder !== 'undefined' && typeof navigator.mediaDevices !== 'undefined';
+}
+
+// ========================================
+// INITIALIZATION
+// ========================================
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Video intro page loaded');
+
+    // Check browser support
+    if (!isMediaRecorderSupported()) {
+        console.warn('MediaRecorder not supported - showing upload fallback');
+        showUploadFallback();
+    }
 });
+
+// Stop polling on page unload to prevent orphaned requests
+window.addEventListener('beforeunload', () => {
+    stopPolling = true;
+    if (pollTimeoutId) {
+        clearTimeout(pollTimeoutId);
+    }
+});
+
+/**
+ * Show fallback for browsers without MediaRecorder
+ */
+function showUploadFallback() {
+    // Hide record button, show file upload option
+    const recordSection = document.getElementById('record-section');
+    const uploadFallback = document.getElementById('upload-fallback');
+
+    if (recordSection) recordSection.style.display = 'none';
+    if (uploadFallback) uploadFallback.style.display = 'block';
+}
+
+// ========================================
+// RECORDING FLOW
+// ========================================
 
 /**
  * Start recording flow
@@ -89,13 +155,16 @@ async function startRecording() {
         const videoPreview = document.getElementById('video-preview');
         videoPreview.srcObject = stream;
 
-        // Initialize MediaRecorder
-        const options = { mimeType: 'video/webm;codecs=vp9,opus' };
-        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            options.mimeType = 'video/webm';
-        }
+        // Get best supported MIME type
+        const mimeType = pickIntroMimeType();
+        const options = mimeType ? { mimeType } : {};
 
-        mediaRecorder = new MediaRecorder(stream, options);
+        try {
+            mediaRecorder = new MediaRecorder(stream, options);
+        } catch (e) {
+            console.warn('MediaRecorder failed with options, trying without:', e);
+            mediaRecorder = new MediaRecorder(stream);
+        }
 
         mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
@@ -187,7 +256,9 @@ function updateRecordingTimer() {
  * Handle recording stopped
  */
 function handleRecordingStopped() {
-    videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+    // Determine MIME type from recorder or default
+    const mimeType = mediaRecorder.mimeType || 'video/webm';
+    videoBlob = new Blob(recordedChunks, { type: mimeType });
 
     // Show preview and upload buttons
     document.getElementById('preview-btn').classList.remove('is-hidden');
@@ -196,7 +267,7 @@ function handleRecordingStopped() {
 }
 
 /**
- * Preview the recorded video
+ * Preview the recorded video (with URL cleanup)
  */
 function previewRecording() {
     const videoPreview = document.getElementById('video-preview');
@@ -205,7 +276,12 @@ function previewRecording() {
     videoPreview.classList.add('is-hidden');
     videoPlayback.classList.remove('is-hidden');
 
-    videoPlayback.src = URL.createObjectURL(videoBlob);
+    // Revoke previous URL to prevent memory leak
+    if (playbackUrl) {
+        URL.revokeObjectURL(playbackUrl);
+    }
+    playbackUrl = URL.createObjectURL(videoBlob);
+    videoPlayback.src = playbackUrl;
     videoPlayback.play();
 }
 
@@ -213,12 +289,13 @@ function previewRecording() {
  * Cancel recording and go back
  */
 function cancelRecording() {
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-    }
-    clearInterval(recordingTimer);
+    cleanupResources();
     showStep('step-intro');
 }
+
+// ========================================
+// UPLOAD FLOW
+// ========================================
 
 /**
  * Upload video to server
@@ -229,11 +306,20 @@ async function uploadVideo() {
         return;
     }
 
+    // Validate file size
+    const maxBytes = MAX_VIDEO_SIZE_MB * 1024 * 1024;
+    if (videoBlob.size > maxBytes) {
+        showError(`Video is too large. Please record a shorter clip (max ${MAX_VIDEO_SIZE_MB}MB).`);
+        return;
+    }
+
     showStep('step-processing');
 
     try {
         const formData = new FormData();
-        formData.append('video', videoBlob, 'intro.webm');
+        // Use appropriate extension based on MIME type
+        const extension = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+        formData.append('video', videoBlob, `intro.${extension}`);
 
         const response = await fetch('/api/video-intro/upload', {
             method: 'POST',
@@ -261,63 +347,94 @@ async function uploadVideo() {
     }
 }
 
+// ========================================
+// POLLING (Non-overlapping, with cleanup)
+// ========================================
+
 /**
  * Start polling for AI analysis completion
+ * Uses self-scheduling loop to prevent overlap
  */
 function startPollingAnalysis() {
-    let pollCount = 0;
-    const maxPolls = 120; // Poll for up to 2 minutes (2 second intervals)
+    pollCount = 0;
+    stopPolling = false;
+    isPolling = false;
 
     updateProcessingStep(1, 'complete');
     updateProcessingStep(2, 'active');
 
-    pollInterval = setInterval(async () => {
-        pollCount++;
+    // Start the polling loop
+    pollStatusLoop();
+}
 
-        try {
-            const response = await fetch(`/api/video-intro/status/${uploadedVideoId}`);
-            const status = await response.json();
+/**
+ * Self-scheduling poll loop (prevents overlap)
+ */
+async function pollStatusLoop() {
+    // Guard against overlapping or stopped polls
+    if (isPolling || stopPolling) return;
 
-            switch (status.analysisStatus) {
-                case 'TRANSCRIBING':
-                    updateProcessingStep(2, 'active');
-                    break;
+    isPolling = true;
+    pollCount++;
 
-                case 'ANALYZING':
-                    updateProcessingStep(2, 'complete');
-                    updateProcessingStep(3, 'active');
-                    break;
+    try {
+        const response = await fetch(`/api/video-intro/status/${uploadedVideoId}`, {
+            cache: 'no-store' // Prevent cached responses
+        });
+        const status = await response.json();
 
-                case 'COMPLETED':
-                    clearInterval(pollInterval);
-                    updateProcessingStep(2, 'complete');
-                    updateProcessingStep(3, 'complete');
-                    updateProcessingStep(4, 'complete');
-                    handleAnalysisSuccess(status);
-                    break;
+        switch (status.analysisStatus) {
+            case 'TRANSCRIBING':
+                updateProcessingStep(2, 'active');
+                break;
 
-                case 'FAILED':
-                    clearInterval(pollInterval);
-                    handleAnalysisFailure();
-                    break;
+            case 'ANALYZING':
+                updateProcessingStep(2, 'complete');
+                updateProcessingStep(3, 'active');
+                break;
 
-                case 'SKIPPED':
-                    clearInterval(pollInterval);
-                    handleAnalysisFailure();
-                    break;
-            }
+            case 'COMPLETED':
+                stopPolling = true;
+                updateProcessingStep(2, 'complete');
+                updateProcessingStep(3, 'complete');
+                updateProcessingStep(4, 'complete');
+                handleAnalysisSuccess(status);
+                return; // Don't reschedule
 
-            // Timeout after max polls
-            if (pollCount >= maxPolls && status.analysisStatus !== 'COMPLETED') {
-                clearInterval(pollInterval);
+            case 'FAILED':
+                stopPolling = true;
                 handleAnalysisFailure();
-            }
+                return; // Don't reschedule
 
-        } catch (error) {
-            console.error('Polling error:', error);
-            // Continue polling despite errors
+            case 'SKIPPED':
+                stopPolling = true;
+                handleAnalysisFailure();
+                return; // Don't reschedule
+
+            default:
+                // Unknown status - keep polling but log it
+                console.warn('Unknown analysis status:', status.analysisStatus);
+                break;
         }
-    }, 2000); // Poll every 2 seconds
+
+        // Timeout after max polls
+        if (pollCount >= MAX_POLL_COUNT) {
+            stopPolling = true;
+            handleAnalysisFailure();
+            return;
+        }
+
+    } catch (error) {
+        console.error('Polling error:', error);
+        // Continue polling despite errors (network hiccups)
+    } finally {
+        isPolling = false;
+    }
+
+    // Schedule next poll if not stopped
+    if (!stopPolling) {
+        pollTimeoutId = setTimeout(pollStatusLoop, 2000);
+    }
 }
 
 /**
@@ -338,38 +455,90 @@ function updateProcessingStep(stepNumber, state) {
     }
 }
 
+// ========================================
+// ANALYSIS RESULTS (XSS-safe rendering)
+// ========================================
+
 /**
  * Handle successful AI analysis
+ * Uses DOM-safe rendering to prevent XSS
  */
 function handleAnalysisSuccess(status) {
-    // Extract detected topics/tags from analysis
     const detectedTags = [];
 
-    if (status.personalityIndicators) {
+    // Parse detected tags from analysis result
+    // Prefer structured format: status.detectedTags = [{label, category, confidence}]
+    if (status.detectedTags && Array.isArray(status.detectedTags)) {
+        status.detectedTags.forEach(tag => {
+            if (tag.label) {
+                detectedTags.push({
+                    label: tag.label,
+                    confidence: tag.confidence || 1.0,
+                    category: tag.category || 'general'
+                });
+            }
+        });
+    } else if (status.personalityIndicators) {
+        // Fallback: parse old format
         try {
             const indicators = JSON.parse(status.personalityIndicators);
             Object.keys(indicators).forEach(key => {
-                detectedTags.push(key);
+                detectedTags.push({
+                    label: formatTagLabel(key),
+                    confidence: indicators[key] || 1.0,
+                    category: 'personality'
+                });
             });
         } catch (e) {
             console.error('Failed to parse personality indicators:', e);
         }
     }
 
-    // Display detected tags
+    // Display detected tags using DOM-safe rendering
     const detectedTagsEl = document.getElementById('detected-tags');
+    detectedTagsEl.innerHTML = ''; // Clear
+
     if (detectedTags.length > 0) {
-        detectedTagsEl.innerHTML = detectedTags.map(tag =>
-            `<span class="aura-trait aura-trait-positive">
-                <i class="fas fa-tag"></i> ${tag}
-            </span>`
-        ).join('');
+        detectedTags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'aura-trait aura-trait-positive';
+
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-tag';
+            span.appendChild(icon);
+            span.appendChild(document.createTextNode(' '));
+
+            // Use textContent to prevent XSS
+            const labelText = document.createTextNode(tag.label);
+            span.appendChild(labelText);
+
+            // Optionally show confidence
+            if (tag.confidence < 1.0) {
+                const confSpan = document.createElement('span');
+                confSpan.className = 'tag-confidence';
+                confSpan.textContent = ` (${Math.round(tag.confidence * 100)}%)`;
+                span.appendChild(confSpan);
+            }
+
+            detectedTagsEl.appendChild(span);
+        });
         document.getElementById('detected-tags-container').style.display = 'block';
     } else {
         document.getElementById('detected-tags-container').style.display = 'none';
     }
 
     showStep('step-success');
+}
+
+/**
+ * Format internal tag key to user-friendly label
+ */
+function formatTagLabel(key) {
+    // Convert snake_case or camelCase to Title Case
+    return key
+        .replace(/_/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/\b\w/g, c => c.toUpperCase());
 }
 
 /**
@@ -380,6 +549,10 @@ function handleAnalysisFailure() {
     initializeTagSelection();
     showStep('step-manual-tagging');
 }
+
+// ========================================
+// MANUAL TAGGING (XSS-safe)
+// ========================================
 
 /**
  * Initialize tag selection interface
@@ -394,17 +567,31 @@ function initializeTagSelection() {
 }
 
 /**
- * Render a tag category
+ * Render a tag category (DOM-safe)
  */
 function renderTagCategory(category, tags) {
     const container = document.getElementById(`${category}-tags`);
-    container.innerHTML = tags.map(tag =>
-        `<div class="tag-chip" data-category="${category}" data-tag-id="${tag.id}"
-              onclick="toggleTag('${category}', '${tag.id}')">
-            <i class="fas ${tag.icon}"></i>
-            <span>${tag.label}</span>
-        </div>`
-    ).join('');
+    container.innerHTML = '';
+
+    tags.forEach(tag => {
+        const div = document.createElement('div');
+        div.className = 'tag-chip';
+        div.dataset.category = category;
+        div.dataset.tagId = tag.id;
+
+        const icon = document.createElement('i');
+        icon.className = `fas ${tag.icon}`;
+        div.appendChild(icon);
+
+        const span = document.createElement('span');
+        span.textContent = tag.label;
+        div.appendChild(span);
+
+        // Use event listener instead of inline onclick
+        div.addEventListener('click', () => toggleTag(category, tag.id));
+
+        container.appendChild(div);
+    });
 }
 
 /**
@@ -442,7 +629,7 @@ function handleCustomTagInput(event) {
 }
 
 /**
- * Add a custom tag
+ * Add a custom tag (DOM-safe, no innerHTML with user input)
  */
 function addCustomTag(tagValue) {
     if (selectedTags.custom.has(tagValue)) {
@@ -452,17 +639,28 @@ function addCustomTag(tagValue) {
     selectedTags.custom.add(tagValue);
 
     const customTagsDisplay = document.getElementById('custom-tags-display');
-    const tagElement = document.createElement('div');
-    tagElement.className = 'custom-tag';
-    tagElement.innerHTML = `
-        <span>${tagValue}</span>
-        <i class="fas fa-times remove-tag" onclick="removeCustomTag('${tagValue}')"></i>
-    `;
-    customTagsDisplay.appendChild(tagElement);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'custom-tag';
+
+    const span = document.createElement('span');
+    span.textContent = tagValue; // Safe: textContent escapes HTML
+
+    const removeIcon = document.createElement('i');
+    removeIcon.className = 'fas fa-times remove-tag';
+    // Use event listener instead of inline onclick with user data
+    removeIcon.addEventListener('click', () => {
+        selectedTags.custom.delete(tagValue);
+        wrap.remove();
+    });
+
+    wrap.appendChild(span);
+    wrap.appendChild(removeIcon);
+    customTagsDisplay.appendChild(wrap);
 }
 
 /**
- * Remove a custom tag
+ * Remove a custom tag (legacy function for compatibility)
  */
 function removeCustomTag(tagValue) {
     selectedTags.custom.delete(tagValue);
@@ -523,15 +721,24 @@ async function submitManualTags() {
             throw new Error('Failed to submit tags');
         }
 
-        // Show success with manual tags
+        // Show success with manual tags (DOM-safe rendering)
         const detectedTagsEl = document.getElementById('detected-tags');
-        detectedTagsEl.innerHTML = allTags.map(tag =>
-            `<span class="aura-trait aura-trait-neutral">
-                <i class="fas fa-tag"></i> ${tag}
-            </span>`
-        ).join('');
-        document.getElementById('detected-tags-container').style.display = 'block';
+        detectedTagsEl.innerHTML = '';
 
+        allTags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'aura-trait aura-trait-neutral';
+
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-tag';
+            span.appendChild(icon);
+            span.appendChild(document.createTextNode(' '));
+            span.appendChild(document.createTextNode(tag));
+
+            detectedTagsEl.appendChild(span);
+        });
+
+        document.getElementById('detected-tags-container').style.display = 'block';
         showStep('step-success');
 
     } catch (error) {
@@ -539,6 +746,10 @@ async function submitManualTags() {
         showError('Failed to save your tags. Please try again.');
     }
 }
+
+// ========================================
+// RETRY & CLEANUP
+// ========================================
 
 /**
  * Retry AI analysis
@@ -568,16 +779,59 @@ async function retryAnalysis() {
  * Retry from the start
  */
 function retryFromStart() {
+    cleanupResources();
+
     // Reset state
     recordedChunks = [];
     videoBlob = null;
     uploadedVideoId = null;
-    clearInterval(pollInterval);
 
     // Reset selected tags
     Object.keys(selectedTags).forEach(key => selectedTags[key].clear());
 
     showStep('step-intro');
+}
+
+/**
+ * Clean up all resources (memory, streams, timers)
+ */
+function cleanupResources() {
+    // Stop polling
+    stopPolling = true;
+    if (pollTimeoutId) {
+        clearTimeout(pollTimeoutId);
+        pollTimeoutId = null;
+    }
+
+    // Clear recording timer
+    if (recordingTimer) {
+        clearInterval(recordingTimer);
+        recordingTimer = null;
+    }
+
+    // Revoke object URL to free memory
+    if (playbackUrl) {
+        URL.revokeObjectURL(playbackUrl);
+        playbackUrl = null;
+    }
+
+    // Stop all media tracks
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+
+    // Clear recorder
+    if (mediaRecorder) {
+        if (mediaRecorder.state !== 'inactive') {
+            try {
+                mediaRecorder.stop();
+            } catch (e) {
+                // Ignore errors when stopping already-stopped recorder
+            }
+        }
+        mediaRecorder = null;
+    }
 }
 
 /**
@@ -588,6 +842,10 @@ function retryIntro() {
         window.location.reload();
     }
 }
+
+// ========================================
+// UI HELPERS
+// ========================================
 
 /**
  * Show a specific step

@@ -139,7 +139,7 @@ public class VideoVerificationService {
         );
     }
 
-    public Map<String, Object> submitVerification(MultipartFile video, String sessionId) throws Exception {
+    public Map<String, Object> submitVerification(MultipartFile video, String sessionId, String metadataJson) throws Exception {
         User user = authService.getCurrentUser(true);
 
         // Validate session
@@ -148,6 +148,22 @@ public class VideoVerificationService {
 
         if (!verification.getUser().getId().equals(user.getId())) {
             throw new Exception("Unauthorized");
+        }
+
+        // Parse and store capture metadata for anti-replay/correlation
+        Map<String, Object> captureMetadata = null;
+        if (metadataJson != null && !metadataJson.isEmpty()) {
+            try {
+                captureMetadata = objectMapper.readValue(metadataJson, Map.class);
+                verification.setCaptureMetadata(metadataJson);
+                LOGGER.debug("Capture metadata: mimeType={}, durationMs={}, resolution={}x{}",
+                        captureMetadata.get("mimeType"),
+                        captureMetadata.get("durationMs"),
+                        captureMetadata.get("videoWidth"),
+                        captureMetadata.get("videoHeight"));
+            } catch (Exception e) {
+                LOGGER.warn("Failed to parse capture metadata: {}", e.getMessage());
+            }
         }
 
         // Upload verification video

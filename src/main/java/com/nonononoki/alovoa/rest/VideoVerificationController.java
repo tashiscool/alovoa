@@ -38,9 +38,10 @@ public class VideoVerificationController {
     @PostMapping("/verification/submit")
     public ResponseEntity<?> submitVerification(
             @RequestParam("video") MultipartFile video,
-            @RequestParam("sessionId") String sessionId) {
+            @RequestParam("sessionId") String sessionId,
+            @RequestParam(value = "metadata", required = false) String metadata) {
         try {
-            Map<String, Object> result = videoVerificationService.submitVerification(video, sessionId);
+            Map<String, Object> result = videoVerificationService.submitVerification(video, sessionId, metadata);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
