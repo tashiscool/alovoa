@@ -6,14 +6,14 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MariaDBContainer;
-import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
 
 /**
  * Base class for integration tests using Testcontainers.
- * Provides MariaDB and MinIO containers that start automatically
+ * Provides MariaDB, MinIO, and MailHog (SMTP) containers that start automatically
  * and configure Spring Boot to use them.
  *
  * Uses singleton containers to ensure they are shared across all test classes
@@ -26,7 +26,7 @@ import java.time.Duration;
  * public class MyIntegrationTest extends BaseIntegrationTest {
  *     @Test
  *     void testSomething() throws Exception {
- *         // test code using real database and S3
+ *         // test code using real database, S3, and SMTP
  *     }
  * }
  * </pre>
@@ -37,6 +37,8 @@ public abstract class BaseIntegrationTest {
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
     private static final int MINIO_PORT = 9000;
+    private static final int SMTP_PORT = 1025;
+    private static final int SMTP_WEB_PORT = 8025;
 
     /**
      * Run integration tests when Docker is available.
@@ -55,6 +57,7 @@ public abstract class BaseIntegrationTest {
     // Use static initializer block to start containers once for entire test suite
     static MariaDBContainer<?> mariaDBContainer;
     static GenericContainer<?> minioContainer;
+    static GenericContainer<?> mailhogContainer;
 
     static {
         // Only start containers if Docker is available
@@ -73,17 +76,27 @@ public abstract class BaseIntegrationTest {
                     .withEnv("MINIO_ROOT_USER", MINIO_ACCESS_KEY)
                     .withEnv("MINIO_ROOT_PASSWORD", MINIO_SECRET_KEY)
                     .withCommand("server /data")
-                    .waitingFor(new HttpWaitStrategy()
-                            .forPath("/minio/health/live")
+                    .waitingFor(Wait.forHttp("/minio/health/live")
                             .forPort(MINIO_PORT)
                             .withStartupTimeout(Duration.ofMinutes(2)));
             minioContainer.start();
+
+            // MailHog SMTP server for email testing
+            // Provides SMTP server that catches all emails without authentication
+            // Simpler than GreenMail and matches the E2E setup
+            mailhogContainer = new GenericContainer<>(DockerImageName.parse("mailhog/mailhog:latest"))
+                    .withExposedPorts(SMTP_PORT, SMTP_WEB_PORT)
+                    .waitingFor(Wait.forHttp("/")
+                            .forPort(SMTP_WEB_PORT)
+                            .withStartupTimeout(Duration.ofMinutes(2)));
+            mailhogContainer.start();
         }
     }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         // Database configuration
+        registry.add("spring.datasource.driver-class-name", () -> "org.mariadb.jdbc.Driver");
         registry.add("spring.datasource.url", mariaDBContainer::getJdbcUrl);
         registry.add("spring.datasource.username", mariaDBContainer::getUsername);
         registry.add("spring.datasource.password", mariaDBContainer::getPassword);
@@ -104,6 +117,16 @@ public abstract class BaseIntegrationTest {
         registry.add("app.storage.s3.bucket", () -> "alovoa-test");
         registry.add("app.storage.s3.region", () -> "us-east-1");
 
+        // SMTP/Mail configuration (MailHog)
+        // MailHog doesn't require authentication
+        registry.add("spring.mail.host", () -> mailhogContainer.getHost());
+        registry.add("spring.mail.port", () -> mailhogContainer.getMappedPort(SMTP_PORT).toString());
+        registry.add("spring.mail.username", () -> "");
+        registry.add("spring.mail.password", () -> "");
+        registry.add("spring.mail.properties.mail.smtp.auth", () -> "false");
+        registry.add("spring.mail.properties.mail.smtp.starttls.enable", () -> "false");
+        registry.add("spring.mail.test-connection", () -> "false");
+
         // Test encryption keys
         registry.add("app.text.key", () -> "bqupWgmhCj3fedLxYdNAy2QFA2bS9XJX");
         registry.add("app.text.salt", () -> "sFRKQAhwdrZq44FQ");
@@ -115,9 +138,6 @@ public abstract class BaseIntegrationTest {
 
         // Disable scheduling for tests
         registry.add("app.scheduling.enabled", () -> "false");
-
-        // Disable mail
-        registry.add("spring.mail.test-connection", () -> "false");
 
         // Disable cache and rate limiting
         registry.add("spring.cache.type", () -> "NONE");
