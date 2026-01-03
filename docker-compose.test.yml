@@ -39,6 +39,22 @@ services:
     networks:
       - aura-test-network
 
+  # MailHog - SMTP server for testing email functionality
+  # Web UI: http://localhost:8025 | SMTP: localhost:1025
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: aura-test-mailhog
+    ports:
+      - "1025:1025"   # SMTP server
+      - "8025:8025"   # Web UI to view emails
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aura-test-network
+
   # MinIO for S3-compatible storage testing
   minio-test:
     image: minio/minio:latest

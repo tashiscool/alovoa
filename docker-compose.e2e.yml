@@ -92,6 +92,22 @@ services:
     networks:
       - aura-e2e-network
 
+  # MailHog - SMTP server for E2E testing (catches all emails)
+  # Web UI: http://localhost:8025 | SMTP: mailhog:1025
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: aura-e2e-mailhog
+    ports:
+      - "1025:1025"   # SMTP server
+      - "8025:8025"   # Web UI to view captured emails
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aura-e2e-network
+
   # ===========================================
   # Python Microservices
   # ===========================================
@@ -210,14 +226,20 @@ services:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: e2e-test-google-client-secret
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_ID: e2e-test-facebook-client-id
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_SECRET: e2e-test-facebook-client-secret
-      # Disable mail server connection test (no mail server in E2E environment)
+      # MailHog SMTP configuration (catches all emails without sending)
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: "1025"
+      SPRING_MAIL_USERNAME: ""
+      SPRING_MAIL_PASSWORD: ""
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
       SPRING_MAIL_TEST_CONNECTION: "false"
-      SPRING_MAIL_HOST: localhost
-      SPRING_MAIL_PORT: "25"
     depends_on:
       mariadb:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      mailhog:
         condition: service_healthy
       media-service:
         condition: service_healthy

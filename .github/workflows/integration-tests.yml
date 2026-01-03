@@ -176,7 +176,7 @@ jobs:
 
       - name: Start test services
         run: |
-          docker compose -f docker-compose.test.yml up -d mariadb-test redis-test minio-test
+          docker compose -f docker-compose.test.yml up -d mariadb-test redis-test minio-test mailhog
 
       - name: Wait for services to be healthy
         run: |
@@ -197,13 +197,20 @@ jobs:
 
       - name: Run smoke tests
         run: |
-          # Start application container
+          # Start application container with all required env vars including SMTP
           docker run -d --name aura-app \
             --network aura-test-network \
             -e SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb-test:3306/alovoa_test \
             -e SPRING_DATASOURCE_USERNAME=alovoa_test \
             -e SPRING_DATASOURCE_PASSWORD=alovoa_test \
             -e SPRING_PROFILES_ACTIVE=test \
+            -e SPRING_MAIL_HOST=aura-test-mailhog \
+            -e SPRING_MAIL_PORT=1025 \
+            -e SPRING_MAIL_USERNAME="" \
+            -e SPRING_MAIL_PASSWORD="" \
+            -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=false \
+            -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=false \
+            -e SPRING_MAIL_TEST_CONNECTION=false \
             -p 8080:8080 \
             aura-test:latest || true
 
@@ -259,7 +266,7 @@ jobs:
           echo "Waiting for all services to become healthy..."
 
           # Wait for each service with timeout
-          services=("aura-e2e-db" "aura-e2e-redis" "aura-e2e-minio" "aura-e2e-media" "aura-e2e-ai")
+          services=("aura-e2e-db" "aura-e2e-redis" "aura-e2e-minio" "aura-e2e-mailhog" "aura-e2e-media" "aura-e2e-ai")
 
           for service in "${services[@]}"; do
             echo "Waiting for $service..."

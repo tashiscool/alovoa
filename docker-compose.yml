@@ -13,6 +13,18 @@ services:
     tty: true
     links:
       - mariadb
+      - mailhog
+    environment:
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_USERNAME: ""
+      SPRING_MAIL_PASSWORD: ""
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
+    depends_on:
+      - mariadb
+      - mailhog
+
   mariadb:
     restart: always
     image: mariadb:10.7
@@ -25,5 +37,16 @@ services:
       MARIADB_ROOT_PASSWORD: example
     volumes:
       - db_data:/var/lib/mariadb
+
+  # MailHog - SMTP server for development (catches all emails without sending)
+  # Web UI: http://localhost:8025 | SMTP: mailhog:1025
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: alovoa-mailhog
+    restart: always
+    ports:
+      - "1025:1025"   # SMTP server
+      - "8025:8025"   # Web UI to view emails
+
 volumes:
   db_data:

@@ -150,6 +150,7 @@ public class MatchingService {
         );
     }
 
+    @SuppressWarnings("unchecked")
     public CompatibilityExplanationDto getCompatibilityExplanation(String matchUuid) throws Exception {
         User user = authService.getCurrentUser(true);
         User matchUser = userRepo.findByUuid(UUID.fromString(matchUuid));
@@ -162,10 +163,98 @@ public class MatchingService {
                 .orElseGet(() -> calculateAndStoreCompatibility(user, matchUser));
 
         CompatibilityExplanationDto dto = new CompatibilityExplanationDto();
+
+        // === Basic Info ===
+        dto.setMatchName(matchUser.getFirstName());
+
+        // === Core Scores ===
         dto.setOverallScore(compatibility.getOverallScore());
         dto.setEnemyScore(compatibility.getEnemyScore() != null ? compatibility.getEnemyScore() : 0.0);
 
-        // Set dimension scores
+        // === OKCupid-style Match Percentage (Marriage Machine) ===
+        try {
+            Map<String, Object> matchData = assessmentService.calculateOkCupidMatch(user, matchUser);
+
+            // Match percentage using geometric mean
+            Double matchPercentage = (Double) matchData.get("matchPercentage");
+            dto.setMatchPercentage(matchPercentage != null ? matchPercentage : compatibility.getOverallScore());
+
+            // Bidirectional satisfaction scores
+            // satisfactionA = how much B matches what A wants (A's satisfaction with B)
+            // satisfactionB = how much A matches what B wants (B's satisfaction with A)
+            // From currentUser's perspective: yourSatisfaction = satisfactionA, theirSatisfaction = satisfactionB
+            Double satisfactionA = (Double) matchData.get("satisfactionA");
+            Double satisfactionB = (Double) matchData.get("satisfactionB");
+            // Convert from percentage (0-100) to ratio (0-1) for frontend display
+            dto.setYourSatisfaction(satisfactionA != null ? satisfactionA / 100.0 : 0.5);
+            dto.setTheirSatisfaction(satisfactionB != null ? satisfactionB / 100.0 : 0.5);
+
+            // Questions compared
+            Integer commonQuestions = (Integer) matchData.get("commonQuestions");
+            dto.setQuestionsCompared(commonQuestions != null ? commonQuestions : 0);
+
+            // Dealbreaker detection
+            Boolean hasMandatoryConflict = (Boolean) matchData.get("hasMandatoryConflict");
+            dto.setHasDealbreaker(hasMandatoryConflict != null ? hasMandatoryConflict : false);
+            dto.setMandatoryConflicts(dto.getHasDealbreaker());
+
+            // Get dealbreaker details if present
+            if (Boolean.TRUE.equals(dto.getHasDealbreaker())) {
+                List<Map<String, Object>> conflicts = (List<Map<String, Object>>) matchData.get("mandatoryConflicts");
+                if (conflicts != null) {
+                    List<CompatibilityExplanationDto.DealbreakderDetail> dealbreakers = new ArrayList<>();
+                    for (Map<String, Object> conflict : conflicts) {
+                        CompatibilityExplanationDto.DealbreakderDetail detail = new CompatibilityExplanationDto.DealbreakderDetail();
+                        detail.setQuestion((String) conflict.get("question"));
+                        detail.setCategory((String) conflict.get("category"));
+                        detail.setYourAnswer((String) conflict.get("yourAnswer"));
+                        detail.setTheirAnswer((String) conflict.get("theirAnswer"));
+                        dealbreakers.add(detail);
+                    }
+                    dto.setDealbreakers(dealbreakers);
+                }
+            }
+
+            // Get question-by-question matches
+            List<Map<String, Object>> questionMatchData = (List<Map<String, Object>>) matchData.get("questionMatches");
+            if (questionMatchData != null) {
+                List<CompatibilityExplanationDto.QuestionMatch> questionMatches = new ArrayList<>();
+                for (Map<String, Object> qm : questionMatchData) {
+                    CompatibilityExplanationDto.QuestionMatch match = new CompatibilityExplanationDto.QuestionMatch();
+                    match.setQuestionText((String) qm.get("questionText"));
+                    match.setYourAnswer((String) qm.get("yourAnswer"));
+                    match.setTheirAnswer((String) qm.get("theirAnswer"));
+                    match.setYourImportance((String) qm.get("yourImportance"));
+                    match.setTheirImportance((String) qm.get("theirImportance"));
+                    match.setIsMatch((Boolean) qm.get("isMatch"));
+                    match.setIsPartialMatch((Boolean) qm.get("isPartialMatch"));
+                    match.setImportance((String) qm.get("importance"));
+                    questionMatches.add(match);
+                }
+                dto.setQuestionMatches(questionMatches);
+            }
+
+        } catch (Exception e) {
+            LOGGER.warn("Failed to get OKCupid match data, using defaults", e);
+            dto.setMatchPercentage(compatibility.getOverallScore());
+            dto.setYourSatisfaction(0.5);
+            dto.setTheirSatisfaction(0.5);
+            dto.setQuestionsCompared(0);
+            dto.setHasDealbreaker(false);
+        }
+
+        // === Category Breakdown (Marriage Machine categories) ===
+        try {
+            Map<String, Object> explanation = assessmentService.getMatchExplanation(user, matchUser);
+            Map<String, Double> categoryBreakdown = (Map<String, Double>) explanation.get("categoryBreakdown");
+            if (categoryBreakdown != null && !categoryBreakdown.isEmpty()) {
+                dto.setCategoryBreakdown(categoryBreakdown);
+            }
+        } catch (Exception e) {
+            LOGGER.debug("Could not get category breakdown", e);
+        }
+
+        // === Legacy Dimension Scores (for backward compatibility) ===
         Map<String, Double> dimensionScores = new HashMap<>();
         dimensionScores.put("values", compatibility.getValuesScore() != null ? compatibility.getValuesScore() : 50.0);
         dimensionScores.put("lifestyle", compatibility.getLifestyleScore() != null ? compatibility.getLifestyleScore() : 50.0);
@@ -175,7 +264,7 @@ public class MatchingService {
         dimensionScores.put("growth", compatibility.getGrowthScore() != null ? compatibility.getGrowthScore() : 50.0);
         dto.setDimensionScores(dimensionScores);
 
-        // Parse top compatibilities from stored text
+        // === Top Compatibilities ===
         if (compatibility.getTopCompatibilities() != null && !compatibility.getTopCompatibilities().isEmpty()) {
             try {
                 List<String> compatibilities = objectMapper.readValue(
@@ -184,32 +273,37 @@ public class MatchingService {
                 );
                 dto.setTopCompatibilities(compatibilities);
             } catch (JsonProcessingException e) {
-                // Fallback: treat as newline-separated text
                 dto.setTopCompatibilities(Arrays.asList(compatibility.getTopCompatibilities().split("\n")));
             }
         } else {
-            // Generate default compatibilities based on scores
             dto.setTopCompatibilities(generateDefaultCompatibilities(compatibility));
         }
 
-        // Parse potential challenges from stored text
+        // === Potential Challenges / Areas to Discuss ===
+        List<String> challenges;
         if (compatibility.getPotentialChallenges() != null && !compatibility.getPotentialChallenges().isEmpty()) {
             try {
-                List<String> challenges = objectMapper.readValue(
+                challenges = objectMapper.readValue(
                         compatibility.getPotentialChallenges(),
                         new TypeReference<List<String>>() {}
                 );
-                dto.setPotentialChallenges(challenges);
             } catch (JsonProcessingException e) {
-                // Fallback: treat as newline-separated text
-                dto.setPotentialChallenges(Arrays.asList(compatibility.getPotentialChallenges().split("\n")));
+                challenges = Arrays.asList(compatibility.getPotentialChallenges().split("\n"));
             }
         } else {
-            // Generate default challenges based on scores
-            dto.setPotentialChallenges(generateDefaultChallenges(compatibility));
+            challenges = generateDefaultChallenges(compatibility);
         }
+        dto.setPotentialChallenges(challenges);
+        dto.setAreasToDiscuss(challenges);  // Alias for frontend
 
-        // Parse detailed explanation JSON if available
+        // === Match Insight Object ===
+        CompatibilityExplanationDto.MatchInsight insight = new CompatibilityExplanationDto.MatchInsight();
+        insight.setTopAreas(dto.getTopCompatibilities());
+        insight.setAreasToDiscuss(challenges);
+        insight.setSummary(generateMatchInsightSummary(dto.getMatchPercentage(), dto.getHasDealbreaker()));
+        dto.setMatchInsight(insight);
+
+        // === Detailed Explanation JSON ===
         if (compatibility.getExplanationJson() != null) {
             try {
                 Map<String, Object> explanation = objectMapper.readValue(
@@ -222,10 +316,33 @@ public class MatchingService {
             }
         }
 
-        // Generate summary
+        // === Summary ===
         dto.setSummary(generateCompatibilitySummary(compatibility));
 
         return dto;
+    }
+
+    /**
+     * Generate a brief match insight summary
+     */
+    private String generateMatchInsightSummary(Double matchPercentage, Boolean hasDealbreaker) {
+        if (Boolean.TRUE.equals(hasDealbreaker)) {
+            return "Potential dealbreaker detected - review compatibility carefully";
+        }
+        if (matchPercentage == null) {
+            return "Answer more questions to improve match accuracy";
+        }
+        if (matchPercentage >= 90) {
+            return "Exceptional compatibility! Strong alignment across all areas";
+        } else if (matchPercentage >= 80) {
+            return "High compatibility - you share important values and perspectives";
+        } else if (matchPercentage >= 70) {
+            return "Good compatibility - similar outlook with room for discovery";
+        } else if (matchPercentage >= 60) {
+            return "Moderate compatibility - some differences could add variety";
+        } else {
+            return "Different perspectives - could challenge each other in healthy ways";
+        }
     }
 
     /**
