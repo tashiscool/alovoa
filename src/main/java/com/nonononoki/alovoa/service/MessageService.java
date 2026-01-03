@@ -358,4 +358,24 @@ public class MessageService {
 		}
 	}
 
+	/**
+	 * Get all reactions for a specific message.
+	 * Used by the REST endpoint to fetch fresh reaction data after WebSocket events.
+	 */
+	public List<MessageReactionDto> getMessageReactions(Long messageId) throws AlovoaException {
+		User user = authService.getCurrentUser(true);
+
+		Message message = messageRepo.findById(messageId)
+				.orElseThrow(() -> new AlovoaException("message_not_found"));
+
+		Conversation conversation = message.getConversation();
+
+		// Validate user is part of the conversation
+		if (!conversation.containsUser(user)) {
+			throw new AlovoaException("user_not_in_conversation");
+		}
+
+		return MessageReactionDto.reactionsToDtos(message.getReactions());
+	}
+
 }

@@ -15,22 +15,29 @@ import lombok.Setter;
 @Setter
 public class MessageDto {
 	private long id;
+	private Long conversationId;
 	private Date date;
 	private String content;
-	private boolean from;
+	private boolean from;  // true if sent by current user (deprecated: use senderUserId instead)
+	private Long senderUserId;  // explicit sender ID for unambiguous "isMine" checks
+	private String senderUuid;  // sender's UUID for security
 	private boolean allowedFormatting;
 	private Date readAt;
 	private Date deliveredAt;
 	private boolean read;
 	private boolean delivered;
 	private List<MessageReactionDto> reactions;
-	
+	private String clientTempId;  // for optimistic UI: client-generated ID to match echoes
+
 	public static MessageDto messageToDto(Message message, User user) {
 		MessageDto dto = new MessageDto();
 		dto.setId(message.getId());
+		dto.setConversationId(message.getConversation() != null ? message.getConversation().getId() : null);
 		dto.setContent(message.getContent());
 		dto.setDate(message.getDate());
 		dto.setFrom(message.getUserFrom().equals(user));
+		dto.setSenderUserId(message.getUserFrom().getId());
+		dto.setSenderUuid(message.getUserFrom().getUuid().toString());
 		dto.setAllowedFormatting(message.isAllowedFormatting());
 		dto.setReadAt(message.getReadAt());
 		dto.setDeliveredAt(message.getDeliveredAt());

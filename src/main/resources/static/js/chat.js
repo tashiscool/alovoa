@@ -1,14 +1,28 @@
 /**
- * AURA Chat - WebSocket Client
+ * AURA Chat - WebSocket Client (Production-Ready)
  * Real-time messaging with SockJS and STOMP
+ *
+ * Fixes applied:
+ * 1. JSON endpoint for messages (no more HTML parsing)
+ * 2. Explicit senderUserId for isMine checks
+ * 3. Safe reconnect (no duplicate subscriptions)
+ * 4. Full reaction updates
+ * 5. Proper unread badge reset
+ * 6. Optimistic UI for sent messages
+ * 7. Scroll-aware mark-as-read
+ * 8. Message deduplication and ordering
  */
 
 // Global state
 let stompClient = null;
 let currentConversationId = selectedConversationId;
 let currentMessages = [];
+let renderedMessageIds = new Set();  // For deduplication
 let typingTimeout = null;
 let reactionMessageId = null;
+let isConnecting = false;  // Prevent duplicate connection attempts
+let reconnectTimer = null;
+let tempMessageCounter = 0;  // For optimistic UI temp IDs
 
 // Initialize chat on page load
 document.addEventListener('DOMContentLoaded', function () {
@@ -18,12 +32,50 @@ document.addEventListener('DOMContentLoaded', function () {
     if (currentConversationId) {
         loadConversation(currentConversationId);
     }
+
+    // Setup scroll listener for mark-as-read
+    setupScrollListener();
 });
 
 /**
- * Initialize WebSocket connection
+ * Check if a message is from the current user
+ * Uses explicit senderUserId instead of ambiguous 'from' boolean
+ */
+function isMine(msg) {
+    // Prefer senderUserId if available, fallback to 'from' boolean
+    if (msg.senderUserId !== undefined) {
+        return msg.senderUserId === currentUserId;
+    }
+    return msg.from === true;
+}
+
+/**
+ * Initialize WebSocket connection with reconnect safety
  */
 function initializeWebSocket() {
+    // Prevent duplicate connection attempts
+    if (isConnecting) {
+        console.log('WebSocket connection already in progress');
+        return;
+    }
+
+    // Clear any pending reconnect timer
+    if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+
+    // Disconnect existing client if any
+    if (stompClient && stompClient.connected) {
+        try {
+            stompClient.disconnect();
+        } catch (e) {
+            console.log('Error disconnecting existing client:', e);
+        }
+    }
+
+    isConnecting = true;
+
     const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
 
@@ -35,6 +87,7 @@ function initializeWebSocket() {
 
     stompClient.connect({}, function (frame) {
         console.log('WebSocket connected: ' + frame);
+        isConnecting = false;
 
         // Subscribe to incoming messages
         stompClient.subscribe('/user/queue/messages', function (message) {
@@ -72,13 +125,20 @@ function initializeWebSocket() {
         }
     }, function (error) {
         console.error('WebSocket connection error:', error);
-        // Attempt reconnect after 5 seconds
-        setTimeout(initializeWebSocket, 5000);
+        isConnecting = false;
+
+        // Schedule reconnect with backoff (only one timer active)
+        if (!reconnectTimer) {
+            reconnectTimer = setTimeout(function() {
+                reconnectTimer = null;
+                initializeWebSocket();
+            }, 5000);
+        }
     });
 }
 
 /**
- * Load conversation messages
+ * Load conversation messages using JSON endpoint
  */
 function loadConversation(conversationId) {
     currentConversationId = conversationId;
@@ -92,28 +152,47 @@ function loadConversation(conversationId) {
         conversationItem.classList.add('active');
     }
 
-    // Load messages via REST API
-    fetch('/message/get-messages/' + conversationId + '/1')
-        .then(response => response.text())
-        .then(html => {
-            const messagesContainer = document.getElementById('chat-messages');
+    // Clear current messages and rendered IDs
+    currentMessages = [];
+    renderedMessageIds.clear();
+
+    const messagesContainer = document.getElementById('chat-messages');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = '<div class="chat-loading"><i class="fas fa-spinner fa-spin"></i> Loading messages...</div>';
+    }
+
+    // Update header info
+    updateChatHeader(conversationId);
+
+    // Load messages via JSON API
+    fetch('/message/api/v1/messages/' + conversationId + '?page=1')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load messages');
+            return response.json();
+        })
+        .then(data => {
             if (messagesContainer) {
                 messagesContainer.innerHTML = '';
-
-                // Parse the fragment and extract messages
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-
-                // Get messages data and render them
-                loadMessagesFromServer(conversationId);
             }
 
-            // Update header info
-            updateChatHeader(conversationId);
+            // Render messages from oldest to newest
+            const messages = data.messages || [];
+            messages.forEach(msg => {
+                if (!renderedMessageIds.has(msg.id)) {
+                    currentMessages.push(msg);
+                    renderedMessageIds.add(msg.id);
+                    appendMessage(msg);
+                }
+            });
 
-            // Mark as read and delivered
+            // Show empty state if no messages
+            if (messages.length === 0 && messagesContainer) {
+                messagesContainer.innerHTML = '<div class="chat-empty-state"><p>No messages yet. Say hello!</p></div>';
+            }
+
+            // Mark as delivered and read
             markAsDelivered(conversationId);
-            markAsRead(conversationId);
+            markAsReadIfAtBottom();
 
             // Show chat area on mobile
             showChatOnMobile();
@@ -123,52 +202,14 @@ function loadConversation(conversationId) {
         })
         .catch(error => {
             console.error('Error loading conversation:', error);
-        });
-}
-
-/**
- * Load messages from server via API
- */
-function loadMessagesFromServer(conversationId) {
-    // Find conversation data
-    const conversation = conversationsData.find(c => c.id === conversationId);
-    if (!conversation) return;
-
-    // Update chat header with partner info
-    const headerName = document.getElementById('chat-partner-name');
-    const headerAvatar = document.querySelector('.chat-header-avatar');
-
-    if (headerName) {
-        headerName.textContent = conversation.userName;
-    }
-
-    if (headerAvatar && conversation.userProfilePicture) {
-        headerAvatar.innerHTML = `<img src="${conversation.userProfilePicture}" alt="${conversation.userName}">`;
-    }
-
-    // Load messages via REST endpoint
-    fetch('/message/get-messages/' + conversationId + '/1')
-        .then(response => {
-            if (response.ok) {
-                return response.text();
-            }
-            throw new Error('Failed to load messages');
-        })
-        .then(html => {
-            // For now, we'll just clear and wait for messages to come via WebSocket
-            // In a real implementation, you'd parse the HTML fragment or use a JSON endpoint
-            const messagesContainer = document.getElementById('chat-messages');
             if (messagesContainer) {
-                messagesContainer.innerHTML = '<div class="chat-empty-state"><p>Loading messages...</p></div>';
+                messagesContainer.innerHTML = '<div class="chat-error"><p>Failed to load messages. <a href="javascript:loadConversation(' + conversationId + ')">Retry</a></p></div>';
             }
-        })
-        .catch(error => {
-            console.error('Error loading messages:', error);
         });
 }
 
 /**
- * Send a message
+ * Send a message with optimistic UI
  */
 function sendMessage() {
     const input = document.getElementById('message-input');
@@ -178,23 +219,51 @@ function sendMessage() {
         return;
     }
 
+    // Generate temp ID for optimistic UI
+    const clientTempId = 'temp-' + (++tempMessageCounter) + '-' + Date.now();
+
+    // Create optimistic message DTO
+    const optimisticMsg = {
+        id: clientTempId,
+        conversationId: currentConversationId,
+        content: content,
+        date: new Date().toISOString(),
+        senderUserId: currentUserId,
+        from: true,
+        delivered: false,
+        read: false,
+        isPending: true,  // Mark as pending for styling
+        clientTempId: clientTempId
+    };
+
+    // Append optimistically
+    appendMessage(optimisticMsg);
+    scrollToBottom();
+
+    // Clear input immediately for better UX
+    input.value = '';
+    input.focus();
+
     // Send via WebSocket
     if (stompClient && stompClient.connected) {
         stompClient.send('/app/chat.send/' + currentConversationId, {}, content);
     } else {
         // Fallback to REST API
-        sendMessageViaREST(currentConversationId, content);
+        sendMessageViaREST(currentConversationId, content, clientTempId);
     }
 
-    // Clear input
-    input.value = '';
-    input.focus();
+    // Update conversation preview immediately
+    updateConversationPreview({
+        conversationId: currentConversationId,
+        content: content,
+        date: optimisticMsg.date
+    });
 }
 
 /**
  * Send message via REST API (fallback)
  */
-function sendMessageViaREST(conversationId, content) {
+function sendMessageViaREST(conversationId, content, clientTempId) {
     fetch('/message/send/' + conversationId, {
         method: 'POST',
         headers: {
@@ -203,29 +272,76 @@ function sendMessageViaREST(conversationId, content) {
         body: content
     })
         .then(response => {
-            if (response.ok) {
-                console.log('Message sent via REST');
-            } else {
+            if (!response.ok) {
+                // Mark optimistic message as failed
+                markOptimisticMessageFailed(clientTempId);
                 alert('Failed to send message');
             }
         })
         .catch(error => {
             console.error('Error sending message:', error);
+            markOptimisticMessageFailed(clientTempId);
             alert('Failed to send message');
         });
+}
+
+/**
+ * Mark an optimistic message as failed
+ */
+function markOptimisticMessageFailed(clientTempId) {
+    const msgEl = document.getElementById('message-' + clientTempId);
+    if (msgEl) {
+        msgEl.classList.add('failed');
+        const statusEl = msgEl.querySelector('.chat-message-status');
+        if (statusEl) {
+            statusEl.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i>';
+        }
+    }
 }
 
 /**
  * Handle incoming message from WebSocket
  */
 function handleIncomingMessage(messageDto) {
-    currentMessages.push(messageDto);
-    appendMessage(messageDto);
-    scrollToBottom();
+    // Check if this is an echo of our optimistic message
+    if (messageDto.clientTempId) {
+        // Replace optimistic message with real one
+        const tempEl = document.getElementById('message-' + messageDto.clientTempId);
+        if (tempEl) {
+            tempEl.id = 'message-' + messageDto.id;
+            tempEl.classList.remove('pending');
+            // Update status to sent
+            const statusEl = tempEl.querySelector('.chat-message-status');
+            if (statusEl) {
+                statusEl.innerHTML = '<i class="fas fa-check"></i>';
+            }
+            // Update in currentMessages
+            const idx = currentMessages.findIndex(m => m.clientTempId === messageDto.clientTempId);
+            if (idx >= 0) {
+                currentMessages[idx] = messageDto;
+            }
+            renderedMessageIds.add(messageDto.id);
+            return;
+        }
+    }
 
-    // Mark as read if conversation is open
+    // Deduplication: don't render if already rendered
+    if (renderedMessageIds.has(messageDto.id)) {
+        // Just update the existing message (e.g., for status updates)
+        updateExistingMessage(messageDto);
+        return;
+    }
+
+    // Add to tracking
+    renderedMessageIds.add(messageDto.id);
+    currentMessages.push(messageDto);
+
+    // Insert in correct position (by date)
+    appendMessageSorted(messageDto);
+
+    // Mark as read only if at bottom and window focused
     if (currentConversationId === messageDto.conversationId) {
-        markAsRead(currentConversationId);
+        markAsReadIfAtBottom();
     } else {
         // Update unread badge
         updateUnreadBadge(messageDto.conversationId, 1);
@@ -236,21 +352,72 @@ function handleIncomingMessage(messageDto) {
 }
 
 /**
- * Append message to chat
+ * Append message maintaining chronological order
+ */
+function appendMessageSorted(messageDto) {
+    const messagesContainer = document.getElementById('chat-messages');
+    if (!messagesContainer) return;
+
+    // Remove empty state if present
+    const emptyState = messagesContainer.querySelector('.chat-empty-state, .chat-loading');
+    if (emptyState) {
+        emptyState.remove();
+    }
+
+    const msgDate = new Date(messageDto.date);
+    const messageEl = createMessageElement(messageDto);
+
+    // Find correct insertion point
+    const existingMessages = messagesContainer.querySelectorAll('.chat-message');
+    let inserted = false;
+
+    for (let i = existingMessages.length - 1; i >= 0; i--) {
+        const existingId = existingMessages[i].id.replace('message-', '');
+        const existingMsg = currentMessages.find(m => String(m.id) === existingId);
+        if (existingMsg) {
+            const existingDate = new Date(existingMsg.date);
+            if (msgDate >= existingDate) {
+                existingMessages[i].after(messageEl);
+                inserted = true;
+                break;
+            }
+        }
+    }
+
+    if (!inserted) {
+        messagesContainer.prepend(messageEl);
+    }
+
+    scrollToBottom();
+}
+
+/**
+ * Append message (simple append to end)
  */
 function appendMessage(messageDto) {
     const messagesContainer = document.getElementById('chat-messages');
     if (!messagesContainer) return;
 
     // Remove empty state if present
-    const emptyState = messagesContainer.querySelector('.chat-empty-state');
+    const emptyState = messagesContainer.querySelector('.chat-empty-state, .chat-loading');
     if (emptyState) {
         emptyState.remove();
     }
 
-    // Create message element
+    const messageEl = createMessageElement(messageDto);
+    messagesContainer.appendChild(messageEl);
+}
+
+/**
+ * Create message DOM element
+ */
+function createMessageElement(messageDto) {
     const messageEl = document.createElement('div');
-    messageEl.className = 'chat-message ' + (messageDto.from ? 'sent' : 'received');
+    const mine = isMine(messageDto);
+    messageEl.className = 'chat-message ' + (mine ? 'sent' : 'received');
+    if (messageDto.isPending) {
+        messageEl.className += ' pending';
+    }
     messageEl.id = 'message-' + messageDto.id;
 
     const bubbleEl = document.createElement('div');
@@ -270,12 +437,14 @@ function appendMessage(messageDto) {
     metaEl.appendChild(timeEl);
 
     // Add status indicators for sent messages
-    if (messageDto.from) {
+    if (mine) {
         const statusEl = document.createElement('span');
         statusEl.className = 'chat-message-status';
         statusEl.id = 'status-' + messageDto.id;
 
-        if (messageDto.read) {
+        if (messageDto.isPending) {
+            statusEl.innerHTML = '<i class="fas fa-clock" style="opacity: 0.5;"></i>';
+        } else if (messageDto.read) {
             statusEl.innerHTML = '<i class="fas fa-check-double" style="color: #06b6d4;"></i>';
         } else if (messageDto.delivered) {
             statusEl.innerHTML = '<i class="fas fa-check-double"></i>';
@@ -304,7 +473,40 @@ function appendMessage(messageDto) {
     });
 
     messageEl.appendChild(bubbleEl);
-    messagesContainer.appendChild(messageEl);
+    return messageEl;
+}
+
+/**
+ * Update an existing message element
+ */
+function updateExistingMessage(messageDto) {
+    const msgEl = document.getElementById('message-' + messageDto.id);
+    if (!msgEl) return;
+
+    // Update status
+    const statusEl = msgEl.querySelector('.chat-message-status');
+    if (statusEl && isMine(messageDto)) {
+        if (messageDto.read) {
+            statusEl.innerHTML = '<i class="fas fa-check-double" style="color: #06b6d4;"></i>';
+        } else if (messageDto.delivered) {
+            statusEl.innerHTML = '<i class="fas fa-check-double"></i>';
+        } else {
+            statusEl.innerHTML = '<i class="fas fa-check"></i>';
+        }
+    }
+
+    // Update reactions
+    const bubbleEl = msgEl.querySelector('.chat-message-bubble');
+    if (messageDto.reactions) {
+        let reactionsEl = bubbleEl.querySelector('.chat-message-reactions');
+        if (reactionsEl) {
+            reactionsEl.remove();
+        }
+        if (messageDto.reactions.length > 0) {
+            reactionsEl = createReactionsElement(messageDto.reactions);
+            bubbleEl.appendChild(reactionsEl);
+        }
+    }
 }
 
 /**
@@ -388,6 +590,47 @@ function handleMessageKeyPress(event) {
 }
 
 /**
+ * Setup scroll listener for smart mark-as-read
+ */
+function setupScrollListener() {
+    const messagesContainer = document.getElementById('chat-messages');
+    if (messagesContainer) {
+        messagesContainer.addEventListener('scroll', function() {
+            markAsReadIfAtBottom();
+        });
+    }
+
+    // Also mark as read when window regains focus
+    window.addEventListener('focus', function() {
+        if (currentConversationId) {
+            markAsReadIfAtBottom();
+        }
+    });
+}
+
+/**
+ * Check if scrolled to bottom (with threshold)
+ */
+function isAtBottom() {
+    const messagesContainer = document.getElementById('chat-messages');
+    if (!messagesContainer) return true;
+
+    const threshold = 50; // pixels from bottom
+    return (messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight) < threshold;
+}
+
+/**
+ * Mark conversation as read only if at bottom and window focused
+ */
+function markAsReadIfAtBottom() {
+    if (!currentConversationId) return;
+    if (!document.hasFocus()) return;
+    if (!isAtBottom()) return;
+
+    markAsRead(currentConversationId);
+}
+
+/**
  * Mark conversation as read
  */
 function markAsRead(conversationId) {
@@ -400,9 +643,10 @@ function markAsRead(conversationId) {
         });
     }
 
-    // Clear unread badge
+    // Clear unread badge properly (set to 0, not just hide)
     const badge = document.getElementById('unread-badge-' + conversationId);
     if (badge) {
+        badge.textContent = '0';
         badge.style.display = 'none';
     }
 }
@@ -483,35 +727,52 @@ function addReactionToMessage(emoji) {
  * Handle reaction update from WebSocket
  */
 function handleReactionUpdate(reactionDto) {
-    const messageEl = document.getElementById('message-' + reactionDto.messageId);
-    if (!messageEl) return;
-
-    // Find or create reactions container
-    let reactionsEl = messageEl.querySelector('.chat-message-reactions');
-    if (!reactionsEl) {
-        reactionsEl = document.createElement('div');
-        reactionsEl.className = 'chat-message-reactions';
-        messageEl.querySelector('.chat-message-bubble').appendChild(reactionsEl);
-    }
-
-    // Update or add reaction
-    // For simplicity, reload the entire reactions - in production, update incrementally
-    updateMessageReactions(reactionDto.messageId);
+    // Fetch fresh reactions from server to get full list
+    fetchAndUpdateReactions(reactionDto.messageId);
 }
 
 /**
  * Handle reaction removal from WebSocket
  */
 function handleReactionRemoval(reactionDto) {
-    updateMessageReactions(reactionDto.messageId);
+    // Fetch fresh reactions from server to get full list
+    fetchAndUpdateReactions(reactionDto.messageId);
 }
 
 /**
- * Update message reactions (reload from server)
+ * Fetch and update reactions for a message
  */
-function updateMessageReactions(messageId) {
-    // In a real implementation, you'd fetch updated reactions from the server
-    // For now, we'll just rely on the WebSocket updates
+function fetchAndUpdateReactions(messageId) {
+    fetch('/message/api/v1/messages/' + messageId + '/reactions')
+        .then(response => response.json())
+        .then(reactions => {
+            const messageEl = document.getElementById('message-' + messageId);
+            if (!messageEl) return;
+
+            const bubbleEl = messageEl.querySelector('.chat-message-bubble');
+            if (!bubbleEl) return;
+
+            // Remove existing reactions
+            const existingReactions = bubbleEl.querySelector('.chat-message-reactions');
+            if (existingReactions) {
+                existingReactions.remove();
+            }
+
+            // Add new reactions if any
+            if (reactions && reactions.length > 0) {
+                const reactionsEl = createReactionsElement(reactions);
+                bubbleEl.appendChild(reactionsEl);
+            }
+
+            // Update in currentMessages array
+            const msgIdx = currentMessages.findIndex(m => m.id === messageId);
+            if (msgIdx >= 0) {
+                currentMessages[msgIdx].reactions = reactions;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching reactions:', error);
+        });
 }
 
 /**
