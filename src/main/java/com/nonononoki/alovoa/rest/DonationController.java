@@ -3,6 +3,7 @@ package com.nonononoki.alovoa.rest;
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.User.DonationTier;
 import com.nonononoki.alovoa.model.AlovoaException;
+import com.nonononoki.alovoa.model.DonationCheckoutRequest;
 import com.nonononoki.alovoa.service.AuthService;
 import com.nonononoki.alovoa.service.DonationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,5 +108,38 @@ public class DonationController {
                 "amounts", new int[]{10, 25, 50, 100},
                 "headline", "Looks like AURA worked!"
         ));
+    }
+
+    /**
+     * Create a Stripe Checkout session for a donation.
+     * Validates amount bounds and creates a secure checkout URL.
+     *
+     * @param request Contains amount, promptId, and promptType
+     * @return Map with checkoutUrl to redirect user to
+     */
+    @PostMapping("/checkout")
+    public ResponseEntity<?> createCheckoutSession(@RequestBody DonationCheckoutRequest request)
+            throws AlovoaException {
+
+        // Validate amount
+        if (request.getAmount() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Amount is required"));
+        }
+
+        if (!donationService.isValidAmount(request.getAmount())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid amount",
+                    "min", DonationService.MIN_DONATION_AMOUNT,
+                    "max", DonationService.MAX_DONATION_AMOUNT
+            ));
+        }
+
+        Map<String, Object> result = donationService.createCheckoutSession(
+                request.getAmount(),
+                request.getPromptId(),
+                request.getPromptType() != null ? request.getPromptType() : "DEFAULT"
+        );
+
+        return ResponseEntity.ok(result);
     }
 }

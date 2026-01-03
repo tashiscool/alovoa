@@ -60,6 +60,10 @@ public class DonationService {
     // Minimum hours between prompts
     private static final int MIN_HOURS_BETWEEN_PROMPTS = 48;
 
+    // Amount validation constraints
+    public static final int MIN_DONATION_AMOUNT = 5;
+    public static final int MAX_DONATION_AMOUNT = 500;
+
     @Value("${app.donation.enabled:true}")
     private boolean donationEnabled;
 
@@ -433,9 +437,85 @@ public class DonationService {
         info.put("paymentUrl", donationPaymentUrl);
 
         // Check if a prompt should be shown
-        info.put("showPrompt", !isRateLimited(user) && !isDonorCooldown(user));
+        boolean shouldShow = !isRateLimited(user) && !isDonorCooldown(user);
+        info.put("showPrompt", shouldShow);
+
+        // If showing, include prompt details
+        if (shouldShow) {
+            DonationPrompt pendingPrompt = promptRepo.findLastPromptFor(user);
+            if (pendingPrompt != null && !pendingPrompt.isDismissed() && !pendingPrompt.isDonated()) {
+                info.put("promptType", pendingPrompt.getPromptType().name());
+                info.put("promptId", pendingPrompt.getId());
+            } else {
+                // Default to MONTHLY if no pending prompt
+                info.put("promptType", "MONTHLY");
+                info.put("promptId", null);
+            }
+            // Send cooldown info for client-side secondary guard coordination
+            info.put("cooldownHours", MIN_HOURS_BETWEEN_PROMPTS);
+        }
 
         return info;
+    }
+
+    /**
+     * Validate donation amount is within allowed bounds.
+     * @param amount Amount in dollars
+     * @return true if valid
+     */
+    public boolean isValidAmount(int amount) {
+        return amount >= MIN_DONATION_AMOUNT && amount <= MAX_DONATION_AMOUNT;
+    }
+
+    /**
+     * Create a Stripe Checkout session for a donation.
+     * In production, this would use the Stripe SDK to create a real session.
+     *
+     * @param amount Amount in dollars
+     * @param promptId Optional prompt ID that triggered this
+     * @param promptType Type of prompt
+     * @return Map containing checkoutUrl
+     */
+    public Map<String, Object> createCheckoutSession(int amount, Long promptId, String promptType) throws AlovoaException {
+        // Validate amount
+        if (!isValidAmount(amount)) {
+            throw new AlovoaException("invalid_amount");
+        }
+
+        User user = authService.getCurrentUser(true);
+        LOGGER.info("Creating checkout session for user {} amount ${} prompt {}", user.getId(), amount, promptId);
+
+        Map<String, Object> result = new HashMap<>();
+
+        // TODO: In production, integrate with Stripe SDK:
+        // Stripe.apiKey = stripeSecretKey;
+        // SessionCreateParams params = SessionCreateParams.builder()
+        //     .setMode(SessionCreateParams.Mode.PAYMENT)
+        //     .setSuccessUrl(baseUrl + "/donation/success?session_id={CHECKOUT_SESSION_ID}")
+        //     .setCancelUrl(baseUrl + "/donation/cancel")
+        //     .addLineItem(SessionCreateParams.LineItem.builder()
+        //         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+        //             .setCurrency("usd")
+        //             .setUnitAmount((long) amount * 100) // Convert to cents
+        //             .setProductData(...)
+        //             .build())
+        //         .setQuantity(1L)
+        //         .build())
+        //     .putMetadata("promptId", String.valueOf(promptId))
+        //     .putMetadata("promptType", promptType)
+        //     .putMetadata("userId", String.valueOf(user.getId()))
+        //     .build();
+        // Session session = Session.create(params);
+        // result.put("checkoutUrl", session.getUrl());
+
+        // For now, return the configured payment URL with metadata
+        // This is a fallback for environments without Stripe configured
+        String checkoutUrl = String.format("%s?amount=%d&promptId=%s&promptType=%s",
+                donationPaymentUrl, amount * 100, promptId != null ? promptId : "", promptType);
+        result.put("checkoutUrl", checkoutUrl);
+        result.put("sessionId", UUID.randomUUID().toString()); // Placeholder
+
+        return result;
     }
 
     /**

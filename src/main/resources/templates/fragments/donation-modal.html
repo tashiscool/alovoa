@@ -55,7 +55,7 @@
 
             <!-- Custom Amount Input -->
             <div class="donation-custom-amount">
-                <label for="custom-amount-input">Or enter custom amount:</label>
+                <label for="custom-amount-input">Or enter custom amount ($5-$500):</label>
                 <div class="custom-amount-wrapper">
                     <span class="currency-symbol">$</span>
                     <input
@@ -63,9 +63,11 @@
                         id="custom-amount-input"
                         class="custom-amount-input"
                         placeholder="0"
-                        min="1"
+                        min="5"
+                        max="500"
                         step="1"
                         onchange="selectCustomAmount(this.value)"
+                        oninput="selectCustomAmount(this.value)"
                     />
                 </div>
             </div>

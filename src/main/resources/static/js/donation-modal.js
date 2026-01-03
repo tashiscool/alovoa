@@ -15,6 +15,29 @@ const LAST_PROMPT_KEY = 'aura_last_donation_prompt';
 const PROMPT_DISMISS_COUNT_KEY = 'aura_prompt_dismiss_count';
 const MIN_HOURS_BETWEEN_PROMPTS = 48;
 
+// Amount validation constraints
+const MIN_DONATION_AMOUNT = 5;
+const MAX_DONATION_AMOUNT = 500;
+const MAX_DISMISSALS_BEFORE_EXTENDED_COOLDOWN = 3;
+const EXTENDED_COOLDOWN_DAYS = 30;
+
+// ========================================
+// AMOUNT VALIDATION
+// ========================================
+
+/**
+ * Normalize and validate donation amount
+ * @param {string|number} value - The input value
+ * @returns {number|null} - Validated amount or null if invalid
+ */
+function normalizeAmount(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    const rounded = Math.round(n); // Integer cents, no fractions
+    if (rounded < MIN_DONATION_AMOUNT || rounded > MAX_DONATION_AMOUNT) return null;
+    return rounded;
+}
+
 // ========================================
 // MODAL CONTROL
 // ========================================
@@ -25,7 +48,7 @@ const MIN_HOURS_BETWEEN_PROMPTS = 48;
  * @param {number} promptId - Backend prompt ID (optional)
  */
 function showDonationModal(promptType = 'DEFAULT', promptId = null) {
-    // Check localStorage rate limiting
+    // Check localStorage rate limiting (secondary guard - backend is primary)
     if (!shouldShowPrompt()) {
         console.log('Donation prompt rate-limited locally');
         return;
@@ -122,12 +145,18 @@ function updateModalContent(config) {
  * Select a predefined donation amount
  */
 function selectDonationAmount(amount) {
-    selectedDonationAmount = amount;
+    const normalized = normalizeAmount(amount);
+    if (normalized === null) {
+        console.warn('Invalid preset amount:', amount);
+        return;
+    }
+
+    selectedDonationAmount = normalized;
 
     // Update button states
     document.querySelectorAll('.donation-amount-btn').forEach(btn => {
         const btnAmount = parseInt(btn.dataset.amount);
-        if (btnAmount === amount) {
+        if (btnAmount === normalized) {
             btn.classList.add('selected');
         } else {
             btn.classList.remove('selected');
@@ -141,25 +170,39 @@ function selectDonationAmount(amount) {
     }
 
     // Show tier info
-    updateTierInfo(amount);
+    updateTierInfo(normalized);
 }
 
 /**
  * Select a custom donation amount
  */
-function selectCustomAmount(amount) {
-    const parsedAmount = parseInt(amount);
-    if (parsedAmount > 0) {
-        selectedDonationAmount = parsedAmount;
-
-        // Deselect all preset buttons
-        document.querySelectorAll('.donation-amount-btn').forEach(btn => {
-            btn.classList.remove('selected');
-        });
-
-        // Show tier info
-        updateTierInfo(parsedAmount);
+function selectCustomAmount(value) {
+    const normalized = normalizeAmount(value);
+    if (normalized === null) {
+        // Show validation error
+        const customInput = document.getElementById('custom-amount-input');
+        if (customInput) {
+            customInput.setCustomValidity(`Please enter an amount between $${MIN_DONATION_AMOUNT} and $${MAX_DONATION_AMOUNT}`);
+            customInput.reportValidity();
+        }
+        return;
     }
+
+    selectedDonationAmount = normalized;
+
+    // Clear validation error
+    const customInput = document.getElementById('custom-amount-input');
+    if (customInput) {
+        customInput.setCustomValidity('');
+    }
+
+    // Deselect all preset buttons
+    document.querySelectorAll('.donation-amount-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+
+    // Show tier info
+    updateTierInfo(normalized);
 }
 
 /**
@@ -178,7 +221,7 @@ function updateTierInfo(amount) {
         benefit = 'Builder: Early access to new cities, founder badge, and priority support!';
     } else if (amount >= 21) {
         benefit = 'Believer: Your name on our supporters page (optional) and a supporter badge!';
-    } else if (amount >= 5) {
+    } else if (amount >= MIN_DONATION_AMOUNT) {
         benefit = 'Supporter: Thank you email and our gratitude for helping keep AURA free!';
     } else {
         tierInfo.style.display = 'none';
@@ -194,36 +237,56 @@ function updateTierInfo(amount) {
 // ========================================
 
 /**
- * Proceed to donation payment page
+ * Proceed to donation payment page via Stripe Checkout session
  */
 function proceedToDonation() {
-    if (selectedDonationAmount <= 0) {
-        alert('Please select a donation amount');
+    const amount = normalizeAmount(selectedDonationAmount);
+    if (amount === null) {
+        alert(`Please select an amount between $${MIN_DONATION_AMOUNT} and $${MAX_DONATION_AMOUNT}`);
         return;
     }
 
-    // Get donation info from backend to get payment URL
-    fetch('/api/v1/donation/info')
-        .then(response => response.json())
+    // Disable button while processing
+    const donateBtn = document.getElementById('donate-btn');
+    if (donateBtn) {
+        donateBtn.disabled = true;
+        donateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    }
+
+    // Create checkout session via backend
+    fetch('/api/v1/donation/checkout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            amount: amount,
+            promptId: currentPromptId,
+            promptType: currentPromptType
+        })
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to create checkout session');
+            }
+            return response.json();
+        })
         .then(data => {
-            const paymentUrl = data.paymentUrl || 'https://donate.stripe.com/aura';
-
-            // Open payment page in new tab with amount
-            // In production, this would be a Stripe Checkout session or Ko-fi link
-            const url = `${paymentUrl}?amount=${selectedDonationAmount * 100}&promptId=${currentPromptId || ''}`;
-            window.open(url, '_blank');
-
-            // Show thank you message
-            showThankYouMessage();
-
-            // Close modal
-            setTimeout(() => closeDonationModal(), 2000);
+            if (data.checkoutUrl) {
+                // Redirect to Stripe Checkout (same tab is better UX)
+                window.location.href = data.checkoutUrl;
+            } else {
+                throw new Error('No checkout URL returned');
+            }
         })
         .catch(err => {
-            console.error('Failed to get donation info:', err);
-            // Fallback to direct link
-            window.open('https://donate.stripe.com/aura', '_blank');
-            closeDonationModal();
+            console.error('Failed to create checkout session:', err);
+            // Re-enable button
+            if (donateBtn) {
+                donateBtn.disabled = false;
+                donateBtn.innerHTML = '<i class="fas fa-heart"></i> <span>Support AURA</span>';
+            }
+            alert('Unable to process donation. Please try again or visit our donation page directly.');
         });
 }
 
@@ -246,13 +309,31 @@ function showThankYouMessage() {
 }
 
 // ========================================
-// RATE LIMITING
+// RATE LIMITING (Client-side secondary guard)
 // ========================================
 
 /**
  * Check if we should show a prompt based on localStorage
+ * This is a secondary guard - backend is the primary source of truth
  */
 function shouldShowPrompt() {
+    // Check dismiss count - after N dismissals, use extended cooldown
+    const dismissCount = parseInt(localStorage.getItem(PROMPT_DISMISS_COUNT_KEY) || '0');
+    if (dismissCount >= MAX_DISMISSALS_BEFORE_EXTENDED_COOLDOWN) {
+        const lastPrompt = localStorage.getItem(LAST_PROMPT_KEY);
+        if (lastPrompt) {
+            const lastPromptDate = new Date(lastPrompt);
+            const daysSince = (new Date() - lastPromptDate) / (1000 * 60 * 60 * 24);
+            if (daysSince < EXTENDED_COOLDOWN_DAYS) {
+                console.log(`Extended cooldown: ${dismissCount} dismissals, ${Math.round(daysSince)} days since last prompt`);
+                return false;
+            }
+            // Reset dismiss count after extended cooldown expires
+            localStorage.setItem(PROMPT_DISMISS_COUNT_KEY, '0');
+        }
+    }
+
+    // Check minimum hours between prompts
     const lastPrompt = localStorage.getItem(LAST_PROMPT_KEY);
     if (!lastPrompt) return true;
 
@@ -270,9 +351,10 @@ function checkForDonationPrompt() {
         .then(response => response.json())
         .then(data => {
             if (data.showPrompt) {
-                // Backend says we should show a prompt
-                // Default to MONTHLY type, or we could add a promptType field to the API
-                showDonationModal('MONTHLY', null);
+                // Use backend-provided promptType and promptId
+                const promptType = data.promptType || 'MONTHLY';
+                const promptId = data.promptId || null;
+                showDonationModal(promptType, promptId);
             }
         })
         .catch(err => console.error('Failed to check donation prompt:', err));
@@ -367,7 +449,10 @@ function showConfetti() {
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        particles.forEach((p, index) => {
+        // Iterate backwards to safely remove particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+
             ctx.save();
             ctx.translate(p.x, p.y);
             ctx.rotate((p.rotation * Math.PI) / 180);
@@ -381,9 +466,9 @@ function showConfetti() {
 
             // Remove particles that fall off screen
             if (p.y > canvas.height) {
-                particles.splice(index, 1);
+                particles.splice(i, 1);
             }
-        });
+        }
 
         if (particles.length > 0) {
             animationFrame = requestAnimationFrame(animate);
