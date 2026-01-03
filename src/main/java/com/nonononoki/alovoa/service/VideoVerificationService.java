@@ -244,6 +244,19 @@ public class VideoVerificationService {
         result.put("status", verification.getStatus().name());
         result.put("isVerified", verification.isVerified());
 
+        // Add stage for polling UI updates
+        if (verification.getStatus() == VerificationStatus.PROCESSING) {
+            // Determine stage based on time since submission or other factors
+            long elapsedMs = System.currentTimeMillis() - verification.getCreatedAt().getTime();
+            if (elapsedMs < 3000) {
+                result.put("stage", "UPLOADING");
+            } else if (elapsedMs < 8000) {
+                result.put("stage", "ANALYZING");
+            } else {
+                result.put("stage", "VERIFYING");
+            }
+        }
+
         if (verification.isVerified()) {
             result.put("verifiedAt", verification.getVerifiedAt());
             result.put("scores", Map.of(
@@ -253,6 +266,7 @@ public class VideoVerificationService {
             ));
         } else if (verification.getStatus() == VerificationStatus.FAILED) {
             result.put("failureReason", verification.getFailureReason());
+            result.put("message", verification.getFailureReason());
         }
 
         return result;
