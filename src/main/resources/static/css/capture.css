@@ -1,0 +1,435 @@
+/* ========================================
+   CAPTURE PAGE STYLES
+   ======================================== */
+
+/* Mode Selection Grid */
+.capture-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.capture-mode-card {
+    position: relative;
+    background: var(--aura-card-bg, #1a1a2e);
+    border: 2px solid var(--aura-border, #2d2d44);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.capture-mode-card:hover:not(.disabled) {
+    border-color: var(--aura-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+}
+
+.capture-mode-card.recommended {
+    border-color: var(--aura-success, #10b981);
+}
+
+.capture-mode-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.capture-mode-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--aura-success, #10b981);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.capture-mode-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.capture-mode-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--aura-text, white);
+}
+
+.capture-mode-desc {
+    font-size: 0.875rem;
+    color: var(--aura-gray-400, #9ca3af);
+    margin-bottom: 1rem;
+    min-height: 2.5rem;
+}
+
+.capture-mode-specs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--aura-gray-500, #6b7280);
+}
+
+.capture-mode-specs i {
+    margin-right: 0.25rem;
+}
+
+/* Recording Step */
+.capture-recorder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.capture-mode-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--aura-primary-bg, rgba(139, 92, 246, 0.1));
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.capture-mode-indicator i {
+    color: var(--aura-primary);
+}
+
+/* Preview Container */
+.capture-preview-container {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 1.5rem;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 16/9;
+}
+
+.capture-preview-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.capture-face-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 250px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Audio Visualizer */
+.capture-audio-visualizer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.capture-audio-wave {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 80px;
+}
+
+.capture-audio-wave .wave-bar {
+    width: 8px;
+    height: 20px;
+    background: var(--aura-primary);
+    border-radius: 4px;
+    transition: height 0.1s ease;
+}
+
+.capture-audio-wave.active .wave-bar {
+    animation: waveAnimation 0.5s ease-in-out infinite;
+}
+
+.capture-audio-wave.active .wave-bar:nth-child(1) { animation-delay: 0s; }
+.capture-audio-wave.active .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.capture-audio-wave.active .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.capture-audio-wave.active .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.capture-audio-wave.active .wave-bar:nth-child(5) { animation-delay: 0.2s; }
+.capture-audio-wave.active .wave-bar:nth-child(6) { animation-delay: 0.1s; }
+.capture-audio-wave.active .wave-bar:nth-child(7) { animation-delay: 0s; }
+
+@keyframes waveAnimation {
+    0%, 100% { height: 20px; }
+    50% { height: 60px; }
+}
+
+.capture-audio-status {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--aura-gray-400);
+}
+
+.capture-audio-status .recording-dot {
+    color: var(--aura-danger, #ef4444);
+    animation: recordingPulse 1s ease-in-out infinite;
+}
+
+/* Recording Indicator */
+.capture-recording-indicator {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(239, 68, 68, 0.9);
+    border-radius: 20px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.capture-recording-dot {
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    animation: recordingPulse 1s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Progress Container */
+.capture-progress-container {
+    margin-bottom: 1.5rem;
+}
+
+.capture-time-hint {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--aura-gray-500);
+    margin-top: 0.5rem;
+}
+
+/* Controls */
+.capture-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.capture-btn-record {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--aura-primary);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    color: var(--aura-text, white);
+}
+
+.capture-btn-record:hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.capture-btn-record .record-icon {
+    font-size: 2rem;
+    color: var(--aura-primary);
+}
+
+.capture-btn-record.recording {
+    border-color: var(--aura-danger, #ef4444);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.capture-btn-record.recording .record-icon {
+    color: var(--aura-danger, #ef4444);
+}
+
+.capture-btn-record.recording .record-icon i {
+    animation: recordingPulse 1s ease-in-out infinite;
+}
+
+.capture-secondary-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Upload Animation */
+.capture-upload-animation {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+}
+
+.capture-upload-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 3px solid var(--aura-border);
+    border-top-color: var(--aura-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.capture-upload-animation i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    color: var(--aura-primary);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.capture-upload-progress {
+    max-width: 300px;
+    margin: 2rem auto 0;
+}
+
+.capture-progress-text {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: var(--aura-primary);
+}
+
+/* Success */
+.capture-success-badge {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+}
+
+.capture-success-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--aura-success, #10b981);
+    animation: successPop 0.5s ease-out;
+}
+
+@keyframes successPop {
+    0% { transform: translate(-50%, -50%) scale(0); }
+    50% { transform: translate(-50%, -50%) scale(1.2); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+.capture-success-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.capture-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--aura-card-bg, #1a1a2e);
+    border-radius: 8px;
+}
+
+.capture-stat i {
+    color: var(--aura-primary);
+}
+
+/* Error */
+.capture-error-icon {
+    color: var(--aura-danger, #ef4444);
+}
+
+/* Toast */
+.capture-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.capture-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.capture-toast-info {
+    background: var(--aura-info, #3b82f6);
+    color: white;
+}
+
+.capture-toast-warning {
+    background: var(--aura-warning, #f59e0b);
+    color: white;
+}
+
+.capture-toast-error {
+    background: var(--aura-danger, #ef4444);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .capture-mode-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .capture-btn-record {
+        width: 100px;
+        height: 100px;
+    }
+
+    .capture-btn-record .record-icon {
+        font-size: 1.5rem;
+    }
+
+    .capture-success-stats {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}

@@ -5,6 +5,7 @@
 
 <body class="aura-page">
 <link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<link rel="stylesheet" th:href="@{/css/capture.css}"/>
 <div th:replace="~{fragments :: header}"></div>
 
 <!-- Hero Section -->
@@ -95,55 +96,124 @@
             </div>
         </div>
 
-        <!-- Step 2: Video Introduction -->
+        <!-- Step 2: Video/Audio Introduction -->
         <div id="video-section" class="step-section" style="display: none;">
             <div class="aura-card-header">
-                <div class="aura-card-icon"><i class="fas fa-video"></i></div>
+                <div class="aura-card-icon"><i class="fas fa-microphone-alt"></i></div>
                 <div>
-                    <div class="aura-card-title">Video Introduction</div>
-                    <div class="aura-card-subtitle">Tell potential matches about yourself</div>
+                    <div class="aura-card-title">Introduce Yourself</div>
+                    <div class="aura-card-subtitle">Record a voice or video intro for potential matches</div>
                 </div>
             </div>
 
-            <div class="video-tips">
-                <h4><i class="fas fa-lightbulb"></i> Tips for a great video:</h4>
-                <ul>
-                    <li>Share your name and what you're looking for</li>
-                    <li>Mention a hobby or interest</li>
-                    <li>Say what makes you unique</li>
-                    <li>Keep it under 60 seconds</li>
-                </ul>
+            <!-- Mode Selection -->
+            <div id="intro-mode-select" class="intro-mode-section">
+                <p class="intro-mode-label">How would you like to introduce yourself?</p>
+                <div class="intro-mode-grid">
+                    <div class="intro-mode-card recommended" onclick="selectIntroMode('AUDIO_ONLY')">
+                        <div class="intro-mode-badge">Recommended</div>
+                        <div class="intro-mode-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                            <i class="fas fa-microphone"></i>
+                        </div>
+                        <div class="intro-mode-title">Voice Only</div>
+                        <div class="intro-mode-desc">Record a voice message. Simple and works everywhere.</div>
+                    </div>
+                    <div class="intro-mode-card" onclick="selectIntroMode('WEBCAM_MIC')">
+                        <div class="intro-mode-icon" style="background: linear-gradient(135deg, #ec4899, #f472b6);">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <div class="intro-mode-title">Video</div>
+                        <div class="intro-mode-desc">Show your face and personality on camera.</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="video-upload-area">
-                <div class="video-preview-container">
-                    <video id="video-preview" autoplay playsinline muted></video>
-                    <div class="video-overlay">
-                        <div class="recording-indicator" id="recording-indicator" style="display: none;">
-                            <span class="recording-dot"></span> Recording
-                        </div>
+            <!-- Recording Interface (shown after mode selection) -->
+            <div id="intro-recording-ui" style="display: none;">
+                <div class="intro-tips">
+                    <h4><i class="fas fa-lightbulb"></i> <span id="intro-tips-title">Tips for a great intro:</span></h4>
+                    <ul id="intro-tips-list">
+                        <li>Share your name and what you're looking for</li>
+                        <li>Mention a hobby or interest</li>
+                        <li>Say what makes you unique</li>
+                        <li>Keep it under 2 minutes</li>
+                    </ul>
+                </div>
+
+                <!-- Audio Visualizer (for audio mode) -->
+                <div id="intro-audio-visualizer" class="capture-audio-visualizer-container">
+                    <div class="capture-audio-wave" id="intro-audio-wave">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                    <div id="intro-audio-status" class="capture-audio-status">
+                        <i class="fas fa-microphone"></i>
+                        <span>Ready to record</span>
                     </div>
                 </div>
 
-                <div class="video-controls">
-                    <button class="aura-btn aura-btn-outline" id="start-camera">
-                        <i class="fas fa-camera"></i> Start Camera
-                    </button>
-                    <button class="aura-btn aura-btn-record" id="record-btn" style="display: none;">
-                        <i class="fas fa-circle"></i> Start Recording
-                    </button>
-                    <button class="aura-btn aura-btn-primary" id="upload-video" style="display: none;">
-                        <i class="fas fa-upload"></i> Upload Video
+                <!-- Video Preview (for video mode) -->
+                <div id="intro-video-preview" class="capture-preview-container" style="display: none;">
+                    <video id="intro-preview-video" autoplay playsinline muted></video>
+                    <div class="capture-face-guide"></div>
+                </div>
+
+                <!-- Recording Indicator -->
+                <div id="intro-recording-indicator" class="capture-recording-indicator" style="display: none;">
+                    <span class="capture-recording-dot"></span>
+                    <span>REC</span>
+                    <span id="intro-recording-time">0:00</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="capture-progress-container">
+                    <div class="aura-progress-bar">
+                        <div id="intro-recording-progress" class="aura-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div id="intro-time-limit" class="capture-time-hint">Maximum: 2:00</div>
+                </div>
+
+                <!-- Controls -->
+                <div class="capture-controls">
+                    <button id="intro-record-btn" class="capture-btn-record" onclick="toggleIntroRecording()">
+                        <span class="record-icon"><i class="fas fa-circle"></i></span>
+                        <span id="intro-record-text">Start Recording</span>
                     </button>
                 </div>
 
-                <div class="upload-alternative">
-                    <p>Or upload an existing video:</p>
-                    <input type="file" id="video-file" accept="video/*" style="display: none;">
-                    <button class="aura-btn aura-btn-outline" onclick="document.getElementById('video-file').click()">
-                        <i class="fas fa-file-video"></i> Choose File
+                <div id="intro-secondary-controls" class="capture-secondary-controls" style="display: none;">
+                    <button class="aura-btn aura-btn-secondary" onclick="changeIntroMode()">
+                        <i class="fas fa-arrow-left"></i> Change Mode
+                    </button>
+                    <button class="aura-btn aura-btn-danger" onclick="cancelIntroRecording()">
+                        <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
+
+                <!-- Upload Progress -->
+                <div id="intro-upload-progress" style="display: none; margin-top: 1.5rem;">
+                    <div class="aura-progress-bar" style="height: 8px;">
+                        <div id="intro-upload-bar" class="aura-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div id="intro-upload-text" style="text-align: center; margin-top: 0.5rem; color: var(--aura-primary);">
+                        Uploading... 0%
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skip Option -->
+            <div class="intro-skip-option" style="margin-top: 1.5rem; text-align: center;">
+                <button class="aura-btn aura-btn-outline aura-btn-sm" onclick="skipIntro()">
+                    <i class="fas fa-forward"></i> Skip for now
+                </button>
+                <p style="font-size: 0.75rem; color: var(--aura-gray-500); margin-top: 0.5rem;">
+                    You can add an intro later from your profile settings.
+                </p>
             </div>
         </div>
 
@@ -189,6 +259,9 @@
 </div>
 
 <div th:replace="~{fragments :: footer}"></div>
+
+<!-- WebCapture Library for Audio/Video Recording -->
+<script th:src="@{/js/web-capture.js}"></script>
 
 <style>
     .intake-progress-header {
@@ -638,6 +711,105 @@
         100% { transform: scale(1); }
     }
 
+    /* Intro Mode Selection */
+    .intro-mode-section {
+        padding: 1rem 0;
+    }
+
+    .intro-mode-label {
+        font-weight: 500;
+        margin-bottom: 1rem;
+        text-align: center;
+        color: var(--aura-gray-600);
+    }
+
+    .intro-mode-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .intro-mode-card {
+        position: relative;
+        padding: 1.5rem 1rem;
+        border: 2px solid var(--aura-gray-200);
+        border-radius: 12px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: var(--aura-card-bg, white);
+    }
+
+    .intro-mode-card:hover {
+        border-color: var(--aura-primary);
+        transform: translateY(-2px);
+    }
+
+    .intro-mode-card.recommended {
+        border-color: var(--aura-success);
+    }
+
+    .intro-mode-badge {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--aura-success);
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .intro-mode-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.75rem;
+        font-size: 1.25rem;
+        color: white;
+    }
+
+    .intro-mode-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .intro-mode-desc {
+        font-size: 0.8rem;
+        color: var(--aura-gray-500);
+    }
+
+    .intro-tips {
+        background: var(--aura-gray-50);
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    .intro-tips h4 {
+        color: var(--aura-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .intro-tips ul {
+        margin: 0;
+        padding-left: 1.5rem;
+        color: var(--aura-gray-600);
+    }
+
+    @media (max-width: 480px) {
+        .intro-mode-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     @media (prefers-color-scheme: dark) {
         .intake-step {
             background: var(--aura-gray-800);
@@ -974,75 +1146,163 @@
         document.getElementById('step-photos-status').innerHTML = '<span class="badge active">In Progress</span>';
     }
 
-    // Video recording logic
-    let mediaRecorder;
-    let recordedChunks = [];
+    // ========================================
+    // INTRO RECORDING (using WebCapture)
+    // ========================================
+    let selectedIntroMode = null;
 
-    document.getElementById('start-camera').addEventListener('click', async function() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('video-preview').srcObject = stream;
-            this.style.display = 'none';
-            document.getElementById('record-btn').style.display = 'inline-flex';
-
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
-            mediaRecorder.onstop = handleRecordingComplete;
-        } catch (error) {
-            alert('Camera access denied');
+    // Initialize WebCapture event handlers when showing video step
+    function initWebCapture() {
+        if (typeof WebCapture === 'undefined') {
+            console.error('WebCapture not loaded');
+            return;
         }
-    });
 
-    document.getElementById('record-btn').addEventListener('click', function() {
-        if (mediaRecorder.state === 'inactive') {
-            recordedChunks = [];
-            mediaRecorder.start();
-            this.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
-            this.classList.add('recording');
-            document.getElementById('recording-indicator').style.display = 'flex';
+        WebCapture.onStatusChange(handleIntroStatusChange);
+        WebCapture.onProgress(handleIntroProgress);
+        WebCapture.onError(handleIntroError);
+        WebCapture.onComplete(handleIntroComplete);
+    }
+
+    function selectIntroMode(mode) {
+        selectedIntroMode = mode;
+        const isAudioOnly = mode === 'AUDIO_ONLY';
+
+        // Hide mode selection, show recording UI
+        document.getElementById('intro-mode-select').style.display = 'none';
+        document.getElementById('intro-recording-ui').style.display = 'block';
+
+        // Show appropriate visualizer
+        document.getElementById('intro-audio-visualizer').style.display = isAudioOnly ? 'flex' : 'none';
+        document.getElementById('intro-video-preview').style.display = isAudioOnly ? 'none' : 'block';
+
+        // Update tips
+        if (isAudioOnly) {
+            document.getElementById('intro-tips-title').textContent = 'Tips for a great voice intro:';
+            document.getElementById('intro-tips-list').innerHTML = `
+                <li>Find a quiet spot with minimal background noise</li>
+                <li>Speak clearly and at a natural pace</li>
+                <li>Share your name, interests, and what you're looking for</li>
+                <li>Keep it under 2 minutes</li>
+            `;
         } else {
-            mediaRecorder.stop();
-            this.innerHTML = '<i class="fas fa-circle"></i> Start Recording';
-            this.classList.remove('recording');
-            document.getElementById('recording-indicator').style.display = 'none';
+            document.getElementById('intro-tips-title').textContent = 'Tips for a great video intro:';
+            document.getElementById('intro-tips-list').innerHTML = `
+                <li>Find good lighting (face a window if possible)</li>
+                <li>Position your face in the center of the frame</li>
+                <li>Share your name, interests, and what you're looking for</li>
+                <li>Keep it under 2 minutes</li>
+            `;
         }
-    });
 
-    function handleRecordingComplete() {
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        // Show upload button
-        document.getElementById('upload-video').style.display = 'inline-flex';
-        document.getElementById('upload-video').onclick = () => uploadVideo(blob);
+        // Initialize WebCapture
+        initWebCapture();
     }
 
-    async function uploadVideo(blob) {
-        const formData = new FormData();
-        formData.append('file', blob, 'introduction.webm');
+    function changeIntroMode() {
+        if (WebCapture.isRecording()) {
+            WebCapture.cancel();
+        }
+        document.getElementById('intro-mode-select').style.display = 'block';
+        document.getElementById('intro-recording-ui').style.display = 'none';
+        resetIntroUI();
+    }
 
-        try {
-            const response = await fetch('/intake/video', {
-                method: 'POST',
-                body: formData
-            });
+    async function toggleIntroRecording() {
+        if (!WebCapture.isRecording()) {
+            try {
+                await WebCapture.start({ captureType: selectedIntroMode });
 
-            if (response.ok) {
-                progress.videoIntroComplete = true;
-                updateProgressDisplay();
-                showPhotosStep();
-            } else {
-                alert('Failed to upload video');
+                // Update UI
+                document.getElementById('intro-record-btn').classList.add('recording');
+                document.getElementById('intro-record-text').textContent = 'Stop Recording';
+                document.getElementById('intro-recording-indicator').style.display = 'flex';
+                document.getElementById('intro-secondary-controls').style.display = 'flex';
+
+                if (selectedIntroMode === 'AUDIO_ONLY') {
+                    document.getElementById('intro-audio-status').innerHTML = '<i class="fas fa-circle" style="color: var(--aura-danger); animation: pulse 1s infinite;"></i> <span>Recording...</span>';
+                    document.getElementById('intro-audio-wave').classList.add('active');
+                }
+            } catch (error) {
+                handleIntroError(error);
             }
-        } catch (error) {
-            console.error('Failed to upload:', error);
+        } else {
+            WebCapture.stop();
         }
     }
 
-    // File upload handler
-    document.getElementById('video-file').addEventListener('change', async function(e) {
-        if (e.target.files.length > 0) {
-            await uploadVideo(e.target.files[0]);
+    function cancelIntroRecording() {
+        if (confirm('Cancel this recording?')) {
+            WebCapture.cancel();
+            resetIntroUI();
         }
-    });
+    }
+
+    function resetIntroUI() {
+        document.getElementById('intro-record-btn').classList.remove('recording');
+        document.getElementById('intro-record-text').textContent = 'Start Recording';
+        document.getElementById('intro-recording-indicator').style.display = 'none';
+        document.getElementById('intro-secondary-controls').style.display = 'none';
+        document.getElementById('intro-upload-progress').style.display = 'none';
+        document.getElementById('intro-recording-progress').style.width = '0%';
+        document.getElementById('intro-audio-wave').classList.remove('active');
+        document.getElementById('intro-audio-status').innerHTML = '<i class="fas fa-microphone"></i> <span>Ready to record</span>';
+    }
+
+    function handleIntroStatusChange({ status, message }) {
+        console.log('Intro status:', status);
+
+        switch (status) {
+            case 'processing':
+            case 'uploading':
+                document.getElementById('intro-upload-progress').style.display = 'block';
+                document.getElementById('intro-upload-text').textContent = 'Uploading...';
+                break;
+            case 'verifying':
+                document.getElementById('intro-upload-text').textContent = 'Verifying...';
+                break;
+            case 'error':
+                alert(message || 'Recording failed. Please try again.');
+                resetIntroUI();
+                break;
+        }
+    }
+
+    function handleIntroProgress({ phase, percent, durationMs, durationFormatted }) {
+        if (phase === 'recording') {
+            document.getElementById('intro-recording-time').textContent = durationFormatted || '0:00';
+            const maxSeconds = selectedIntroMode === 'AUDIO_ONLY' ? 120 : 120; // 2 min for both
+            const elapsed = Math.floor((durationMs || 0) / 1000);
+            const progressPct = Math.min((elapsed / maxSeconds) * 100, 100);
+            document.getElementById('intro-recording-progress').style.width = progressPct + '%';
+        } else if (phase === 'uploading') {
+            document.getElementById('intro-upload-bar').style.width = (percent || 0) + '%';
+            document.getElementById('intro-upload-text').textContent = 'Uploading... ' + (percent || 0) + '%';
+        }
+    }
+
+    function handleIntroError(error) {
+        console.error('Intro error:', error);
+        alert(error.message || 'An error occurred. Please try again.');
+        resetIntroUI();
+    }
+
+    function handleIntroComplete({ captureId, fileSizeBytes, durationMs }) {
+        console.log('Intro complete:', captureId);
+
+        // Mark as complete and move to next step
+        progress.videoIntroComplete = true;
+        updateProgressDisplay();
+        showPhotosStep();
+    }
+
+    function skipIntro() {
+        if (confirm('You can always add an intro later from your profile. Skip for now?')) {
+            progress.videoIntroComplete = true; // Mark as "complete" (skipped)
+            updateProgressDisplay();
+            showPhotosStep();
+        }
+    }
 
     // Photo upload
     document.getElementById('photo-input').addEventListener('change', async function(e) {

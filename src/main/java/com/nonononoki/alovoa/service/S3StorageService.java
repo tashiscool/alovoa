@@ -14,6 +14,8 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
 import java.io.IOException;
 import java.net.URI;
@@ -249,6 +251,102 @@ public class S3StorageService {
         } catch (Exception e) {
             LOGGER.error("Failed to generate presigned URL: {}", e.getMessage());
             throw new RuntimeException("Failed to generate presigned URL", e);
+        }
+    }
+
+    /**
+     * Generate a presigned URL for uploading an object (PUT)
+     *
+     * @param s3Key       S3 key where the object will be stored
+     * @param contentType Expected content type
+     * @param expiry      Duration before URL expires
+     * @return Presigned PUT URL
+     */
+    public String getPresignedUploadUrl(String s3Key, String contentType, Duration expiry) {
+        if (!s3Enabled || presigner == null) {
+            throw new IllegalStateException("S3 storage is not enabled or not initialized");
+        }
+
+        if (s3Key == null || s3Key.isEmpty()) {
+            throw new IllegalArgumentException("S3 key is required");
+        }
+
+        String bucket = s3Key.startsWith("video/") || s3Key.startsWith("capture/") ? videoBucket : mediaBucket;
+
+        try {
+            PutObjectRequest.Builder putBuilder = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(s3Key);
+
+            if (contentType != null && !contentType.isEmpty()) {
+                putBuilder.contentType(contentType);
+            }
+
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(expiry)
+                    .putObjectRequest(putBuilder.build())
+                    .build();
+
+            PresignedPutObjectRequest presignedRequest = presigner.presignPutObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            LOGGER.error("Failed to generate presigned upload URL: {}", e.getMessage());
+            throw new RuntimeException("Failed to generate presigned upload URL", e);
+        }
+    }
+
+    /**
+     * Check if an object exists in S3
+     *
+     * @param s3Key S3 key to check
+     * @return true if object exists
+     */
+    public boolean objectExists(String s3Key) {
+        if (!s3Enabled || s3Client == null || s3Key == null || s3Key.isEmpty()) {
+            return false;
+        }
+
+        String bucket = s3Key.startsWith("video/") || s3Key.startsWith("capture/") ? videoBucket : mediaBucket;
+
+        try {
+            HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(s3Key)
+                    .build();
+            s3Client.headObject(headRequest);
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        } catch (Exception e) {
+            LOGGER.error("Failed to check object existence: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get object metadata (size, content type, etc.)
+     *
+     * @param s3Key S3 key
+     * @return HeadObjectResponse or null if not found
+     */
+    public HeadObjectResponse getObjectMetadata(String s3Key) {
+        if (!s3Enabled || s3Client == null || s3Key == null || s3Key.isEmpty()) {
+            return null;
+        }
+
+        String bucket = s3Key.startsWith("video/") || s3Key.startsWith("capture/") ? videoBucket : mediaBucket;
+
+        try {
+            HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(s3Key)
+                    .build();
+            return s3Client.headObject(headRequest);
+        } catch (NoSuchKeyException e) {
+            return null;
+        } catch (Exception e) {
+            LOGGER.error("Failed to get object metadata: {}", e.getMessage());
+            return null;
         }
     }
 

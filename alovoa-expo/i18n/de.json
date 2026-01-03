@@ -1,0 +1,294 @@
+{
+    "imprint": "Impressum",
+    "tos": "Nutzungsbedingungen",
+    "privacy-policy": "Datenschutzerklärung",
+    "auth": {
+        "email": "Anmelden",
+        "google": "Mit Google anmelden",
+        "facebook": "Mit Facebook anmelden"
+    },
+    "first-name": "Vorname",
+    "dob": "Geburtsdatum",
+    "optional": "Optional",
+    "register": {
+        "title": "Registrieren",
+        "subtitle": "Neues Konto erstellen",
+        "agree": "Mit meiner Registrierung stimme ich Nutzungsbedingungen und der Datenschutzerklärung zu.",
+        "referral-code": "Empfehlungscode",
+        "asterisk-warning": "Felder mit einem Sternchen (*) können in Zukunft nicht mehr geändert werden",
+        "gender": "Dein Geschlecht",
+        "age-subtitle": "Du bist %s Jahre alt"
+    },
+    "gender": {
+        "male": "Mann",
+        "female": "Frau",
+        "other": "Nicht-binär"
+    },
+    "profile": {
+        "onboarding": {
+            "profile-picture": "So sehe ich aus",
+            "profile-picture-subtitle": "Mehr Bilder können später hinzugefügt werden",
+            "description": "Etwas über mich",
+            "description-placeholder": "Ich liebe Eiscreme! 🍨",
+            "interests": "Ich mag diese Dinge wirklich gerne...",
+            "intention-warning": "Kann erst nach 24 Stunden wieder geändert werden",
+            "match": {
+                "title": "Jetzt Likes erhalten!",
+                "subtitle": "Nachrichten können nur nach einem Match gesendet werden"
+            },
+            "submit": "Los geht's!"
+        },
+        "intention": {
+            "title": "Wonach ich suche",
+            "meet": "Neue Leute kennenlernen",
+            "date": "Eine romantische Beziehung",
+            "sex": "Sexuelle Intimität",
+            "warning": "Kann erst nach 24 Stunden wieder geändert werden"
+        },
+        "gender": "Ich suche nach...",
+        "interest-alert-delete": "Interesse '%s' entfernen?",
+        "units": {
+            "title": "Einheiten",
+            "si": "SI",
+            "imperial": "Imperial"
+        },
+        "age": {
+            "min": "Min. Alter",
+            "max": "Max. Alter"
+        },
+        "misc-info": {
+            "drugs": {
+                "title": "Drogen",
+                "alcohol": "Alkohol",
+                "tobacco": "Tabak",
+                "cannabis": "Cannabis",
+                "other": "Harte Drogen"
+            },
+            "kids": {
+                "title": "Kinder",
+                "no": "Habe keine Kinder",
+                "yes": "Habe Kinder"
+            },
+            "family": {
+                "title": "Familienpläne",
+                "no": "Möchte keine Kinder",
+                "yes": "Möchte Kinder"
+            },
+            "relationship-type": {
+                "title": "Beziehungstyp",
+                "monogamous": "Monogamie",
+                "polyamorous": "Nicht-Monogamie"
+            },
+            "gender-identity": {
+                "title": "Geschlechtsidentität",
+                "cis": "Cis",
+                "trans": "Trans"
+            },
+            "politics": {
+                "title": "Politik",
+                "left": "Links",
+                "right": "Rechts",
+                "moderate": "Mitte"
+            },
+            "religion": {
+                "title": "Religion",
+                "yes": "Religiös",
+                "no": "Nicht religiös"
+            },
+            "relationship": {
+                "title": "Beziehungsstatus",
+                "single": "Single",
+                "taken": "In einer Beziehung",
+                "open": "Offene Beziehung",
+                "other": "Es ist kompliziert"
+            },
+            "none": "Keine",
+            "yes": "Ja",
+            "no": "Nein",
+            "sometimes": "Manchmal"
+        },
+        "intention-toast": "Intention geändert. Du kannst dies in 24h wieder ändern.",
+        "preferred-age-range": "Bevorzugte Altersspanne",
+        "donated": "Gespendet",
+        "block": "Blocken",
+        "unblock": "Entblocken",
+        "delete-account": "Account löschen",
+        "delete-account-success": "Erfolg! Bitte folge den Anweisungen in der E-Mail die wir Dir geschickt haben.",
+        "download-userdata": "Nutzerdaten herunterladen",
+        "download-userdata-success": "Nutzerdaten erfolgreich herunterladen",
+        "photos": {
+            "manage": "Fotos verwalten",
+            "delete": "Foto löschen?",
+            "change-profile-pic": "Profilbild ändern",
+            "add": "Foto hinzufügen"
+        },
+        "logout": "Ausloggen",
+        "report": {
+            "title": "Melden",
+            "subtitle": "Nutzer wegen Verstoßes gegen die Nutzungsbedingungen melden",
+            "fake": "Fake, Scam oder Spamprofil",
+            "inappropriate": "Unangemessener Inhalt",
+            "minor": "Nuzter ist Minderjährig",
+            "illegal": "Illegale Inhalte",
+            "other": "Andere"
+        },
+        "active-state": {
+            "1": "Online",
+            "2": "Heute aktiv"
+        },
+        "interest": "Interesse",
+        "interests-common": "Gemeinsame Interessen",
+        "profile-page": {
+            "description": "Über mich",
+            "interests": "Meine Interessen",
+            "basics": "Meine Daten",
+            "additional": "Weitere Infos"
+        },
+        "screen": {
+            "pictures": "Fotos verwalten",
+            "profile": "Profil bearbeiten",
+            "search": "Suchpräferenzen",
+            "settings": "Einstellungen",
+            "advanced-settings": "Erweiterte Einstellungen",
+            "prompts": "Eisbrecher"
+        },
+        "settings": {
+            "colors": {
+                "title": "Farben",
+                "primary": "Primär",
+                "secondary": "Sekundär"
+            },
+            "notification": "Benachrichtigungen",
+            "email": {
+                "like": "Erhalte E-mails bei Likes und Matches",
+                "chat": "Erhalte E-mails bei Chats"
+            }
+        },
+        "search": {
+            "settings": {
+                "distance": "Distanz",
+                "min-gps-timeout": "GPS Timeout (ms)",
+                "location": {
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                },
+                "show-outside-parameters": "Auch Profile außerhalb meiner Präferenzen anzeigen sobald ich keine mehr erhalte"
+            },
+            "report-card": "Verdächtige Aktivitäten wurden auf dem Profil von %s festgestellt. Trotzdem anzeigen?",
+            "report-card-dismiss": "Profil verbergen",
+            "report-card-show": "Trotzdem anzeigen",
+            "report-card-threshold": "Grenzwert für verdächtige Aktivitäten"
+        },
+        "prompts": {
+            "title": "Deine Eisbrecher",
+            "subtitle": "Eisbrecher verwalten",
+            "delete": "Eisbrecher löschen?",
+            "add": "Eisbrecher hinzufügen",
+            "1": "Ich bin verrückt nach",
+            "2": "Ungewöhnliche Fähigkeiten",
+            "3": "Ich kann nicht aufhören, darüber zu reden",
+            "4": "Was wäre, wenn ich dir das sagen würde",
+            "5": "Meine umstrittenste Meinung",
+            "6": "Der Schlüssel zu meinem Herzen",
+            "7": "Ich möchte jemanden, der/die",
+            "8": "Ich fühle mich seltsamerweise hingezogen von",
+            "9": "Green flags, nach denen ich suche",
+            "10": "Bring mir hierzu etwas bei",
+            "11": "Ändere meine Meinung über",
+            "12": "Mein größter Date-Fail",
+            "13": "Die schlechteste Idee, die ich je hatte",
+            "14": "Noch nie habe ich",
+            "15": "Zusammen könnten wir",
+            "16": "Das perfekte Date in 3 Worten",
+            "17": "Was ich an mir mag",
+            "18": "Mein nutzloses Talent",
+            "19": "Ich, aber in Emojis",
+            "20": "Swipe nach rechts, wenn"
+        },
+        "verification": {
+            "info-1": "Verifiziere dein Profil, um zu beweisen, dass es wirklich du bist",
+            "info-2": "Andere Personen können auch über deine Authentizität abstimmen",
+            "info-3": "Lade ein Bild von dir hoch, auf dem du eine handgeschriebene Notiz mit diesen Zeichen hältst",
+            "info-4": "Stell sicher, dass dein Gesicht vollständig sichtbar ist",
+            "info-5": "Wenn du dein Profilbild änderst musst du dich erneut verifizieren",
+            "verified-no": "Nicht verifiziert",
+            "verified-by-users": "Durch die Community verifiziert",
+            "verified-by-admin": "Verifiziert"
+        },
+        "tooltip": {
+            "donated": "Gespendet",
+            "blocks": "Blockierungen von Nutzern",
+            "reports": "Meldungen von Nutzern"
+        }
+    },
+    "cancel": "Abbrechen",
+    "ok": "OK",
+    "navigation": {
+        "profile": "Profil",
+        "chat": "Chat",
+        "search": "Suchen",
+        "likes": "Likes",
+        "donate": "Spenden"
+    },
+    "donate": {
+        "filter": {
+            "recent": "Neueste",
+            "amount": "Höhe"
+        }
+    },
+    "chat": {
+        "default": "Ein Match! Jemand mag dich zurück! Tippe hier, um eine Nachricht zu senden :)",
+        "placeholder": "Schreib eine Nachricht..."
+    },
+    "you": "Du",
+    "sort": "Sort.",
+    "error": {
+        "generic": "Ein Fehler ist aufgetreten. Bitte versuche es noch einmal."
+    },
+    "email": "E-mail",
+    "password": "Passwort",
+    "captcha": {
+        "title": "Captcha",
+        "placeholder": "Gib den Text ein"
+    },
+    "register-email": "Mit E-mail registrieren",
+    "register-email-success": "Vielen Dank! Um den Registriervorgang abzuschließen, klicke einfach auf den Link, den wir Dir per E-mail geschickt haben.",
+    "register-password-warning": "Das Passwort muss mindestens 7 Zeichen lang sein und Zeichen und Zahlen enthalten.",
+    "password-forget": "Password vergessen?",
+    "password-reset": "Password zurücksetzen",
+    "password-reset-success": "Schaue in Deiner E-Mail Postface nach, ob Du eine Nachricht von uns erhalten hast, und befolge die darin enthaltenen Anweisungen, um Dein Passwort zurückzusetzen.",
+    "likes-empty": {
+        "title": "Noch keine Likes",
+        "subtitle": "Keine Sorge, es kommen jeden Tag neue Nutzer hinzu. Die Anpassung deiner Einstellungen in deinem Profil kann auch zu mehr Likes führen"
+    },
+    "convo-empty": {
+        "title": "Starte Chats mit Matches",
+        "subtitle": "Erhalte mehr Matches indem du attraktive Bilder hochlädst und dein Profil ausfüllst"
+    },
+    "search-empty": {
+        "title": "Hoppla, das Ketchup ist alle",
+        "subtitle": "Du hast jeden gesehen, der zu dir passt, aber jeden Tag kommen neue Leute hinzu.",
+        "button": "Präferenzen ändern"
+    },
+    "location": {
+        "no-permission": "Standortberechtigung nicht gesetzt",
+        "no-signal": "Kein GPS Signal gefunden"
+    },
+    "email-invalid": "Die Emailadresse ist ungültig.",
+    "likes": {
+        "received-likes": "Mögen dich",
+        "given-likes": "Vergebene Likes",
+        "hidden": "Versteckte Nutzer",
+        "blocked": "Geblockte Nutzer"
+    },
+    "restart-apply-changes": "Starte die App neu um die Änderungen zu übernehmen",
+    "compliment": {
+        "title": "Kompliment senden",
+        "tooltip": "Hier tippen, um ein Kompliment zu senden!" 
+    },
+    "referral": {
+        "title": "Einem Freund weiterempfehlen",
+        "copy": "Empfehlungscode in die Zwischenablage kopiert!",
+        "hint": "Wenn ein neuer Nutzer ein Konto mit deinem Empfehlungscode erstellt, erhaltet ihr beide einen kleinen, aber permanenten Boost für eure Accounts."
+    }
+}

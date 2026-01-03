@@ -55,3 +55,19 @@ ENV/
 .env
 *.egg-info/
 .pytest_cache/
+
+### Expo / React Native ###
+expo/
+alovoa-expo/node_modules/
+alovoa-expo/.expo/
+alovoa-expo/dist/
+alovoa-expo/android/app/build/
+alovoa-expo/android/.gradle/
+alovoa-expo/android/build/
+alovoa-expo/ios/Pods/
+alovoa-expo/ios/build/
+alovoa-expo/*.jks
+alovoa-expo/*.keystore
+alovoa-expo/.env.local
+alovoa-expo/.env.production
+alovoa-expo/web-build/

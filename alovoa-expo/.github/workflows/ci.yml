@@ -1,0 +1,72 @@
+name: Build Android APK (Yarn, No EAS)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (Expo 54 requires Node 20+)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+        
+      - name: Verify Java version
+        run: java -version
+
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies (Yarn)
+        run: yarn install --frozen-lockfile
+
+      - name: Run Yarn Doctor (dependency verification)
+        run: yarn doctor
+
+      - name: Build with F-droid build process
+        run: yarn f-droid
+
+      - name: Give Gradle permission
+        run: chmod +x android/gradlew
+
+      - name: Configure Android SDK path
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+
+      - name: Configure Gradle memory (CI safe)
+        run: |
+          mkdir -p ~/.gradle
+          cat <<EOF > ~/.gradle/gradle.properties
+          org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8
+          kotlin.daemon.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g
+          org.gradle.parallel=false
+          org.gradle.daemon=false
+          org.gradle.caching=false
+          ksp.useKSP2=false
+          ksp.incremental=false
+          EOF
+
+      - name: Build APK (Release)
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: android/app/build/outputs/apk/release/app-release.apk
+

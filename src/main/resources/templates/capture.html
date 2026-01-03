@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head}"></head>
+
+<body class="aura-page">
+<link rel="stylesheet" th:href="@{/css/aura.css}"/>
+<link rel="stylesheet" th:href="@{/css/capture.css}"/>
+<div th:replace="~{fragments :: header}"></div>
+
+<!-- Hero Section -->
+<div class="aura-hero">
+    <h1><i class="fas fa-record-vinyl mr-2"></i> Record</h1>
+    <p>Share your voice, screen, or video</p>
+</div>
+
+<div class="aura-container">
+    <!-- Browser Support Warning (shown if needed) -->
+    <div id="browser-warning" class="aura-alert aura-alert-warning" style="display: none;">
+        <i class="fas fa-exclamation-triangle fa-lg"></i>
+        <div>
+            <strong>Browser Compatibility</strong>
+            <p id="browser-warning-message" style="margin-top: 0.25rem;"></p>
+        </div>
+    </div>
+
+    <!-- Step 1: Mode Selection -->
+    <div id="step-select-mode" class="capture-step aura-animate-fade-up">
+        <div class="aura-card" style="padding: 2rem;">
+            <div class="aura-card-header" style="margin-bottom: 1.5rem;">
+                <div class="aura-card-icon"><i class="fas fa-sliders-h"></i></div>
+                <div>
+                    <div class="aura-card-title">Choose Recording Mode</div>
+                    <div class="aura-card-subtitle">Select what you'd like to capture</div>
+                </div>
+            </div>
+
+            <div class="capture-mode-grid">
+                <!-- Audio Only - Most Reliable -->
+                <div class="capture-mode-card recommended" onclick="selectMode('AUDIO_ONLY')">
+                    <div class="capture-mode-badge">Recommended</div>
+                    <div class="capture-mode-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <div class="capture-mode-title">Audio Only</div>
+                    <div class="capture-mode-desc">
+                        Record your voice. Most reliable, works on all browsers.
+                    </div>
+                    <div class="capture-mode-specs">
+                        <span><i class="fas fa-clock"></i> Up to 10 min</span>
+                        <span><i class="fas fa-hdd"></i> ~1MB/2min</span>
+                    </div>
+                </div>
+
+                <!-- Screen + Mic -->
+                <div class="capture-mode-card" onclick="selectMode('SCREEN_MIC')">
+                    <div class="capture-mode-icon" style="background: linear-gradient(135deg, #3b82f6, #60a5fa);">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="capture-mode-title">Screen + Voice</div>
+                    <div class="capture-mode-desc">
+                        Record your screen with microphone narration.
+                    </div>
+                    <div class="capture-mode-specs">
+                        <span><i class="fas fa-clock"></i> Up to 3 min</span>
+                        <span><i class="fas fa-hdd"></i> ~40MB/2min</span>
+                    </div>
+                </div>
+
+                <!-- Webcam + Mic -->
+                <div class="capture-mode-card" onclick="selectMode('WEBCAM_MIC')">
+                    <div class="capture-mode-icon" style="background: linear-gradient(135deg, #ec4899, #f472b6);">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="capture-mode-title">Webcam</div>
+                    <div class="capture-mode-desc">
+                        Record yourself with your webcam.
+                    </div>
+                    <div class="capture-mode-specs">
+                        <span><i class="fas fa-clock"></i> Up to 3 min</span>
+                        <span><i class="fas fa-hdd"></i> ~40MB/2min</span>
+                    </div>
+                </div>
+
+                <!-- Screen + System Audio (Chrome only) -->
+                <div class="capture-mode-card" id="screen-system-card" onclick="selectMode('SCREEN_SYSTEM')">
+                    <div class="capture-mode-icon" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <div class="capture-mode-title">Screen + System Audio</div>
+                    <div class="capture-mode-desc">
+                        Record screen with computer audio (Chrome only).
+                    </div>
+                    <div class="capture-mode-specs">
+                        <span><i class="fas fa-clock"></i> Up to 3 min</span>
+                        <span><i class="fas fa-chrome"></i> Chrome only</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Recording -->
+    <div id="step-recording" class="capture-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 2rem;">
+            <div class="capture-recorder-header">
+                <div class="capture-mode-indicator">
+                    <i id="mode-icon" class="fas fa-microphone"></i>
+                    <span id="mode-label">Audio Only</span>
+                </div>
+                <button class="aura-btn aura-btn-secondary" onclick="goBackToModeSelect()">
+                    <i class="fas fa-arrow-left"></i> Change Mode
+                </button>
+            </div>
+
+            <!-- Preview Area (for video modes) -->
+            <div id="preview-container" class="capture-preview-container is-hidden">
+                <video id="capture-preview" autoplay playsinline muted></video>
+                <div class="capture-face-guide"></div>
+            </div>
+
+            <!-- Audio Visualizer (for audio modes) -->
+            <div id="audio-visualizer-container" class="capture-audio-visualizer-container">
+                <div class="capture-audio-wave">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+                <div id="audio-status" class="capture-audio-status">
+                    <i class="fas fa-microphone"></i>
+                    <span>Ready to record</span>
+                </div>
+            </div>
+
+            <!-- Recording Indicator -->
+            <div id="recording-indicator" class="capture-recording-indicator is-hidden">
+                <span class="capture-recording-dot"></span>
+                <span>REC</span>
+                <span id="recording-time">0:00</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="capture-progress-container">
+                <div class="aura-progress-bar">
+                    <div id="recording-progress" class="aura-progress-fill" style="width: 0%;"></div>
+                </div>
+                <div id="time-limit-hint" class="capture-time-hint">Maximum: 3:00</div>
+            </div>
+
+            <!-- Controls -->
+            <div class="capture-controls">
+                <button id="record-btn" class="capture-btn-record" onclick="toggleRecording()">
+                    <span class="record-icon"><i class="fas fa-circle"></i></span>
+                    <span id="record-btn-text">Start Recording</span>
+                </button>
+            </div>
+
+            <div id="recording-controls" class="capture-secondary-controls is-hidden">
+                <button id="pause-btn" class="aura-btn aura-btn-secondary" onclick="togglePause()">
+                    <i class="fas fa-pause"></i> Pause
+                </button>
+                <button class="aura-btn aura-btn-danger" onclick="cancelCapture()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="aura-alert aura-alert-info" style="margin-top: 1rem;">
+            <i class="fas fa-lightbulb fa-lg"></i>
+            <div id="recording-tips">
+                <strong>Tips for great audio:</strong>
+                <p style="margin-top: 0.25rem;">Speak clearly, minimize background noise, and stay close to your microphone.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Uploading -->
+    <div id="step-uploading" class="capture-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+            <div class="capture-upload-animation">
+                <div class="capture-upload-ring"></div>
+                <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; font-weight: 600; margin-top: 2rem;">
+                Uploading...
+            </h3>
+            <p id="upload-status" style="color: var(--aura-gray-500); margin-top: 0.5rem;">
+                Preparing your recording
+            </p>
+
+            <div class="capture-upload-progress">
+                <div class="aura-progress-bar" style="height: 8px;">
+                    <div id="upload-progress-bar" class="aura-progress-fill" style="width: 0%;"></div>
+                </div>
+                <div id="upload-progress-text" class="capture-progress-text">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4: Success -->
+    <div id="step-success" class="capture-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+            <div class="capture-success-badge">
+                <div class="capture-success-icon">
+                    <i class="fas fa-check-circle fa-4x"></i>
+                </div>
+            </div>
+            <h2 style="font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; color: var(--aura-success);">
+                Recording Complete!
+            </h2>
+            <p id="success-message" style="color: var(--aura-gray-500); margin-top: 0.5rem;">
+                Your recording has been saved.
+            </p>
+
+            <div class="capture-success-stats">
+                <div class="capture-stat">
+                    <i class="fas fa-clock"></i>
+                    <span id="final-duration">0:00</span>
+                </div>
+                <div class="capture-stat">
+                    <i class="fas fa-hdd"></i>
+                    <span id="final-size">0 MB</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                <button class="aura-btn aura-btn-primary" onclick="recordAnother()">
+                    <i class="fas fa-plus"></i> Record Another
+                </button>
+                <a href="/" class="aura-btn aura-btn-secondary">
+                    <i class="fas fa-home"></i> Go Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 5: Error -->
+    <div id="step-error" class="capture-step is-hidden">
+        <div class="aura-card aura-animate-fade-up" style="padding: 3rem; text-align: center;">
+            <div class="capture-error-icon">
+                <i class="fas fa-exclamation-circle fa-4x"></i>
+            </div>
+            <h3 style="font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; color: var(--aura-danger);">
+                Something Went Wrong
+            </h3>
+            <p id="error-message" style="color: var(--aura-gray-500); margin-top: 0.5rem;"></p>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                <button class="aura-btn aura-btn-primary" onclick="retryFromStart()">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+                <a href="/" class="aura-btn aura-btn-secondary">
+                    <i class="fas fa-home"></i> Go Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<!-- WebCapture Library -->
+<script th:src="@{/js/web-capture.js}"></script>
+
+<!-- Page-specific JavaScript -->
+<script>
+    // ========================================
+    // STATE
+    // ========================================
+    let selectedMode = null;
+    let recordingTimer = null;
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Capture page loaded');
+
+        // Check browser support
+        const support = WebCapture.checkSupport('video');
+
+        if (!support.videoSupported) {
+            // Hide video modes
+            document.querySelectorAll('.capture-mode-card:not(:first-child)').forEach(card => {
+                if (!card.classList.contains('recommended')) {
+                    card.classList.add('disabled');
+                    card.onclick = null;
+                }
+            });
+        }
+
+        if (!support.audioSupported) {
+            showBrowserWarning(support.issues.join(' '));
+        }
+
+        // Check for Chrome-only features
+        const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+        if (!isChrome) {
+            const screenSystemCard = document.getElementById('screen-system-card');
+            if (screenSystemCard) {
+                screenSystemCard.classList.add('disabled');
+                screenSystemCard.onclick = null;
+            }
+        }
+
+        // Set up WebCapture event handlers
+        WebCapture.onStatusChange(handleStatusChange);
+        WebCapture.onProgress(handleProgress);
+        WebCapture.onError(handleError);
+        WebCapture.onComplete(handleComplete);
+    });
+
+    // ========================================
+    // MODE SELECTION
+    // ========================================
+    function selectMode(mode) {
+        const card = event.currentTarget;
+        if (card.classList.contains('disabled')) {
+            return;
+        }
+
+        selectedMode = mode;
+
+        // Update UI for selected mode
+        const isAudioOnly = mode === 'AUDIO_ONLY';
+        const isScreenMode = mode.startsWith('SCREEN');
+
+        // Update mode indicator
+        document.getElementById('mode-icon').className = getModeIcon(mode);
+        document.getElementById('mode-label').textContent = getModeLabel(mode);
+
+        // Update time limit
+        const maxTime = isAudioOnly ? '10:00' : '3:00';
+        document.getElementById('time-limit-hint').textContent = 'Maximum: ' + maxTime;
+
+        // Show/hide preview vs visualizer
+        document.getElementById('preview-container').classList.toggle('is-hidden', isAudioOnly);
+        document.getElementById('audio-visualizer-container').classList.toggle('is-hidden', !isAudioOnly);
+
+        // Update tips
+        updateTips(mode);
+
+        // Show recording step
+        showStep('step-recording');
+    }
+
+    function getModeIcon(mode) {
+        const icons = {
+            'AUDIO_ONLY': 'fas fa-microphone',
+            'SCREEN_MIC': 'fas fa-desktop',
+            'SCREEN_SYSTEM': 'fas fa-volume-up',
+            'SCREEN_ALL': 'fas fa-tv',
+            'WEBCAM_ONLY': 'fas fa-video',
+            'WEBCAM_MIC': 'fas fa-video'
+        };
+        return icons[mode] || 'fas fa-circle';
+    }
+
+    function getModeLabel(mode) {
+        const labels = {
+            'AUDIO_ONLY': 'Audio Only',
+            'SCREEN_MIC': 'Screen + Voice',
+            'SCREEN_SYSTEM': 'Screen + System Audio',
+            'SCREEN_ALL': 'Screen + All Audio',
+            'WEBCAM_ONLY': 'Webcam',
+            'WEBCAM_MIC': 'Webcam + Voice'
+        };
+        return labels[mode] || mode;
+    }
+
+    function updateTips(mode) {
+        const tips = {
+            'AUDIO_ONLY': '<strong>Tips for great audio:</strong><p style="margin-top: 0.25rem;">Speak clearly, minimize background noise, and stay close to your microphone.</p>',
+            'SCREEN_MIC': '<strong>Tips for screen recording:</strong><p style="margin-top: 0.25rem;">Close sensitive windows before sharing. You can choose to share a specific window or your entire screen.</p>',
+            'SCREEN_SYSTEM': '<strong>Tips for system audio:</strong><p style="margin-top: 0.25rem;">Make sure to check "Share audio" when selecting your screen. Only works in Chrome.</p>',
+            'WEBCAM_MIC': '<strong>Tips for webcam:</strong><p style="margin-top: 0.25rem;">Find good lighting (face a window if possible), and position yourself in the center of the frame.</p>'
+        };
+        document.getElementById('recording-tips').innerHTML = tips[mode] || tips['AUDIO_ONLY'];
+    }
+
+    function goBackToModeSelect() {
+        if (WebCapture.isRecording()) {
+            if (!confirm('This will cancel your current recording. Continue?')) {
+                return;
+            }
+            WebCapture.cancel();
+        }
+        showStep('step-select-mode');
+    }
+
+    // ========================================
+    // RECORDING CONTROLS
+    // ========================================
+    async function toggleRecording() {
+        if (!WebCapture.isRecording()) {
+            await startRecording();
+        } else {
+            stopRecording();
+        }
+    }
+
+    async function startRecording() {
+        try {
+            await WebCapture.start({ captureType: selectedMode });
+
+            // Update UI
+            document.getElementById('record-btn').classList.add('recording');
+            document.getElementById('record-btn-text').textContent = 'Stop Recording';
+            document.getElementById('recording-indicator').classList.remove('is-hidden');
+            document.getElementById('recording-controls').classList.remove('is-hidden');
+
+            // Start audio visualizer animation
+            if (selectedMode === 'AUDIO_ONLY') {
+                document.getElementById('audio-status').innerHTML = '<i class="fas fa-circle recording-dot"></i> <span>Recording...</span>';
+                document.querySelector('.capture-audio-wave').classList.add('active');
+            }
+        } catch (error) {
+            handleError(error);
+        }
+    }
+
+    function stopRecording() {
+        WebCapture.stop();
+
+        // Update UI
+        document.getElementById('record-btn').classList.remove('recording');
+        document.getElementById('record-btn-text').textContent = 'Start Recording';
+        document.getElementById('recording-indicator').classList.add('is-hidden');
+        document.getElementById('recording-controls').classList.add('is-hidden');
+
+        // Stop visualizer
+        document.querySelector('.capture-audio-wave')?.classList.remove('active');
+    }
+
+    function togglePause() {
+        if (WebCapture.isPaused()) {
+            WebCapture.resume();
+            document.getElementById('pause-btn').innerHTML = '<i class="fas fa-pause"></i> Pause';
+        } else {
+            WebCapture.pause();
+            document.getElementById('pause-btn').innerHTML = '<i class="fas fa-play"></i> Resume';
+        }
+    }
+
+    function cancelCapture() {
+        if (confirm('Cancel this recording?')) {
+            WebCapture.cancel();
+            document.getElementById('record-btn').classList.remove('recording');
+            document.getElementById('record-btn-text').textContent = 'Start Recording';
+            document.getElementById('recording-indicator').classList.add('is-hidden');
+            document.getElementById('recording-controls').classList.add('is-hidden');
+            document.querySelector('.capture-audio-wave')?.classList.remove('active');
+            document.getElementById('audio-status').innerHTML = '<i class="fas fa-microphone"></i> <span>Ready to record</span>';
+        }
+    }
+
+    // ========================================
+    // EVENT HANDLERS
+    // ========================================
+    function handleStatusChange({ status, message }) {
+        console.log('Status:', status, message);
+
+        switch (status) {
+            case 'initializing':
+                document.getElementById('audio-status').innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Initializing...</span>';
+                break;
+            case 'recording':
+                // Already handled in startRecording
+                break;
+            case 'paused':
+                document.getElementById('audio-status').innerHTML = '<i class="fas fa-pause"></i> <span>Paused</span>';
+                break;
+            case 'processing':
+                showStep('step-uploading');
+                document.getElementById('upload-status').textContent = 'Processing recording...';
+                break;
+            case 'uploading':
+                document.getElementById('upload-status').textContent = 'Uploading to server...';
+                break;
+            case 'verifying':
+                document.getElementById('upload-status').textContent = 'Verifying upload...';
+                break;
+            case 'warning':
+                // Show warning toast
+                showToast('Approaching time limit', 'warning');
+                break;
+            case 'cancelled':
+                showStep('step-recording');
+                break;
+            case 'error':
+                showStep('step-error');
+                document.getElementById('error-message').textContent = message || 'An error occurred';
+                break;
+        }
+    }
+
+    function handleProgress({ phase, percent, durationMs, durationFormatted }) {
+        if (phase === 'recording') {
+            document.getElementById('recording-time').textContent = durationFormatted || '0:00';
+
+            // Update progress bar
+            const maxSeconds = selectedMode === 'AUDIO_ONLY' ? 600 : 180;
+            const elapsed = Math.floor((durationMs || 0) / 1000);
+            const progress = Math.min((elapsed / maxSeconds) * 100, 100);
+            document.getElementById('recording-progress').style.width = progress + '%';
+        } else if (phase === 'uploading') {
+            document.getElementById('upload-progress-bar').style.width = (percent || 0) + '%';
+            document.getElementById('upload-progress-text').textContent = (percent || 0) + '%';
+        }
+    }
+
+    function handleError(error) {
+        console.error('Capture error:', error);
+        showStep('step-error');
+        document.getElementById('error-message').textContent = error.message || 'An unexpected error occurred';
+    }
+
+    function handleComplete({ captureId, fileSizeBytes, durationMs }) {
+        showStep('step-success');
+
+        // Format duration
+        const totalSeconds = Math.floor((durationMs || 0) / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        document.getElementById('final-duration').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        // Format size
+        const sizeMB = ((fileSizeBytes || 0) / 1024 / 1024).toFixed(2);
+        document.getElementById('final-size').textContent = sizeMB + ' MB';
+
+        document.getElementById('success-message').textContent =
+            `Your ${selectedMode === 'AUDIO_ONLY' ? 'audio' : 'video'} recording has been saved.`;
+    }
+
+    // ========================================
+    // UTILITIES
+    // ========================================
+    function showStep(stepId) {
+        document.querySelectorAll('.capture-step').forEach(step => {
+            step.classList.add('is-hidden');
+        });
+        const target = document.getElementById(stepId);
+        if (target) {
+            target.classList.remove('is-hidden');
+        }
+    }
+
+    function showBrowserWarning(message) {
+        const warning = document.getElementById('browser-warning');
+        document.getElementById('browser-warning-message').textContent = message;
+        warning.style.display = 'flex';
+    }
+
+    function showToast(message, type = 'info') {
+        // Simple toast implementation
+        const toast = document.createElement('div');
+        toast.className = `capture-toast capture-toast-${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function recordAnother() {
+        showStep('step-select-mode');
+    }
+
+    function retryFromStart() {
+        showStep('step-select-mode');
+    }
+</script>
+
+</body>
+</html>

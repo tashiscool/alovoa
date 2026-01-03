@@ -1,0 +1,587 @@
+{
+    "imprint": "Contact",
+    "tos": "Terms of Service",
+    "privacy-policy": "Privacy Policy",
+    "auth": {
+        "email": "Sign in",
+        "google": "Sign in with Google",
+        "facebook": "Sign in with Facebook"
+    },
+    "first-name": "First name",
+    "dob": "Date of birth",
+    "optional": "Optional",
+    "register": {
+        "title": "Register",
+        "subtitle": "Create a new account",
+        "agree": "By registering, I agree to the Terms of Service and the Privacy Policy.",
+        "referral-code": "Referral code",
+        "asterisk-warning": "Fields with an asterisk (*) cannot be changed in the future",
+        "gender": "Your gender",
+        "age-subtitle": "You are %s years old"
+    },
+    "gender": {
+        "male": "Man",
+        "female": "Woman",
+        "other": "Non-binary"
+    },
+    "profile": {
+        "onboarding": {
+            "profile-picture": "I look like this",
+            "profile-picture-subtitle": "More pictures can be added later",
+            "description": "Something about myself",
+            "description-placeholder": "I really love ice cream! 🍨",
+            "interests": "I really like these things...",
+            "match": {
+                "title": "Start getting likes!",
+                "subtitle": "Messages can only be sent after a match"
+            },
+            "submit": "Let's go!"
+        },
+        "intention": {
+            "title": "What I want",
+            "meet": "Meet new people",
+            "date": "A relationship",
+            "sex": "Sexual intimacy",
+            "warning": "Can only be changed again after 24 hours"
+        },
+        "gender": "Looking for...",
+        "interest-alert-delete": "Interesse '%s' entfernen?",
+        "units": {
+            "title": "Units",
+            "si": "SI",
+            "imperial": "Imperial"
+        },
+        "age": {
+            "min": "Minimum Age",
+            "max": "Maximum Age"
+        },
+        "misc-info": {
+            "drugs": {
+                "alcohol": "Alcohol",
+                "tobacco": "Tobacco",
+                "cannabis": "Cannabis",
+                "other": "Hard drugs"
+            },
+            "kids": {
+                "title": "Kids",
+                "no": "No kids",
+                "yes": "Has kids"
+            },
+            "family": {
+                "title": "Family plans",
+                "no": "Don't want children",
+                "yes": "Want children",
+                "not-sure": "Not sure"
+            },
+            "relationship-type": {
+                "title": "Relationship type",
+                "monogamous": "Monogamy",
+                "polyamorous": "Non-monogamy"
+            },
+            "gender-identity": {
+                "title": "Gender identity",
+                "cis": "Cis",
+                "trans": "Trans"
+            },
+            "politics": {
+                "title": "Politics",
+                "left": "Left",
+                "right": "Right",
+                "moderate": "Moderate"
+            },
+            "religion": {
+                "title": "Religion",
+                "yes": "Religious",
+                "no": "Not religious"
+            },
+            "relationship": {
+                "title": "Relationship status",
+                "single": "Single",
+                "taken": "In a relationship",
+                "open": "Open relationship",
+                "other": "It's complicated"
+            },
+            "none": "None",
+            "yes": "Yes",
+            "no": "No",
+            "sometimes": "Sometimes"
+        },
+        "intention-toast": "Intention changed. You cannot change it for another 24 hours.",
+        "preferred-age-range": "Preferred age range",
+        "donated": "Donated",
+        "block": "Block",
+        "unblock": "Unblock",
+        "delete-account": "Delete account",
+        "delete-account-success": "Success! Please follow the instructions in the email we sent you.",
+        "download-userdata": "Download user data",
+        "download-userdata-success": "User data downloaded!",
+        "photos": {
+            "manage": "Manage photos",
+            "delete": "Delete photo?",
+            "change-profile-pic": "Change profile picture",
+            "add": "Add photo"
+        },
+        "logout": "Logout",
+        "report": {
+            "title": "Report",
+            "subtitle": "Report user for violating the Terms of Service",
+            "fake": "Fake, scam or spam profile",
+            "inappropriate": "Inappropriate content",
+            "minor": "Underage",
+            "illegal": "Illegal content",
+            "other": "Other"
+        },
+        "active-state": {
+            "1": "Online",
+            "2": "Active today"
+        },
+        "interest": "Interest",
+        "interests-common": "Common interests",
+        "profile-page": {
+            "description": "About me",
+            "interests": "My interests",
+            "basics": "My basics",
+            "additional": "Additional info"
+        },
+        "screen": {
+            "pictures": "Manage photos",
+            "profile": "Edit profile",
+            "search": "Search preferences",
+            "settings": "Settings",
+            "advanced-settings": "Advanced Settings",
+            "prompts": "Prompts"
+        },
+        "settings": {
+            "colors": {
+                "title": "Colors",
+                "primary": "Primary",
+                "secondary": "Secondary"
+            },
+            "notification": "Notifications",
+            "email": {
+                "like": "Receive e-mails on likes and matches",
+                "chat": "Receive e-mails on chats"
+            }
+        },
+        "search": {
+            "settings": {
+                "distance": "Distance",
+                "min-gps-timeout": "GPS timeout (ms)",
+                "location": {
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                },
+                "show-outside-parameters": "Also show profiles outside of my preferences once they run out"
+            },
+            "report-card": "Suspicious activities detected on the profile of %s. Show anyway?",
+            "report-card-dismiss": "Hide profile",
+            "report-card-show": "Show anyway",
+            "report-card-threshold": "Threshold for suspicious activities"
+        },
+        "prompts": {
+            "title": "Your profile prompts",
+            "subtitle": "Manage your prompts",
+            "delete": "Delete prompt?",
+            "add": "Add new prompt",
+            "1": "I go crazy for",
+            "2": "Unusual skills",
+            "3": "I won't shut up about",
+            "4": "What if I told you that",
+            "5": "My most controversial opinion",
+            "6": "The key to my heart",
+            "7": "I want someone who",
+            "8": "I'm weirdly attracted to",
+            "9": "Green flags I look for",
+            "10": "Teach me something about",
+            "11": "Change my mind about",
+            "12": "My biggest date fail",
+            "13": "Worst idea I've ever had",
+            "14": "Never have I ever",
+            "15": "Together, we could",
+            "16": "The perfect date in 3 words",
+            "17": "What I like about me",
+            "18": "My useless talent",
+            "19": "Me, but in emojis",
+            "20": "Swipe right if"
+        },
+        "verification": {
+            "info-1": "Verify your profile to prove that you're real",
+            "info-2": "Other people can also vote on your authenticity",
+            "info-3": "Upload a picture of yourself holding a handwritten note containing these characters",
+            "info-4": "Make sure your face is completely visible",
+            "info-5": "You will have to verify again if you change your profile picture",
+            "verified-no": "Not verified",
+            "verified-by-users": "Verified by the community",
+            "verified-by-admin": "Verified"
+        },
+        "tooltip": {
+            "donated": "Donated",
+            "blocks": "Blocks by users",
+            "reports": "Reports by users"
+        }
+    },
+    "cancel": "Cancel",
+    "ok": "OK",
+    "navigation": {
+        "profile": "Profile",
+        "chat": "Chat",
+        "search": "Search",
+        "likes": "Likes",
+        "donate": "Donate"
+    },
+    "donate": {
+        "filter": {
+            "recent": "Recent",
+            "amount": "Amount"
+        }
+    },
+    "chat": {
+        "default": "You got a match! Tap here to send a message :)",
+        "placeholder": "Write a message..."
+    },
+    "you": "You",
+    "sort": "Sort",
+    "error": {
+        "generic": "An error occured. Please try again."
+    },
+    "email": "Email",
+    "password": "Password",
+    "captcha": {
+        "title": "Captcha",
+        "placeholder": "Type the text"
+    },
+    "register-email": "Sign up with email",
+    "register-email-success": "Thank you! To complete the sign up process, simply click on the link that we have sent you.",
+    "register-password-warning": "Your password needs to be at least 7 characters long and must contain characters and numbers.",
+    "password-forget": "Forgot password?",
+    "password-reset": "Reset password",
+    "password-reset-success": "Check your email for a message from us and follow the instructions on it to reset your password.",
+    "likes-empty": {
+        "title": "No likes quite yet",
+        "subtitle": "Don't worry, new users are joining every day. Adjusting your preferences in your profile may also lead to more likes"
+    },
+    "convo-empty": {
+        "title": "Start chatting by getting matches",
+        "subtitle": "Get more matches by uploading attractive pictures and filling out your profile"
+    },
+    "search-empty": {
+        "title": "Oops, we ran out of ketchup",
+        "subtitle": "You have seen everyone who suits your preferences, but new people join every day.",
+        "button": "Change preferences"
+    },
+    "location": {
+        "no-permission": "Location permission not set",
+        "no-signal": "No GPS signal found"
+    },
+    "email-invalid": "Invalid email address.",
+    "likes": {
+        "received-likes": "Like you",
+        "given-likes": "Given Likes",
+        "hidden": "Hidden users",
+        "blocked": "Blocked users"
+    },
+    "restart-apply-changes": "Restart the app to apply changes",
+    "compliment": {
+        "title": "Send a compliment",
+        "tooltip": "Tap here to send a compliment!" 
+    },
+    "referral": {
+        "title": "Recommend to a friend",
+        "copy": "Referral code copied to clipboard!",
+        "hint": "If a new user creates an account with your referral code, both of you gain a small but permanent boost to your profile."
+    },
+    "assessment": {
+        "title": "Personality Assessment",
+        "progress": "Your Progress",
+        "categories": "Categories",
+        "questions-answered": "Questions Answered",
+        "complete": "Profile Complete",
+        "in-progress": "In Progress",
+        "take-assessment": "Take Assessment",
+        "answer-questions": "Answer Questions",
+        "view-results": "View Results",
+        "quick-10": "Quick 10",
+        "category": {
+            "personality": "Personality",
+            "values": "Values",
+            "lifestyle": "Lifestyle",
+            "dating": "Dating",
+            "intimacy": "Intimacy",
+            "relationship-style": "Relationship Style",
+            "social": "Social",
+            "habits": "Habits",
+            "future-goals": "Future Goals",
+            "communication": "Communication",
+            "attachment": "Attachment",
+            "big-five": "Big Five"
+        },
+        "importance": {
+            "irrelevant": "Irrelevant",
+            "a-little": "A Little Important",
+            "somewhat": "Somewhat Important",
+            "very": "Very Important",
+            "mandatory": "Mandatory"
+        },
+        "dealbreaker": "This is a dealbreaker",
+        "dealbreaker-hint": "Filter out people who don't match",
+        "acceptable-answers": "Answers you'd accept from a match",
+        "your-answer": "Your Answer"
+    },
+    "video-verification": {
+        "title": "Video Verification",
+        "get-verified": "Get Verified",
+        "start-verification": "Start Verification",
+        "verified": "Verified",
+        "pending": "Pending Review",
+        "processing": "Processing",
+        "failed": "Failed",
+        "expired": "Expired",
+        "needs-review": "Under Review",
+        "why-verify": "Why Verify?",
+        "benefit-badge": "Get a verified badge on your profile",
+        "benefit-ranking": "Appear higher in search results",
+        "benefit-trust": "More matches trust verified profiles",
+        "benefit-ai": "AI checks for deepfakes and catfishing",
+        "gesture-check": "Quick Gesture Check",
+        "recording": "Recording...",
+        "uploading": "Uploading...",
+        "submitted": "Submitted!",
+        "try-again": "Try Again",
+        "camera-permission": "Camera permission is required for video verification."
+    },
+    "video-intro": {
+        "title": "Video Introduction",
+        "create-intro": "Create Your Video Introduction",
+        "record-video": "Record a 30 second to 2 minute video telling potential matches about yourself.",
+        "why-record": "Why Record a Video?",
+        "benefit-personality": "Show your authentic personality",
+        "benefit-ai": "AI analyzes to improve your matches",
+        "benefit-trust": "Builds trust with potential matches",
+        "benefit-fast": "Skip hours of questions - get matched faster",
+        "tips": "Tips for a Great Video",
+        "tip-lighting": "Find good lighting - face a window if possible",
+        "tip-quiet": "Record in a quiet place",
+        "tip-camera": "Look at the camera, not your reflection",
+        "tip-authentic": "Be yourself - authenticity is attractive!",
+        "tip-duration": "Aim for 30 seconds to 2 minutes",
+        "analyzing": "AI is Analyzing Your Video",
+        "video-ready": "Video Ready!",
+        "view-scaffolded": "View Scaffolded Profile",
+        "record-new": "Record New Video",
+        "delete-video": "Delete Video"
+    },
+    "video-date": {
+        "title": "Video Dates",
+        "no-dates": "No Video Dates Yet",
+        "propose-hint": "Propose a video date from a match's profile to get started!",
+        "upcoming": "Upcoming",
+        "past": "Past",
+        "accept": "Accept",
+        "decline": "Decline",
+        "cancel": "Cancel",
+        "schedule": "Schedule Time",
+        "join-call": "Join Call",
+        "reschedule": "Reschedule",
+        "give-feedback": "Give Feedback",
+        "status": {
+            "proposed": "Proposed",
+            "accepted": "Accepted",
+            "scheduled": "Scheduled",
+            "in-progress": "In Progress",
+            "completed": "Completed",
+            "cancelled": "Cancelled",
+            "declined": "Declined",
+            "no-show": "No Show"
+        },
+        "schedule-date": "Schedule Video Date",
+        "duration": "Call Duration",
+        "select-date": "Select Date",
+        "available-times": "Available Times",
+        "confirm-schedule": "Confirm Schedule",
+        "call-ended": "Call Ended",
+        "leave-feedback": "Leave Feedback",
+        "skip-feedback": "Skip Feedback"
+    },
+    "video-feedback": {
+        "title": "How Was Your Date?",
+        "overall-experience": "Overall Experience",
+        "how-did-you-feel": "How did you feel?",
+        "connection": {
+            "no-spark": "No Spark",
+            "friendly": "Friendly",
+            "interested": "Interested",
+            "strong": "Strong Connection"
+        },
+        "meet-again": "Would you want to meet again?",
+        "private-notes": "Private Notes (Optional)",
+        "notes-hint": "Only you can see these notes. Helps you remember the conversation.",
+        "report-issue": "Report an Issue",
+        "submit-feedback": "Submit Feedback"
+    },
+    "matching": {
+        "title": "Your Matches",
+        "daily-matches": "Daily Matches",
+        "resets-midnight": "Resets at midnight",
+        "remaining": "remaining",
+        "no-matches": "No Matches Yet",
+        "take-assessment-hint": "Answer more assessment questions to improve your matches, or try adjusting your filters.",
+        "top-matches": "Top Matches",
+        "see-why": "See Why",
+        "view-profile": "View Profile",
+        "excellent-match": "Excellent Match",
+        "great-match": "Great Match",
+        "good-match": "Good Match",
+        "fair-match": "Fair Match",
+        "low-match": "Low Match"
+    },
+    "compatibility": {
+        "title": "Compatibility",
+        "breakdown": "Breakdown by Category",
+        "dealbreakers": "Potential Dealbreakers",
+        "shared-questions": "Questions You Both Answered",
+        "same-answer": "Same Answer",
+        "different": "Different",
+        "you-said": "You said",
+        "they-said": "They said",
+        "dimension": {
+            "personality": "Personality",
+            "values": "Values",
+            "lifestyle": "Lifestyle",
+            "communication": "Communication",
+            "attachment": "Attachment",
+            "goals": "Future Goals",
+            "questions": "Questions",
+            "dealbreakers": "Dealbreakers"
+        }
+    },
+    "match-window": {
+        "title": "Match Windows",
+        "how-it-works": "How It Works",
+        "explanation": "You receive one curated match at a time. Respond before the window expires to connect!",
+        "current-match": "Current Match",
+        "previous-matches": "Previous Matches",
+        "pass": "Pass",
+        "connect": "Connect",
+        "skip-for-now": "Skip for Now",
+        "no-active": "No Active Match Window",
+        "check-back": "Your next match will appear here. Check back soon!"
+    },
+    "calendar": {
+        "title": "Availability",
+        "set-schedule": "Set Your Schedule",
+        "tell-matches": "Tell matches when you're free for video dates",
+        "video-dates": "Video Dates",
+        "allow-scheduling": "Allow matches to schedule video dates with you",
+        "minimum-notice": "Minimum Notice",
+        "notice-hint": "How much advance notice do you need?",
+        "weekly-schedule": "Weekly Schedule",
+        "save-availability": "Save Availability",
+        "time": {
+            "morning": "Morning",
+            "afternoon": "Afternoon",
+            "evening": "Evening"
+        }
+    },
+    "scaffolding": {
+        "title": "Review Your Profile",
+        "ai-generated": "AI-Generated Profile",
+        "ai-hint": "Based on your video intro. Adjust anything that doesn't feel right!",
+        "low-confidence": "Low Confidence Areas",
+        "personality": "Personality (Big Five)",
+        "values": "Values",
+        "lifestyle": "Lifestyle",
+        "attachment-style": "Attachment Style",
+        "confirm-profile": "Confirm Profile",
+        "save-adjustments": "Save Adjustments",
+        "re-record": "Re-record Video",
+        "no-profile": "No Scaffolded Profile Available",
+        "record-first": "Record a video introduction first and our AI will analyze it."
+    },
+    "report": {
+        "title": "Report User",
+        "what-happened": "What happened?",
+        "type": {
+            "harassment": "Harassment",
+            "fake-profile": "Fake/Catfish Profile",
+            "inappropriate": "Inappropriate Content",
+            "scam": "Scam/Fraud",
+            "underage": "Underage User",
+            "threats": "Threats/Violence",
+            "spam": "Spam",
+            "other": "Other"
+        },
+        "severity": "How serious is this?",
+        "severity-low": "Low",
+        "severity-medium": "Medium",
+        "severity-high": "High",
+        "severity-critical": "Critical",
+        "tell-more": "Tell us more",
+        "evidence": "Evidence (Optional)",
+        "evidence-hint": "Screenshots or photos can help our team investigate faster",
+        "block-user": "Block this user",
+        "block-hint": "They won't be able to see or contact you",
+        "make-public": "Make report public",
+        "public-hint": "Others can see this report was filed (your identity stays private)",
+        "submit-report": "Submit Report"
+    },
+    "reputation": {
+        "title": "Reputation",
+        "progress-to": "Progress to",
+        "breakdown": "Score Breakdown",
+        "verification": "Verification",
+        "response-rate": "Response Rate",
+        "reliability": "Reliability",
+        "positive-feedback": "Positive Feedback",
+        "tenure": "Tenure",
+        "badges": "Badges",
+        "earn-badges": "Complete activities to earn badges!",
+        "recent-activity": "Recent Activity",
+        "how-to-improve": "How to Improve",
+        "tip-verify": "Verify your profile",
+        "tip-verify-desc": "Complete video verification for +100 points",
+        "tip-respond": "Respond to messages",
+        "tip-respond-desc": "Quick, thoughtful responses boost your score",
+        "tip-show-up": "Show up for dates",
+        "tip-show-up-desc": "Be reliable and on-time for scheduled calls",
+        "tip-feedback": "Get positive feedback",
+        "tip-feedback-desc": "Great conversations lead to reputation points",
+        "tier": {
+            "bronze": "Bronze",
+            "silver": "Silver",
+            "gold": "Gold",
+            "platinum": "Platinum",
+            "diamond": "Diamond"
+        }
+    },
+    "attachment-style": {
+        "secure": "Secure",
+        "secure-desc": "Comfortable with intimacy and independence. You easily trust others and feel worthy of love.",
+        "anxious": "Anxious",
+        "anxious-desc": "You crave closeness and may worry about your partner's feelings. You're sensitive to relationship cues.",
+        "avoidant": "Avoidant",
+        "avoidant-desc": "You value independence highly and may feel uncomfortable with too much closeness.",
+        "fearful": "Fearful-Avoidant",
+        "fearful-desc": "You desire closeness but fear getting hurt. Relationships can feel complicated."
+    },
+    "big-five": {
+        "openness": "Openness",
+        "conscientiousness": "Conscientiousness",
+        "extraversion": "Extraversion",
+        "agreeableness": "Agreeableness",
+        "neuroticism": "Neuroticism",
+        "low": {
+            "openness": "Practical, conventional, prefers routine",
+            "conscientiousness": "Flexible, spontaneous, carefree",
+            "extraversion": "Reserved, reflective, enjoys solitude",
+            "agreeableness": "Analytical, competitive, skeptical",
+            "neuroticism": "Calm, emotionally stable, resilient"
+        },
+        "high": {
+            "openness": "Curious, creative, open to new experiences",
+            "conscientiousness": "Organized, disciplined, goal-oriented",
+            "extraversion": "Outgoing, energetic, seeks social interaction",
+            "agreeableness": "Cooperative, trusting, empathetic",
+            "neuroticism": "Sensitive, prone to stress, emotionally reactive"
+        }
+    }
+}
