@@ -202,37 +202,32 @@ export function useTranscription(language = "en-US"): UseTranscriptionReturn {
     });
   }, []);
 
+  // Whisper transcription instance (lazy loaded)
+  const whisperInstanceRef = useRef<{
+    loadModel: (model?: string) => Promise<void>;
+    transcribe: (uri: string) => Promise<TranscriptSegment[]>;
+    transcribeBlob: (blob: Blob) => Promise<TranscriptSegment[]>;
+    configure: (config: { apiKey?: string; apiEndpoint?: string; preferLocal?: boolean }) => void;
+    modelLoaded: boolean;
+    backendType: "local" | "api" | null;
+  } | null>(null);
+
   /**
-   * Transcribe an audio file.
-   * On web: Uses Web Speech API with audio playback trick or falls back to upload.
-   * On native: Could use Whisper.cpp or cloud API.
+   * Transcribe an audio file using Whisper.
    *
-   * For now, this is a placeholder that returns empty segments.
-   * Integrate with your preferred transcription service.
+   * On web: Uses @xenova/transformers (FREE, runs in browser)
+   * On native: Uses whisper.rn if installed, or falls back to OpenAI API
+   *
+   * First call loads the model (~150MB for 'base'), subsequent calls are fast.
    */
   const transcribeAudio = useCallback(
     async (uri: string): Promise<TranscriptSegment[]> => {
-      // Option 1: Use Whisper API (costs money but accurate)
-      // Option 2: Use browser's built-in (free but needs live audio)
-      // Option 3: Use Whisper.cpp WASM (free but CPU-intensive)
+      // Lazy initialize Whisper wrapper
+      if (!whisperInstanceRef.current) {
+        whisperInstanceRef.current = await createWhisperInstance();
+      }
 
-      console.log("Transcribe audio:", uri);
-
-      // Placeholder: Return demo segments
-      // In production, integrate with:
-      // - OpenAI Whisper API: https://platform.openai.com/docs/guides/speech-to-text
-      // - Whisper.cpp WASM: https://github.com/nicobytes/whisper-web
-      // - AssemblyAI, Deepgram, etc.
-
-      return [
-        {
-          text: "Transcription placeholder - integrate with Whisper API or Whisper.cpp WASM",
-          startMs: 0,
-          endMs: 5000,
-          confidence: 1,
-          isFinal: true,
-        },
-      ];
+      return whisperInstanceRef.current.transcribe(uri);
     },
     []
   );
@@ -244,6 +239,326 @@ export function useTranscription(language = "en-US"): UseTranscriptionReturn {
     reset,
     transcribeAudio,
   };
+}
+
+/**
+ * Create a lazy-loaded Whisper transcription instance.
+ * Can't use the hook directly since this is called dynamically.
+ */
+async function createWhisperInstance() {
+  const { Platform } = await import("react-native");
+
+  // State for the instance
+  let modelLoaded = false;
+  let backendType: "local" | "api" | null = null;
+  let pipeline: any = null;
+  let whisperContext: any = null;
+  let config = { apiKey: "", apiEndpoint: "", preferLocal: true };
+
+  const configure = (newConfig: { apiKey?: string; apiEndpoint?: string; preferLocal?: boolean }) => {
+    config = { ...config, ...newConfig };
+  };
+
+  const loadModel = async (model = "base") => {
+    if (modelLoaded) return;
+
+    if (Platform.OS === "web") {
+      // Web: Use transformers.js
+      const transformers = await import("@xenova/transformers");
+      const modelId = `Xenova/whisper-${model}`;
+      pipeline = await transformers.pipeline("automatic-speech-recognition", modelId);
+      backendType = "local";
+      modelLoaded = true;
+    } else {
+      // Native: Try whisper.rn first, then API fallback
+      if (config.preferLocal) {
+        try {
+          const whisperRn = await import("whisper.rn");
+          const FileSystem = await import("expo-file-system");
+
+          // Get or download model
+          const modelDir = `${FileSystem.documentDirectory}whisper-models/`;
+          const modelFile = `ggml-${model}.bin`;
+          const modelPath = `${modelDir}${modelFile}`;
+
+          const info = await FileSystem.getInfoAsync(modelPath);
+          if (!info.exists) {
+            // Download model
+            await FileSystem.makeDirectoryAsync(modelDir, { intermediates: true });
+            const modelUrl = `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/${modelFile}`;
+            const download = FileSystem.createDownloadResumable(modelUrl, modelPath);
+            await download.downloadAsync();
+          }
+
+          whisperContext = await whisperRn.initWhisper({ filePath: modelPath });
+          backendType = "local";
+          modelLoaded = true;
+          return;
+        } catch (e) {
+          console.log("whisper.rn not available, trying API fallback");
+        }
+      }
+
+      // API fallback
+      if (config.apiKey) {
+        backendType = "api";
+        modelLoaded = true;
+        return;
+      }
+
+      throw new Error(
+        "Native transcription requires either:\n" +
+          "1. whisper.rn: npm install whisper.rn && cd ios && pod install\n" +
+          "2. API key: Call configure({ apiKey: 'sk-...' }) for OpenAI Whisper API"
+      );
+    }
+  };
+
+  const transcribe = async (audioUri: string): Promise<TranscriptSegment[]> => {
+    if (!modelLoaded) {
+      await loadModel();
+    }
+
+    if (Platform.OS === "web") {
+      return transcribeWeb(audioUri);
+    } else {
+      return transcribeNative(audioUri);
+    }
+  };
+
+  const transcribeWeb = async (audioUri: string): Promise<TranscriptSegment[]> => {
+    const response = await fetch(audioUri);
+    const blob = await response.blob();
+    const audioData = await blobToFloat32Array(blob);
+
+    const result = await pipeline(audioData, {
+      chunk_length_s: 30,
+      stride_length_s: 5,
+      return_timestamps: true,
+      language: "english",
+      task: "transcribe",
+    });
+
+    if (result.chunks && result.chunks.length > 0) {
+      return result.chunks.map((chunk: any) => ({
+        text: chunk.text.trim(),
+        startMs: chunk.timestamp[0] * 1000,
+        endMs: chunk.timestamp[1] * 1000,
+        confidence: 0.95,
+        isFinal: true,
+      }));
+    }
+
+    return [{
+      text: result.text.trim(),
+      startMs: 0,
+      endMs: 0,
+      confidence: 0.95,
+      isFinal: true,
+    }];
+  };
+
+  const transcribeNative = async (audioUri: string): Promise<TranscriptSegment[]> => {
+    if (backendType === "api") {
+      return transcribeWithApi(audioUri);
+    }
+
+    // Local whisper.rn
+    const { transcribe: whisperTranscribe } = await import("whisper.rn");
+    const result = await whisperTranscribe(whisperContext, audioUri, {
+      language: "en",
+      translate: false,
+    });
+
+    if (result.segments && result.segments.length > 0) {
+      return result.segments.map((seg: any) => ({
+        text: seg.text.trim(),
+        startMs: seg.t0,
+        endMs: seg.t1,
+        confidence: 0.95,
+        isFinal: true,
+      }));
+    }
+
+    return [{
+      text: result.result.trim(),
+      startMs: 0,
+      endMs: 0,
+      confidence: 0.95,
+      isFinal: true,
+    }];
+  };
+
+  const transcribeWithApi = async (audioUri: string): Promise<TranscriptSegment[]> => {
+    if (!config.apiKey) {
+      throw new Error("API key required. Call configure({ apiKey: 'sk-...' })");
+    }
+
+    const FileSystem = await import("expo-file-system");
+
+    const fileInfo = await FileSystem.getInfoAsync(audioUri);
+    if (!fileInfo.exists) {
+      throw new Error("Audio file not found");
+    }
+
+    const extension = audioUri.split(".").pop()?.toLowerCase() || "m4a";
+    const mimeTypes: Record<string, string> = {
+      m4a: "audio/m4a",
+      mp3: "audio/mpeg",
+      wav: "audio/wav",
+      webm: "audio/webm",
+    };
+    const mimeType = mimeTypes[extension] || "audio/m4a";
+
+    const base64Audio = await FileSystem.readAsStringAsync(audioUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const byteCharacters = atob(base64Audio);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+
+    const formData = new FormData();
+    formData.append("file", blob, `audio.${extension}`);
+    formData.append("model", "whisper-1");
+    formData.append("response_format", "verbose_json");
+    formData.append("timestamp_granularities[]", "segment");
+
+    const endpoint = config.apiEndpoint || "https://api.openai.com/v1/audio/transcriptions";
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${config.apiKey}` },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.segments && result.segments.length > 0) {
+      return result.segments.map((seg: any) => ({
+        text: seg.text.trim(),
+        startMs: seg.start * 1000,
+        endMs: seg.end * 1000,
+        confidence: 0.9,
+        isFinal: true,
+      }));
+    }
+
+    return [{
+      text: result.text?.trim() || "",
+      startMs: 0,
+      endMs: (result.duration || 0) * 1000,
+      confidence: 0.9,
+      isFinal: true,
+    }];
+  };
+
+  const transcribeBlob = async (blob: Blob): Promise<TranscriptSegment[]> => {
+    if (Platform.OS !== "web") {
+      throw new Error("transcribeBlob only available on web");
+    }
+
+    if (!modelLoaded) {
+      await loadModel();
+    }
+
+    const audioData = await blobToFloat32Array(blob);
+    const result = await pipeline(audioData, {
+      chunk_length_s: 30,
+      stride_length_s: 5,
+      return_timestamps: true,
+      language: "english",
+      task: "transcribe",
+    });
+
+    if (result.chunks && result.chunks.length > 0) {
+      return result.chunks.map((chunk: any) => ({
+        text: chunk.text.trim(),
+        startMs: chunk.timestamp[0] * 1000,
+        endMs: chunk.timestamp[1] * 1000,
+        confidence: 0.95,
+        isFinal: true,
+      }));
+    }
+
+    return [{
+      text: result.text.trim(),
+      startMs: 0,
+      endMs: 0,
+      confidence: 0.95,
+      isFinal: true,
+    }];
+  };
+
+  return {
+    loadModel,
+    transcribe,
+    transcribeBlob,
+    configure,
+    get modelLoaded() { return modelLoaded; },
+    get backendType() { return backendType; },
+  };
+}
+
+/**
+ * Convert audio Blob to Float32Array for Whisper
+ */
+async function blobToFloat32Array(blob: Blob): Promise<Float32Array> {
+  const arrayBuffer = await blob.arrayBuffer();
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
+    sampleRate: 16000,
+  });
+
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  let audioData: Float32Array;
+  if (audioBuffer.numberOfChannels > 1) {
+    const left = audioBuffer.getChannelData(0);
+    const right = audioBuffer.getChannelData(1);
+    audioData = new Float32Array(left.length);
+    for (let i = 0; i < left.length; i++) {
+      audioData[i] = (left[i] + right[i]) / 2;
+    }
+  } else {
+    audioData = audioBuffer.getChannelData(0);
+  }
+
+  if (audioBuffer.sampleRate !== 16000) {
+    audioData = resample(audioData, audioBuffer.sampleRate, 16000);
+  }
+
+  return audioData;
+}
+
+/**
+ * Simple linear resampling to 16kHz
+ */
+function resample(
+  audioData: Float32Array,
+  fromSampleRate: number,
+  toSampleRate: number
+): Float32Array {
+  const ratio = fromSampleRate / toSampleRate;
+  const newLength = Math.round(audioData.length / ratio);
+  const result = new Float32Array(newLength);
+
+  for (let i = 0; i < newLength; i++) {
+    const srcIndex = i * ratio;
+    const srcIndexFloor = Math.floor(srcIndex);
+    const srcIndexCeil = Math.min(srcIndexFloor + 1, audioData.length - 1);
+    const t = srcIndex - srcIndexFloor;
+    result[i] = audioData[srcIndexFloor] * (1 - t) + audioData[srcIndexCeil] * t;
+  }
+
+  return result;
 }
 
 /**

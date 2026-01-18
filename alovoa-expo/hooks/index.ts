@@ -70,3 +70,10 @@ export {
   useRecordingStorage,
   type StoredRecording,
 } from "./useRecordingStorage";
+
+export {
+  useWhisperTranscription,
+  getModelSize,
+  type WhisperModel,
+  type WhisperConfig,
+} from "./useWhisperTranscription";
