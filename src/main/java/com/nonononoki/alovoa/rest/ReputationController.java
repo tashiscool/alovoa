@@ -31,24 +31,52 @@ public class ReputationController {
             UserReputationScore reputation = reputationService.getOrCreateReputation(user);
 
             Map<String, Object> result = new HashMap<>();
-            result.put("overallScore", reputation.getOverallScore());
-            result.put("scores", Map.of(
-                    "responseQuality", reputation.getResponseQuality(),
-                    "respect", reputation.getRespectScore(),
-                    "authenticity", reputation.getAuthenticityScore(),
-                    "investment", reputation.getInvestmentScore()
+            // Use categorical labels instead of numerical scores to prevent gaming behavior
+            result.put("standingLabel", getStandingLabel(reputation.getOverallScore()));
+            result.put("standingLevel", formatTrustLevel(reputation.getTrustLevel()));
+            result.put("factors", Map.of(
+                    "responseQuality", scoreToFactorLabel(reputation.getResponseQuality()),
+                    "respect", scoreToFactorLabel(reputation.getRespectScore()),
+                    "authenticity", scoreToFactorLabel(reputation.getAuthenticityScore()),
+                    "investment", scoreToFactorLabel(reputation.getInvestmentScore())
             ));
             result.put("trustLevel", reputation.getTrustLevel().name());
             result.put("stats", Map.of(
-                    "ghostingCount", reputation.getGhostingCount(),
                     "datesCompleted", reputation.getDatesCompleted(),
                     "positiveFeedback", reputation.getPositiveFeedbackCount()
             ));
+
+            // Include appeal status if applicable
+            if (reputation.getProbationUntil() != null) {
+                result.put("onProbation", true);
+                result.put("probationEndsAt", reputation.getProbationUntil());
+            }
+            if (Boolean.TRUE.equals(reputation.getAppealPending())) {
+                result.put("appealPending", true);
+            }
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    private String getStandingLabel(Double score) {
+        if (score == null) return "Building";
+        if (score >= 80) return "Excellent Standing";
+        if (score >= 65) return "Good Standing";
+        if (score >= 50) return "Fair Standing";
+        if (score >= 30) return "Building";
+        return "Needs Attention";
+    }
+
+    private String scoreToFactorLabel(Double score) {
+        if (score == null) return "New";
+        if (score >= 80) return "Excellent";
+        if (score >= 60) return "Good";
+        if (score >= 40) return "Fair";
+        if (score >= 20) return "Building";
+        return "New";
     }
 
     @GetMapping("/badges")
@@ -126,6 +154,7 @@ public class ReputationController {
             case TRUSTED: return "Trusted";
             case HIGHLY_TRUSTED: return "Highly Trusted";
             case UNDER_REVIEW: return "Under Review";
+            case PROBATION: return "On Probation";
             case RESTRICTED: return "Restricted";
             default: return level.name();
         }

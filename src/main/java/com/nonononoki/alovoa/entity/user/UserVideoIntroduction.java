@@ -33,6 +33,14 @@ public class UserVideoIntroduction {
     @Column(name = "s3_key")
     private String s3Key;
 
+    // Public URL for video playback (CDN or signed URL)
+    @Column(name = "public_video_url", length = 500)
+    private String publicVideoUrl;
+
+    // Thumbnail URL for video preview
+    @Column(name = "thumbnail_url", length = 500)
+    private String thumbnailUrl;
+
     @Column(name = "mime_type", length = 50)
     private String mimeType;
 

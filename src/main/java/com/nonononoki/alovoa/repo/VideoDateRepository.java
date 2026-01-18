@@ -28,4 +28,6 @@ public interface VideoDateRepository extends JpaRepository<VideoDate, Long> {
     List<VideoDate> findMissedDates(@Param("date") Date date);
 
     Optional<VideoDate> findByConversationAndStatus(Conversation conversation, VideoDate.DateStatus status);
+
+    List<VideoDate> findByStatusAndEndedAtBetween(VideoDate.DateStatus status, Date start, Date end);
 }

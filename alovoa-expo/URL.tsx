@@ -129,6 +129,26 @@ export const API_VIDEO_INTRO_DELETE = DOMAIN + "/api/v1/video/intro/delete";
 export const API_VIDEO_INTRO_PLAYBACK = DOMAIN + "/api/v1/video/intro/playback/%s";
 export const API_VIDEO_INTRO_ANALYSIS = DOMAIN + "/api/v1/video/intro/analysis";
 
+// Video-First Display
+export const API_VIDEO_FIRST_WATCH = DOMAIN + "/api/video-first/watch/%s";
+export const API_VIDEO_FIRST_PROGRESS = DOMAIN + "/api/video-first/watch/%s/progress";
+export const API_VIDEO_FIRST_STATUS = DOMAIN + "/api/video-first/status/%s";
+export const API_VIDEO_FIRST_REQUIRE = DOMAIN + "/api/video-first/require-video-first";
+export const API_VIDEO_FIRST_STATS = DOMAIN + "/api/video-first/stats";
+
+// Profile Coach
+export const API_PROFILE_COACH_MESSAGES = DOMAIN + "/api/profile-coach/messages";
+export const API_PROFILE_COACH_DISMISS = DOMAIN + "/api/profile-coach/messages/%s/dismiss";
+export const API_PROFILE_COACH_STATS = DOMAIN + "/api/profile-coach/stats";
+export const API_PROFILE_COACH_TIP = DOMAIN + "/api/profile-coach/tip";
+
+// Exit Velocity (Success Metrics)
+export const API_EXIT_VELOCITY_RELATIONSHIP = DOMAIN + "/api/exit-velocity/relationship-formed";
+export const API_EXIT_VELOCITY_SURVEY = DOMAIN + "/api/exit-velocity/exit-survey";
+export const API_EXIT_VELOCITY_SUMMARY = DOMAIN + "/api/exit-velocity/summary";
+export const API_EXIT_VELOCITY_HISTORY = DOMAIN + "/api/exit-velocity/metrics/history";
+export const API_EXIT_VELOCITY_STATS = DOMAIN + "/api/exit-velocity/stats";
+
 // Video Dating
 export const API_VIDEO_DATE_LIST = DOMAIN + "/api/v1/video-date/list";
 export const API_VIDEO_DATE_PROPOSE = DOMAIN + "/api/v1/video-date/propose/%s";

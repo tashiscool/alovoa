@@ -1,16 +1,20 @@
 package com.nonononoki.alovoa.entity.user;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.repo.UserBlockRepository;
@@ -41,6 +45,25 @@ public class Conversation {
 	private Date lastUpdated;
 
 	private Date lastOpened;
+
+	// Bridge to Real World tracking
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "first_message_date")
+	private Date firstMessageDate;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "first_video_date_completed")
+	private Date firstVideoDateCompleted;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "first_real_date_completed")
+	private Date firstRealDateCompleted;
+
+	@Column(name = "mutual_interest_confirmed")
+	private Boolean mutualInterestConfirmed = false;
+
+	@Column(name = "relationship_started_date")
+	private LocalDate relationshipStartedDate;
 
 	public boolean containsUser(User user) {
 		return users.contains(user);

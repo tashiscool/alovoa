@@ -175,9 +175,12 @@ public class MatchingService {
         try {
             Map<String, Object> matchData = assessmentService.calculateOkCupidMatch(user, matchUser);
 
-            // Match percentage using geometric mean
+            // Match percentage using geometric mean (deprecated for display)
             Double matchPercentage = (Double) matchData.get("matchPercentage");
             dto.setMatchPercentage(matchPercentage != null ? matchPercentage : compatibility.getOverallScore());
+
+            // Set human-readable match category label (for user-facing display)
+            dto.setMatchCategoryLabel(scoreToCategory(dto.getMatchPercentage()));
 
             // Bidirectional satisfaction scores
             // satisfactionA = how much B matches what A wants (A's satisfaction with B)
@@ -237,6 +240,7 @@ public class MatchingService {
         } catch (Exception e) {
             LOGGER.warn("Failed to get OKCupid match data, using defaults", e);
             dto.setMatchPercentage(compatibility.getOverallScore());
+            dto.setMatchCategoryLabel(scoreToCategory(compatibility.getOverallScore()));
             dto.setYourSatisfaction(0.5);
             dto.setTheirSatisfaction(0.5);
             dto.setQuestionsCompared(0);
@@ -249,6 +253,8 @@ public class MatchingService {
             Map<String, Double> categoryBreakdown = (Map<String, Double>) explanation.get("categoryBreakdown");
             if (categoryBreakdown != null && !categoryBreakdown.isEmpty()) {
                 dto.setCategoryBreakdown(categoryBreakdown);
+                // Generate dimension labels (non-numerical) for user display
+                dto.setDimensionLabels(generateCategoryLabels(categoryBreakdown));
             }
         } catch (Exception e) {
             LOGGER.debug("Could not get category breakdown", e);
@@ -1089,9 +1095,12 @@ public class MatchingService {
             // Get OKCupid-style match percentage with importance weighting
             Map<String, Object> matchData = assessmentService.calculateOkCupidMatch(currentUser, matchUser);
 
-            // Set match percentage (the KEY metric for marriage machines)
+            // Set match percentage (kept for internal use, deprecated for display)
             Double matchPercentage = (Double) matchData.get("matchPercentage");
             dto.setMatchPercentage(matchPercentage != null ? matchPercentage : 50.0);
+
+            // Set human-readable match category (for user-facing display)
+            dto.setMatchCategory(scoreToCategory(matchPercentage));
 
             // Set common questions count (reliability indicator)
             Integer commonQuestions = (Integer) matchData.get("commonQuestions");
@@ -1104,12 +1113,15 @@ public class MatchingService {
             // Get detailed explanation with category breakdown
             Map<String, Object> explanation = assessmentService.getMatchExplanation(currentUser, matchUser);
 
-            // Set category breakdown
+            // Set category breakdown (deprecated numerical values kept for internal use)
             Map<String, Double> categoryBreakdown = (Map<String, Double>) explanation.get("categoryBreakdown");
             if (categoryBreakdown != null && !categoryBreakdown.isEmpty()) {
                 dto.setCategoryBreakdown(categoryBreakdown);
 
-                // Generate top compatibility areas from category scores
+                // Generate category labels (non-numerical) for user display
+                dto.setCategoryLabels(generateCategoryLabels(categoryBreakdown));
+
+                // Generate top compatibility areas using labels instead of percentages
                 dto.setTopCompatibilityAreas(generateTopCompatibilityAreas(categoryBreakdown));
 
                 // Generate areas to discuss (moderate mismatches)
@@ -1123,14 +1135,64 @@ public class MatchingService {
             LOGGER.warn("Failed to populate OKCupid match data, using defaults", e);
             // Set safe defaults
             dto.setMatchPercentage(dto.getCompatibilityScore() != null ? dto.getCompatibilityScore() : 50.0);
+            dto.setMatchCategory(scoreToCategory(dto.getCompatibilityScore()));
             dto.setCommonQuestionsCount(0);
             dto.setHasMandatoryConflict(false);
         }
     }
 
     /**
+     * Convert a numerical score to a human-readable match category.
+     * Prevents optimization/gaming behavior by hiding precise numbers.
+     *
+     * @param score The numerical score (0-100)
+     * @return Human-readable category label
+     */
+    private String scoreToCategory(Double score) {
+        if (score == null) return "Exploring Match";
+        if (score >= 90) return "Exceptional Match";
+        if (score >= 75) return "Strong Match";
+        if (score >= 60) return "Good Match";
+        if (score >= 45) return "Fair Match";
+        return "Exploring Match";
+    }
+
+    /**
+     * Convert a numerical dimension score to a human-readable label.
+     *
+     * @param score The numerical score (0-100)
+     * @return Human-readable dimension label
+     */
+    private String scoreToDimensionLabel(Double score) {
+        if (score == null) return "Developing";
+        if (score >= 80) return "Excellent";
+        if (score >= 65) return "Good";
+        if (score >= 50) return "Fair";
+        return "Developing";
+    }
+
+    /**
+     * Generate category labels map (non-numerical) from category breakdown.
+     *
+     * @param categoryBreakdown The numerical category scores
+     * @return Map of category names to human-readable labels
+     */
+    private Map<String, String> generateCategoryLabels(Map<String, Double> categoryBreakdown) {
+        Map<String, String> labels = new HashMap<>();
+        if (categoryBreakdown == null) return labels;
+
+        for (Map.Entry<String, Double> entry : categoryBreakdown.entrySet()) {
+            String category = formatCategoryName(entry.getKey());
+            String label = scoreToDimensionLabel(entry.getValue());
+            labels.put(category, label);
+        }
+
+        return labels;
+    }
+
+    /**
      * Generate top 3 compatibility areas from category scores.
-     * Shows users WHERE they're compatible.
+     * Shows users WHERE they're compatible using labels instead of percentages.
      */
     private List<String> generateTopCompatibilityAreas(Map<String, Double> categoryBreakdown) {
         List<String> topAreas = new ArrayList<>();
@@ -1144,8 +1206,9 @@ public class MatchingService {
 
         for (Map.Entry<String, Double> entry : sorted) {
             String category = formatCategoryName(entry.getKey());
-            int score = entry.getValue().intValue();
-            topAreas.add(category + ": " + score + "%");
+            String label = scoreToDimensionLabel(entry.getValue());
+            // Use label instead of percentage
+            topAreas.add(category + ": " + label);
         }
 
         if (topAreas.isEmpty()) {

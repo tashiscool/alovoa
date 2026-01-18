@@ -298,6 +298,14 @@ export type UserDto = {
 
   // Show zodiac preference
   showZodiac?: boolean;
+
+  // Video-First Display (AURA authenticity feature)
+  hasVideoIntro?: boolean;
+  videoIntroUrl?: string;
+  videoIntroThumbnail?: string;
+  videoIntroDuration?: number;
+  videoWatchRequired?: boolean;
+  videoWatched?: boolean;
 }
 
 export type UserSettings = {

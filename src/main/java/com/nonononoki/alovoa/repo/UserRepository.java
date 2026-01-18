@@ -238,4 +238,37 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // users donate
     List<User> findTop20ByDisabledFalseAndAdminFalseAndConfirmedTrueAndIntentionNotNullAndLocationLatitudeNotNullAndProfilePictureNotNullAndDatesDateOfBirthGreaterThanEqualAndDatesDateOfBirthLessThanEqualOrderByTotalDonationsDesc(
             Date minDate, Date maxDate);
+
+    // Exit Velocity tracking queries
+
+    /**
+     * Find inactive users without an exit event
+     */
+    @Query("SELECT u FROM User u WHERE u.disabled = FALSE AND u.admin = FALSE AND u.confirmed = TRUE " +
+           "AND u.lastMeaningfulActivity IS NOT NULL AND u.lastMeaningfulActivity < :cutoffDate " +
+           "AND u.id NOT IN (SELECT e.user.id FROM ExitVelocityEvent e)")
+    List<User> findInactiveUsersWithoutExitEvent(@Param("cutoffDate") java.time.LocalDate cutoffDate);
+
+    /**
+     * Count active users in a date range
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.disabled = FALSE AND u.admin = FALSE AND u.confirmed = TRUE " +
+           "AND u.lastMeaningfulActivity BETWEEN :startDate AND :endDate")
+    int countActiveUsersInPeriod(@Param("startDate") java.time.LocalDate startDate, @Param("endDate") java.time.LocalDate endDate);
+
+    /**
+     * Count new users registered on a specific date
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.disabled = FALSE AND u.confirmed = TRUE " +
+           "AND FUNCTION('DATE', u.dates.creationDate) = :date")
+    int countNewUsersOnDate(@Param("date") java.time.LocalDate date);
+
+    /**
+     * Count users inactive since a specific date
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.disabled = FALSE AND u.admin = FALSE AND u.confirmed = TRUE " +
+           "AND (u.lastMeaningfulActivity IS NULL OR u.lastMeaningfulActivity < :cutoffDate)")
+    int countInactiveUsers(@Param("cutoffDate") java.time.LocalDate cutoffDate);
+
+    java.util.Optional<User> findByUuid(UUID uuid);
 }

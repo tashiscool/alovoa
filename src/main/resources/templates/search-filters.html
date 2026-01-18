@@ -328,17 +328,7 @@
                     </div>
                 </div>
 
-                <div class="filter-group">
-                    <label>Income</label>
-                    <div class="chip-group" id="incomeChips">
-                        <span class="chip" data-value="INCOME_60K_80K">$60k-$80k</span>
-                        <span class="chip" data-value="INCOME_80K_100K">$80k-$100k</span>
-                        <span class="chip" data-value="INCOME_100K_150K">$100k-$150k</span>
-                        <span class="chip" data-value="INCOME_150K_250K">$150k-$250k</span>
-                        <span class="chip" data-value="INCOME_250K_500K">$250k-$500k</span>
-                        <span class="chip" data-value="INCOME_500K_PLUS">$500k+</span>
-                    </div>
-                </div>
+                <!-- Income filter removed to prevent wealth-based discrimination -->
 
                 <div class="filter-group">
                     <label>Zodiac Sign</label>
@@ -385,12 +375,12 @@
 
     <script>
         // Selected filters state
+        // Note: incomeLevels removed to prevent wealth-based discrimination
         const selectedFilters = {
             bodyTypes: new Set(),
             ethnicities: new Set(),
             diets: new Set(),
             educationLevels: new Set(),
-            incomeLevels: new Set(),
             zodiacSigns: new Set()
         };
 
@@ -403,12 +393,12 @@
                     const groupId = group.id;
 
                     // Map group to filter set
+                    // Note: incomeChips removed to prevent wealth-based discrimination
                     const filterMap = {
                         'bodyTypeChips': 'bodyTypes',
                         'ethnicityChips': 'ethnicities',
                         'dietChips': 'diets',
                         'educationChips': 'educationLevels',
-                        'incomeChips': 'incomeLevels',
                         'zodiacChips': 'zodiacSigns'
                     };
 
@@ -500,7 +490,7 @@
                 ethnicities: Array.from(selectedFilters.ethnicities),
                 diets: Array.from(selectedFilters.diets),
                 educationLevels: Array.from(selectedFilters.educationLevels),
-                incomeLevels: Array.from(selectedFilters.incomeLevels),
+                // incomeLevels removed to prevent wealth-based discrimination
                 zodiacSigns: Array.from(selectedFilters.zodiacSigns),
                 keyword: document.getElementById('keyword').value || null
             };

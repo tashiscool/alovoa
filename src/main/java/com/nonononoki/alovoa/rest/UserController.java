@@ -7,8 +7,10 @@ import com.nonononoki.alovoa.entity.User;
 import com.nonononoki.alovoa.entity.user.UserImage;
 import com.nonononoki.alovoa.entity.user.UserMiscInfo;
 import com.nonononoki.alovoa.model.*;
+import com.nonononoki.alovoa.entity.user.ProfileEditEvent;
 import com.nonononoki.alovoa.service.AuthService;
 import com.nonononoki.alovoa.service.IntakeService;
+import com.nonononoki.alovoa.service.ProfileCoachService;
 import com.nonononoki.alovoa.service.ProfileCompletenessService;
 import com.nonononoki.alovoa.service.UserService;
 import jakarta.mail.MessagingException;
@@ -46,6 +48,8 @@ public class UserController {
     private IntakeService intakeService;
     @Autowired
     private ProfileCompletenessService profileCompletenessService;
+    @Autowired
+    private ProfileCoachService profileCoachService;
     @Value("${app.audio.max-size}")
     private int audioMaxSize;
     @Value("${app.image.max-size}")
@@ -96,6 +100,9 @@ public class UserController {
             throw new AlovoaException(AlovoaException.MAX_MEDIA_SIZE_EXCEEDED);
         }
         userService.updateProfilePicture(bytes, mimeType);
+
+        // Track profile edit for Profile Coach
+        profileCoachService.recordEdit(user, ProfileEditEvent.EditType.PROFILE_PICTURE, "profilePicture");
     }
 
     @PostMapping(value = "/update/verification-picture")
@@ -142,7 +149,11 @@ public class UserController {
 
     @PostMapping(value = "/update/description", consumes = "text/plain")
     public void updateDescription(@RequestBody(required = false) String description) throws AlovoaException {
+        User user = authService.getCurrentUser(true);
         userService.updateDescription(description);
+
+        // Track profile edit for Profile Coach
+        profileCoachService.recordEdit(user, ProfileEditEvent.EditType.BIO_UPDATE, "description");
     }
 
     @PostMapping("/update/intention/{intention}")
@@ -172,12 +183,20 @@ public class UserController {
 
     @PostMapping("/interest/add/{value}")
     public void addInterest(@PathVariable String value) throws AlovoaException {
+        User user = authService.getCurrentUser(true);
         userService.addInterest(value);
+
+        // Track profile edit for Profile Coach
+        profileCoachService.recordEdit(user, ProfileEditEvent.EditType.INTEREST_ADD, "interest:" + value);
     }
 
     @PostMapping("/interest/delete/{value}")
     public void deleteInterest(@PathVariable String value) throws AlovoaException {
+        User user = authService.getCurrentUser(true);
         userService.deleteInterest(value);
+
+        // Track profile edit for Profile Coach
+        profileCoachService.recordEdit(user, ProfileEditEvent.EditType.INTEREST_REMOVE, "interest:" + value);
     }
 
     @GetMapping(value = "/interest/autocomplete/{name}")
@@ -206,12 +225,20 @@ public class UserController {
         if (bytes.length > mediaMaxSize) {
             throw new AlovoaException(AlovoaException.MAX_MEDIA_SIZE_EXCEEDED);
         }
-        return userService.addImage(bytes, mimeType);
+        List<UserImageDto> result = userService.addImage(bytes, mimeType);
+
+        // Track profile edit for Profile Coach
+        profileCoachService.recordEdit(user, ProfileEditEvent.EditType.PHOTO_ADD, "image");
+        return result;
     }
 
     @PostMapping("/image/delete/{imageId}")
     public void deleteImage(@PathVariable long imageId) throws AlovoaException {
+        User user = authService.getCurrentUser(true);
         userService.deleteImage(imageId);
+
+        // Track profile edit for Profile Coach
+        profileCoachService.recordEdit(user, ProfileEditEvent.EditType.PHOTO_DELETE, "image");
     }
 
     @PostMapping(value = "/like/{uuid}")

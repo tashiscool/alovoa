@@ -54,12 +54,26 @@ public class UserReputationScore {
     @Column(nullable = false)
     private Date updatedAt = new Date();
 
+    // Appeal-related fields
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastAppealedAt;
+
+    @Column(nullable = false)
+    private Boolean appealPending = false;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date probationUntil;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date timeDecayAppliedAt;
+
     public enum TrustLevel {
         NEW_MEMBER,
         VERIFIED,
         TRUSTED,
         HIGHLY_TRUSTED,
         UNDER_REVIEW,
+        PROBATION,  // Between UNDER_REVIEW and RESTRICTED - recovery path
         RESTRICTED
     }
 

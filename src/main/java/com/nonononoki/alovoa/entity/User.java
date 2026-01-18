@@ -59,6 +59,20 @@ public class User implements UserDetails {
     private String verificationCode;
     @JsonIgnore
     private boolean showZodiac;
+    @JsonIgnore
+    private boolean requireVideoFirst = false;
+    // Exit Velocity tracking fields
+    private java.time.LocalDate firstActiveDate;
+    private java.time.LocalDate lastMeaningfulActivity;
+    private java.time.LocalDate relationshipFormedDate;
+    @JsonIgnore
+    private boolean exitSurveyCompleted = false;
+    // Account pause for intervention system
+    @JsonIgnore
+    private boolean accountPaused = false;
+    @JsonIgnore
+    @Column(name = "pause_reason", length = 100)
+    private String pauseReason;
     private int preferedMinAge;
     private int preferedMaxAge;
     @JsonIgnore
@@ -99,6 +113,8 @@ public class User implements UserDetails {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn
     private UserVerificationPicture verificationPicture;
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "user")
+    private UserVideoIntroduction videoIntroduction;
 
     // Tables with multiple users
     @ManyToOne
@@ -252,6 +268,15 @@ public class User implements UserDetails {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
     @JsonIgnore
     private List<DonationPrompt> donationPrompts;
+
+    // Intervention system
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    @JsonIgnore
+    private AccountPause currentPause;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "user")
+    @JsonIgnore
+    private List<InterventionDelivery> interventionDeliveries;
 
     public enum DonationTier {
         NONE,           // Never donated

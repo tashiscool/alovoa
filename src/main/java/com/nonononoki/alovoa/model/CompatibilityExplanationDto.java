@@ -27,15 +27,31 @@ public class CompatibilityExplanationDto {
 
     /**
      * Overall compatibility score (0-100)
-     * Legacy field - prefer matchPercentage for OKCupid-style scoring
+     * @deprecated Use matchCategoryLabel for user-facing display instead of numerical percentages.
      */
+    @Deprecated
     private Double overallScore;
 
     /**
      * OKCupid-style match percentage using geometric mean formula:
      * sqrt(yourSatisfaction * theirSatisfaction) * 100
+     * @deprecated Use matchCategoryLabel for user-facing display instead of numerical percentages.
      */
+    @Deprecated
     private Double matchPercentage;
+
+    /**
+     * Human-readable match category label for user-facing display.
+     * Values: "Exceptional Match", "Strong Match", "Good Match", "Fair Match", "Exploring Match"
+     */
+    private String matchCategoryLabel;
+
+    /**
+     * Dimension-level labels (non-numerical).
+     * Maps dimension names to human-readable labels.
+     * e.g., {"Values": "Excellent", "Lifestyle": "Good", "Personality": "Fair"}
+     */
+    private Map<String, String> dimensionLabels;
 
     /**
      * Enemy score - measures fundamental incompatibilities (0-100)

@@ -30,12 +30,13 @@ import VerticalView from "../../components/VerticalView";
 
 const i18n = I18N.getI18n();
 
-const TIER_CONFIG: Record<string, { color: string; label: string; icon: string; minScore: number }> = {
-  bronze: { color: "#CD7F32", label: "Bronze", icon: "medal", minScore: 0 },
-  silver: { color: "#C0C0C0", label: "Silver", icon: "medal", minScore: 200 },
-  gold: { color: "#FFD700", label: "Gold", icon: "medal-outline", minScore: 500 },
-  platinum: { color: "#E5E4E2", label: "Platinum", icon: "trophy", minScore: 1000 },
-  diamond: { color: "#B9F2FF", label: "Diamond", icon: "diamond-stone", minScore: 2000 },
+// Standing labels (categorical instead of numerical) to prevent gaming/optimization behavior
+const STANDING_CONFIG: Record<string, { color: string; label: string; icon: string; minScore: number }> = {
+  building: { color: "#6B7280", label: "Building", icon: "account-clock", minScore: 0 },
+  good: { color: "#22C55E", label: "Good Standing", icon: "account-check", minScore: 200 },
+  excellent: { color: "#3B82F6", label: "Excellent", icon: "account-star", minScore: 500 },
+  outstanding: { color: "#8B5CF6", label: "Outstanding", icon: "star-circle", minScore: 1000 },
+  exemplary: { color: "#EC4899", label: "Exemplary", icon: "crown", minScore: 2000 },
 };
 
 const BADGE_ICONS: Record<string, { icon: string; color: string }> = {
@@ -81,19 +82,19 @@ const ReputationScore = ({ navigation }: any) => {
     setLoading(false);
   }
 
-  function getTier(totalScore: number): { color: string; label: string; icon: string; minScore: number; nextTier?: typeof TIER_CONFIG[string] } {
-    const tiers = Object.entries(TIER_CONFIG).sort((a, b) => b[1].minScore - a[1].minScore);
+  function getStanding(totalScore: number): { color: string; label: string; icon: string; minScore: number; nextStanding?: typeof STANDING_CONFIG[string] } {
+    const standings = Object.entries(STANDING_CONFIG).sort((a, b) => b[1].minScore - a[1].minScore);
 
-    for (let i = 0; i < tiers.length; i++) {
-      if (totalScore >= tiers[i][1].minScore) {
+    for (let i = 0; i < standings.length; i++) {
+      if (totalScore >= standings[i][1].minScore) {
         return {
-          ...tiers[i][1],
-          nextTier: i > 0 ? tiers[i - 1][1] : undefined,
+          ...standings[i][1],
+          nextStanding: i > 0 ? standings[i - 1][1] : undefined,
         };
       }
     }
 
-    return { ...TIER_CONFIG.bronze, nextTier: TIER_CONFIG.silver };
+    return { ...STANDING_CONFIG.building, nextStanding: STANDING_CONFIG.good };
   }
 
   function formatDate(dateString: string): string {
@@ -113,9 +114,9 @@ const ReputationScore = ({ navigation }: any) => {
   }
 
   const totalScore = score?.totalScore || 0;
-  const tier = getTier(totalScore);
-  const progressToNext = tier.nextTier
-    ? (totalScore - tier.minScore) / (tier.nextTier.minScore - tier.minScore)
+  const standing = getStanding(totalScore);
+  const progressToNext = standing.nextStanding
+    ? (totalScore - standing.minScore) / (standing.nextStanding.minScore - standing.minScore)
     : 1;
 
   return (
@@ -132,71 +133,71 @@ const ReputationScore = ({ navigation }: any) => {
             </Text>
           </View>
 
-          {/* Score Card */}
+          {/* Standing Card - Uses categorical labels instead of numerical scores */}
           <Card style={{ marginBottom: 24, overflow: 'hidden' }}>
-            <View style={{ backgroundColor: tier.color, padding: 24, alignItems: 'center' }}>
-              <MaterialCommunityIcons name={tier.icon as any} size={48} color="white" />
-              <Text style={{ color: 'white', fontSize: 48, fontWeight: '700', marginTop: 8 }}>
-                {totalScore}
+            <View style={{ backgroundColor: standing.color, padding: 24, alignItems: 'center' }}>
+              <MaterialCommunityIcons name={standing.icon as any} size={48} color="white" />
+              <Text style={{ color: 'white', fontSize: 32, fontWeight: '700', marginTop: 8, textAlign: 'center' }}>
+                {standing.label}
               </Text>
-              <Text style={{ color: 'white', fontSize: 18, opacity: 0.9 }}>
-                {tier.label} Tier
+              <Text style={{ color: 'white', fontSize: 14, opacity: 0.9, marginTop: 4 }}>
+                Your community standing
               </Text>
             </View>
 
-            {tier.nextTier && (
+            {standing.nextStanding && (
               <Card.Content style={{ paddingTop: 16 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text style={{ color: colors.onSurfaceVariant }}>
-                    Progress to {tier.nextTier.label}
+                    Progress to {standing.nextStanding.label}
                   </Text>
-                  <Text style={{ fontWeight: '600' }}>
-                    {totalScore} / {tier.nextTier.minScore}
+                  <Text style={{ fontWeight: '600', color: colors.onSurfaceVariant }}>
+                    Keep it up!
                   </Text>
                 </View>
                 <ProgressBar
                   progress={progressToNext}
-                  color={tier.nextTier.color}
+                  color={standing.nextStanding.color}
                   style={{ height: 8, borderRadius: 4 }}
                 />
               </Card.Content>
             )}
           </Card>
 
-          {/* Score Breakdown */}
+          {/* Standing Factors - Uses categorical labels */}
           {score && (
             <>
               <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 16 }}>
-                Score Breakdown
+                Standing Factors
               </Text>
 
               <Card style={{ marginBottom: 24 }}>
                 <Card.Content>
-                  <ScoreRow
+                  <StandingFactorRow
                     icon="check-decagram"
                     label="Verification"
                     value={score.verificationPoints}
                     color="#10B981"
                   />
-                  <ScoreRow
+                  <StandingFactorRow
                     icon="message-text"
                     label="Response Rate"
                     value={score.responsePoints}
                     color="#3B82F6"
                   />
-                  <ScoreRow
+                  <StandingFactorRow
                     icon="calendar-check"
                     label="Reliability"
                     value={score.reliabilityPoints}
                     color="#22C55E"
                   />
-                  <ScoreRow
+                  <StandingFactorRow
                     icon="heart"
                     label="Positive Feedback"
                     value={score.feedbackPoints}
                     color="#EC4899"
                   />
-                  <ScoreRow
+                  <StandingFactorRow
                     icon="clock"
                     label="Tenure"
                     value={score.tenurePoints}
@@ -248,7 +249,7 @@ const ReputationScore = ({ navigation }: any) => {
             </Card>
           )}
 
-          {/* Recent Activity */}
+          {/* Recent Activity - Shows impact type instead of numerical points */}
           {history.length > 0 && (
             <>
               <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 16 }}>
@@ -271,12 +272,15 @@ const ReputationScore = ({ navigation }: any) => {
                             {formatDate(item.createdAt)}
                           </Text>
                         </View>
-                        <Text style={{
-                          fontWeight: '700',
-                          color: item.points >= 0 ? "#10B981" : "#EF4444",
-                        }}>
-                          {item.points >= 0 ? '+' : ''}{item.points}
-                        </Text>
+                        <Chip
+                          mode="flat"
+                          textStyle={{ fontSize: 11 }}
+                          style={{
+                            backgroundColor: item.points >= 0 ? "#D1FAE5" : "#FEE2E2",
+                          }}
+                        >
+                          {item.points >= 0 ? "Positive" : "Needs work"}
+                        </Chip>
                       </View>
                       {index < history.slice(0, 10).length - 1 && <Divider />}
                     </View>
@@ -324,8 +328,17 @@ const ReputationScore = ({ navigation }: any) => {
   );
 };
 
-// Helper Components
-const ScoreRow = ({
+// Helper function to convert score to categorical label
+function getFactorLabel(value: number): string {
+  if (value >= 80) return "Excellent";
+  if (value >= 60) return "Good";
+  if (value >= 40) return "Fair";
+  if (value >= 20) return "Building";
+  return "New";
+}
+
+// Helper Components - Uses categorical labels instead of numerical scores
+const StandingFactorRow = ({
   icon,
   label,
   value,
@@ -339,13 +352,14 @@ const ScoreRow = ({
   isLast?: boolean;
 }) => {
   const { colors } = useTheme();
+  const factorLabel = getFactorLabel(value);
 
   return (
     <View style={{ marginBottom: isLast ? 0 : 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <MaterialCommunityIcons name={icon as any} size={20} color={color} />
         <Text style={{ marginLeft: 12, flex: 1 }}>{label}</Text>
-        <Text style={{ fontWeight: '700', color }}>{value}</Text>
+        <Text style={{ fontWeight: '700', color }}>{factorLabel}</Text>
       </View>
       <ProgressBar
         progress={Math.min(value / 100, 1)}

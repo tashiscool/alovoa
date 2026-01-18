@@ -395,6 +395,11 @@ public class SearchService {
         private Set<String> educationLevels = new HashSet<>();  // e.g., "BACHELORS", "MASTERS"
         @Builder.Default
         private Set<String> zodiacSigns = new HashSet<>();  // e.g., "ARIES", "LIBRA"
+        /**
+         * @deprecated Income filtering removed to prevent wealth-based discrimination.
+         *             Users can still display income on their profile, but cannot filter by it.
+         */
+        @Deprecated
         @Builder.Default
         private Set<String> incomeLevels = new HashSet<>();  // e.g., "INCOME_60K_80K"
         @Builder.Default
@@ -405,6 +410,10 @@ public class SearchService {
      * Apply extended profile filters to search results.
      * These filters work on UserProfileDetails fields.
      */
+    /**
+     * Apply extended profile filters to search results.
+     * Note: Income filtering has been removed to prevent wealth-based discrimination.
+     */
     private List<User> applyExtendedFilters(List<User> users, SearchParams params) {
         return users.stream()
                 .filter(u -> matchesHeightFilter(u, params.getMinHeightCm(), params.getMaxHeightCm()))
@@ -413,7 +422,7 @@ public class SearchService {
                 .filter(u -> matchesEnumFilter(u, params.getDiets(), "diet"))
                 .filter(u -> matchesEnumFilter(u, params.getEducationLevels(), "education"))
                 .filter(u -> matchesEnumFilter(u, params.getZodiacSigns(), "zodiacSign"))
-                .filter(u -> matchesEnumFilter(u, params.getIncomeLevels(), "income"))
+                // Income filter removed - users can display income but cannot filter by it
                 .collect(Collectors.toList());
     }
 
@@ -440,7 +449,7 @@ public class SearchService {
                 case "diet" -> value = details.getDiet() != null ? details.getDiet().name() : null;
                 case "education" -> value = details.getEducation() != null ? details.getEducation().name() : null;
                 case "zodiacSign" -> value = details.getZodiacSign() != null ? details.getZodiacSign().name() : null;
-                case "income" -> value = details.getIncome() != null ? details.getIncome().name() : null;
+                // Income case removed - users can display income but cannot filter by it
             }
         } catch (Exception e) {
             return true;

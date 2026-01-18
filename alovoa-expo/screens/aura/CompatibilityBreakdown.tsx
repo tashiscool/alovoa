@@ -154,14 +154,11 @@ const CompatibilityBreakdown = ({ route, navigation }: any) => {
             </Text>
           </View>
 
-          {/* Overall Score Card */}
+          {/* Overall Score Card - Using category labels instead of percentages */}
           <Card style={{ marginBottom: 24, overflow: 'hidden' }}>
             <View style={{ backgroundColor: overallColor, padding: 24, alignItems: 'center' }}>
-              <Text style={{ color: 'white', fontSize: 48, fontWeight: '700' }}>
-                {breakdown.overallScore}%
-              </Text>
-              <Text style={{ color: 'white', fontSize: 18, marginTop: 4 }}>
-                {getScoreLabel(breakdown.overallScore)} Match
+              <Text style={{ color: 'white', fontSize: 32, fontWeight: '700', textAlign: 'center' }}>
+                {breakdown.matchCategoryLabel || getScoreLabel(breakdown.overallScore) + " Match"}
               </Text>
             </View>
 
@@ -213,8 +210,8 @@ const CompatibilityBreakdown = ({ route, navigation }: any) => {
                     <View style={{ flex: 1, marginLeft: 12 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Text style={{ fontWeight: '600' }}>{meta.label}</Text>
-                        <Text style={{ fontWeight: '700', color: scoreColor, fontSize: 18 }}>
-                          {dimension.score}%
+                        <Text style={{ fontWeight: '700', color: scoreColor, fontSize: 16 }}>
+                          {breakdown.dimensionLabels?.[meta.label] || getScoreLabel(dimension.score)}
                         </Text>
                       </View>
 

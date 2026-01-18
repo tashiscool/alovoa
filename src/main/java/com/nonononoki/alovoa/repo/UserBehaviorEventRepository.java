@@ -12,4 +12,10 @@ public interface UserBehaviorEventRepository extends JpaRepository<UserBehaviorE
     List<UserBehaviorEvent> findByUserAndCreatedAtAfter(User user, Date after);
     List<UserBehaviorEvent> findByUserAndBehaviorType(User user, UserBehaviorEvent.BehaviorType behaviorType);
     long countByUserAndBehaviorTypeAndCreatedAtAfter(User user, UserBehaviorEvent.BehaviorType behaviorType, Date after);
+
+    /**
+     * Count serious incidents by multiple behavior types within a date range.
+     * Used for the "3+ incidents before RESTRICTED" pattern requirement.
+     */
+    long countByUserAndBehaviorTypeInAndCreatedAtAfter(User user, List<UserBehaviorEvent.BehaviorType> behaviorTypes, Date after);
 }

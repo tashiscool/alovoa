@@ -84,6 +84,14 @@ public class UserDto {
     private Double reputationScore;            // Overall reputation (0-100)
     private boolean videoVerified;             // Has passed video verification
 
+    // Video-First Display (AURA authenticity feature)
+    private boolean hasVideoIntro;             // Whether user has a video introduction
+    private String videoIntroUrl;              // URL to video introduction (if available)
+    private String videoIntroThumbnail;        // Thumbnail for video
+    private Integer videoIntroDuration;        // Duration in seconds
+    private boolean videoWatchRequired;        // Whether viewer must watch video before seeing photos
+    private boolean videoWatched;              // Whether current user has watched this video
+
     public static UserDto userToUserDto(DtoBuilder builder)
             throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidAlgorithmParameterException, UnsupportedEncodingException, AlovoaException {
@@ -183,6 +191,21 @@ public class UserDto {
 
         // Video verification status
         dto.setVideoVerified(user.isVideoVerified());
+
+        // Video introduction (video-first display)
+        UserVideoIntroduction videoIntro = user.getVideoIntroduction();
+        if (videoIntro != null && videoIntro.getStatus() == UserVideoIntroduction.AnalysisStatus.COMPLETED) {
+            dto.setHasVideoIntro(true);
+            dto.setVideoIntroUrl(videoIntro.getPublicVideoUrl());
+            dto.setVideoIntroThumbnail(videoIntro.getThumbnailUrl());
+            dto.setVideoIntroDuration(videoIntro.getDurationSeconds());
+            // Video watch required if profile owner has it enabled
+            dto.setVideoWatchRequired(user.isRequireVideoFirst());
+            // Note: videoWatched must be set by the service layer with repository access
+        } else {
+            dto.setHasVideoIntro(false);
+            dto.setVideoWatchRequired(false);
+        }
 
         if (!user.isAdmin()) {
             LocalDateTime now = LocalDateTime.now();

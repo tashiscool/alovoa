@@ -695,4 +695,114 @@ public class AccountabilityService {
             return UUID.randomUUID().toString();
         }
     }
+
+    // === Appeal-Related Methods ===
+
+    /**
+     * Create an appeal for a specific report.
+     * Called from ReputationService when a user appeals a report.
+     *
+     * @param report The report being appealed
+     * @param reason The user's reason for the appeal
+     * @return true if appeal was created successfully
+     */
+    @Transactional
+    public boolean markReportAsAppealed(UserAccountabilityReport report, String reason) {
+        if (report.getStatus() == ReportStatus.REMOVED ||
+            report.getStatus() == ReportStatus.RETRACTED) {
+            return false; // Can't appeal removed/retracted reports
+        }
+
+        // Mark report as disputed while appeal is pending
+        if (report.getStatus() == ReportStatus.PUBLISHED) {
+            report.setStatus(ReportStatus.DISPUTED);
+            reportRepo.save(report);
+        }
+
+        return true;
+    }
+
+    /**
+     * Reverse the reputation impact when an appeal is approved.
+     * This undoes the negative reputation effects of the report.
+     *
+     * @param report The report whose impact should be reversed
+     * @param user The user whose reputation should be restored
+     */
+    @Transactional
+    public void reverseReportReputationImpact(UserAccountabilityReport report, User user) {
+        if (report.getReputationImpact() == null || report.getReputationImpact() == 0) {
+            return;
+        }
+
+        // Get the inverse of the original impact
+        double reverseImpact = -report.getReputationImpact();
+
+        // Record a behavior event to track the reversal
+        UserBehaviorEvent.BehaviorType behaviorType = UserBehaviorEvent.BehaviorType.POSITIVE_FEEDBACK;
+
+        reputationService.recordBehavior(
+            user,
+            behaviorType,
+            null,
+            Map.of(
+                "reason", "Appeal approved - reputation impact reversed",
+                "originalReportId", report.getId(),
+                "originalCategory", report.getCategory().name(),
+                "reversedImpact", reverseImpact
+            )
+        );
+
+        LOGGER.info("Reversed reputation impact for user {} from report {}",
+                    user.getId(), report.getId());
+    }
+
+    /**
+     * Handle report outcome after appeal decision.
+     * Called when an admin approves an appeal linked to a report.
+     *
+     * @param reportUuid The UUID of the report
+     * @param removeReport Whether to fully remove the report
+     */
+    @Transactional
+    public void handleAppealApprovalForReport(UUID reportUuid, boolean removeReport) {
+        UserAccountabilityReport report = reportRepo.findByUuid(reportUuid)
+            .orElse(null);
+
+        if (report == null) {
+            LOGGER.warn("Report not found for appeal approval: {}", reportUuid);
+            return;
+        }
+
+        if (removeReport) {
+            // Fully remove the report
+            report.setStatus(ReportStatus.REMOVED);
+            report.setVisibility(ReportVisibility.HIDDEN);
+        } else {
+            // Keep report but mark as disputed/resolved
+            report.setStatus(ReportStatus.DISPUTED);
+        }
+
+        reportRepo.save(report);
+
+        // Reverse reputation impact
+        reverseReportReputationImpact(report, report.getSubject());
+    }
+
+    /**
+     * Get reports that a user can appeal (published reports against them).
+     *
+     * @param user The user (subject of reports)
+     * @return List of reports eligible for appeal
+     */
+    public List<UserAccountabilityReport> getAppealableReports(User user) {
+        List<UserAccountabilityReport> allReports = reportRepo.findBySubjectAndStatus(user, ReportStatus.PUBLISHED);
+
+        // Filter to only include reports that are appealable
+        // (published and not already disputed)
+        return allReports.stream()
+            .filter(r -> r.getStatus() == ReportStatus.PUBLISHED ||
+                        r.getStatus() == ReportStatus.VERIFIED)
+            .collect(Collectors.toList());
+    }
 }

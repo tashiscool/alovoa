@@ -235,7 +235,7 @@ const MatchingHome = ({ navigation }: any) => {
                             </View>
                           )}
 
-                          {/* Compatibility Score */}
+                          {/* Compatibility Score - Using category labels instead of percentages */}
                           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
                             <View style={{
                               backgroundColor: compatColor + '20',
@@ -247,10 +247,7 @@ const MatchingHome = ({ navigation }: any) => {
                             }}>
                               <MaterialCommunityIcons name="heart" size={16} color={compatColor} />
                               <Text style={{ marginLeft: 6, fontWeight: '700', color: compatColor }}>
-                                {score}%
-                              </Text>
-                              <Text style={{ marginLeft: 4, fontSize: 12, color: compatColor }}>
-                                {getCompatibilityLabel(score)}
+                                {match.compatibilityScore.matchCategory || getCompatibilityLabel(score)}
                               </Text>
                             </View>
                           </View>

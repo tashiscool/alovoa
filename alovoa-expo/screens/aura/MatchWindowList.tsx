@@ -227,7 +227,7 @@ const MatchWindowList = ({ navigation }: any) => {
                       </View>
                     )}
 
-                    {/* Compatibility Score */}
+                    {/* Compatibility Score - Using category labels instead of percentages */}
                     {currentWindow.compatibilityScore && (
                       <View style={{
                         flexDirection: 'row',
@@ -246,10 +246,10 @@ const MatchWindowList = ({ navigation }: any) => {
                         <Text style={{
                           marginLeft: 8,
                           fontWeight: '700',
-                          fontSize: 18,
+                          fontSize: 16,
                           color: getCompatibilityColor(currentWindow.compatibilityScore),
                         }}>
-                          {currentWindow.compatibilityScore}% Match
+                          {currentWindow.matchCategory || (currentWindow.compatibilityScore >= 80 ? "Strong Match" : currentWindow.compatibilityScore >= 60 ? "Good Match" : "Fair Match")}
                         </Text>
                       </View>
                     )}

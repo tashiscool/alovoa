@@ -31,8 +31,27 @@ public class MatchRecommendationDto {
      *
      * This is THE KEY metric for marriage machines - not just compatibility,
      * but mutual satisfaction based on importance-weighted answers.
+     *
+     * @deprecated Use matchCategory for user-facing display instead of numerical percentages.
+     *             Kept for internal calculations.
      */
+    @Deprecated
     private Double matchPercentage;
+
+    /**
+     * Human-readable match category label for user-facing display.
+     * Replaces numerical percentages to prevent optimization/gaming behavior.
+     *
+     * Values: "Exceptional Match", "Strong Match", "Good Match", "Fair Match", "Exploring Match"
+     */
+    private String matchCategory;
+
+    /**
+     * Dimension-level labels (non-numerical).
+     * Maps dimension names to human-readable labels.
+     * e.g., {"Values": "Excellent", "Lifestyle": "Good", "Personality": "Fair"}
+     */
+    private Map<String, String> categoryLabels;
 
     /**
      * Category-level breakdown of match percentage.

@@ -26,6 +26,7 @@ import Icon from "../components/Icon";
 import { SwiperFlatList } from 'react-native-swiper-flatlist';
 import VerticalView from "../components/VerticalView";
 import ComplimentModal from "../components/ComplimentModal";
+import VideoFirstDisplay from "../components/VideoFirstDisplay";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
@@ -83,6 +84,13 @@ const Profile = ({ route, navigation }: Props) => {
   const [preferredGenders, setPreferredGenders] = React.useState(Array<Gender>);
   const [miscInfo, setMiscInfo] = React.useState<UserMiscInfo[]>([])
   const [swiperImages, setSwiperImages] = React.useState<string[]>([]);
+  // Video-first display state
+  const [hasVideoIntro, setHasVideoIntro] = React.useState(false);
+  const [videoIntroUrl, setVideoIntroUrl] = React.useState<string | undefined>();
+  const [videoIntroThumbnail, setVideoIntroThumbnail] = React.useState<string | undefined>();
+  const [videoIntroDuration, setVideoIntroDuration] = React.useState<number | undefined>();
+  const [videoWatchRequired, setVideoWatchRequired] = React.useState(false);
+  const [videoWatched, setVideoWatched] = React.useState(false);
   const [reportModalVisible, setReportModalVisible] = React.useState(false);
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [previousScreen, setPreviousScreen] = React.useState<string | null>();
@@ -160,6 +168,14 @@ const Profile = ({ route, navigation }: Props) => {
       });
     }
     setSwiperImages(swiperImageData);
+
+    // Video-first display properties
+    setHasVideoIntro(user.hasVideoIntro || false);
+    setVideoIntroUrl(user.videoIntroUrl);
+    setVideoIntroThumbnail(user.videoIntroThumbnail);
+    setVideoIntroDuration(user.videoIntroDuration);
+    setVideoWatchRequired(user.videoWatchRequired || false);
+    setVideoWatched(user.videoWatched || false);
 
     let intentionText = user.intention.text;
     switch (intentionText) {
@@ -321,33 +337,50 @@ const Profile = ({ route, navigation }: Props) => {
 
       <VerticalView style={{ padding: 0 }} onRefresh={load}>
         <View>
-          <SwiperFlatList
-            autoplay
-            autoplayDelay={10}
-            paginationActiveColor={colors?.primary}
-            paginationDefaultColor={colors?.secondary}
-            paginationStyleItem={{ height: 8, width: 8, marginHorizontal: 20 }}
-            autoplayLoop={true}
-            autoplayLoopKeepAnimation={true}
-            showPagination={swiperImages ? swiperImages?.length > 1 : false}
-            getItemLayout={(data, index) => (
-              { length: maxWidth, offset: maxWidth * index, index: index }
-            )}
-          >
-            {
-              swiperImages?.map((image, index) => (
-                <View key={index}>
-                  <ImageZoom
-                    uri={image}
-                    style={[style.image]}
-                    maxScale={3}
-                    doubleTapScale={2}
-                    isDoubleTapEnabled
-                  />
-                </View>
-              ))
-            }
-          </SwiperFlatList>
+          {/* Video-First Display: Show video introduction before photos */}
+          {hasVideoIntro && user?.uuid ? (
+            <View style={{ padding: 16 }}>
+              <VideoFirstDisplay
+                profileUuid={user.uuid.toString()}
+                videoUrl={videoIntroUrl}
+                thumbnailUrl={videoIntroThumbnail}
+                videoDuration={videoIntroDuration}
+                videoWatchRequired={videoWatchRequired}
+                videoWatched={videoWatched}
+                photos={swiperImages || []}
+                onVideoWatched={() => setVideoWatched(true)}
+              />
+            </View>
+          ) : (
+            /* Standard photo swiper when no video intro */
+            <SwiperFlatList
+              autoplay
+              autoplayDelay={10}
+              paginationActiveColor={colors?.primary}
+              paginationDefaultColor={colors?.secondary}
+              paginationStyleItem={{ height: 8, width: 8, marginHorizontal: 20 }}
+              autoplayLoop={true}
+              autoplayLoopKeepAnimation={true}
+              showPagination={swiperImages ? swiperImages?.length > 1 : false}
+              getItemLayout={(data, index) => (
+                { length: maxWidth, offset: maxWidth * index, index: index }
+              )}
+            >
+              {
+                swiperImages?.map((image, index) => (
+                  <View key={index}>
+                    <ImageZoom
+                      uri={image}
+                      style={[style.image]}
+                      maxScale={3}
+                      doubleTapScale={2}
+                      isDoubleTapEnabled
+                    />
+                  </View>
+                ))
+              }
+            </SwiperFlatList>
+          )}
         </View>
 
         <View style={[styles.containerProfileItem, { marginTop: 24, paddingBottom: 4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }]}>
